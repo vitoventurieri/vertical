@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy.integrate import odeint
 
 def get_input_data():
 	'''Provides the inputs for the simulation'''
@@ -91,7 +92,7 @@ def get_input_data():
 
 def run_SEIR_ODE_model(demograph_parameters, covid_parameters, model_parameters, t_max) -> pd.DataFrame:
 	'''Runs the simulation'''
-	from scipy.integrate import odeint
+
 	
 	(N, percentual_pop_idosa, capacidade_leitos, capacidade_UTIs) = demograph_parameters
 	(ErreZero, tempo_de_infecciosidade, tempo_de_incubacao,
@@ -166,7 +167,7 @@ def run_SEIR_ODE_model(demograph_parameters, covid_parameters, model_parameters,
 		dMidt = taxa_mortalidade_i * dRidt
 		dMjdt = taxa_mortalidade_j * dRjdt
 		
-		dKidt = dUiDt
+		dKidt = dUidt
 	
 		return (dSidt, dSjdt, dEidt, dEjdt, dIidt, dIjdt, dRidt, dRjdt,
 		dHidt, dHjdt, dUidt, dUjdt, dMidt, dMjdt)
