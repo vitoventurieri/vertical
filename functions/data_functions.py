@@ -59,20 +59,20 @@ def get_input_data():
         beta=contamination_rate,
         # Infectivity rate (1/day)
         gamma=infectiviy_rate,
-        # Mortality Rates, Source: min CDC
-        mortality_rate_elderly=0.034,         # old ones: 55+ years
-        mortality_rate_young=0.002,           # young ones: 0-54 years
+        # Mortality Rates, Source: Verity, et al
+        mortality_rate_elderly=0.03495,         # old ones: 60+ years
+        mortality_rate_young=0.00127,           # young ones: 0-59 years
         # Length of Stay (in days)
         los_ward=8.9,                         # regular, Source: Wuhan
         los_icu=8,                            # UTI, Source: Wuhan
         # Delay (in days)
         delay_ward=2,                         #
         delay_icu=3,                          #
-        # Internation Rate by type and age, Source: min CDC
-        internation_rate_ward_elderly=0.263,  # regular for old ones: 55+ years
-        internation_rate_icu_elderly=0.071,   # UTI for old ones: 55+ years
-        internation_rate_ward_young=0.154,    # regular for young ones: 0-54 years
-        internation_rate_icu_young=0.03       # UTI for young ones: 0-54 years
+        # Internation Rate by type and age, Source for hospitalization verity et al; Proportion those need ICU: Severe Outcomes Among Patients with Coronavirus Disease 2019 CDC
+        internation_rate_ward_elderly=0.1026,  # regular for old ones: 60+ years
+        internation_rate_icu_elderly=0.0395,   # UTI for old ones: 60+ years
+        internation_rate_ward_young=0.0209,    # regular for young ones: 0-59 years
+        internation_rate_icu_young=0.0052       # UTI for young ones: 0-59 years
     )
 
     model_parameters = namedtuple('Model_Parameters',
