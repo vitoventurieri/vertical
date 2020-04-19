@@ -25,11 +25,11 @@ def get_input_data():
     )
 
     # Basic Reproduction Number # ErreZero
-    basic_reproduction_number = 2.3     # 0.8 / 1.3 / 1.8 / 2.3 / 2.8
+    basic_reproduction_number = 2.2     # 0.8 / 1.3 / 1.8 / 2.3 / 2.8 26.&& 2.2 is from Li Q, Guan X, Wu P et al. Early Transmission Dynamics in Wuhan, China, of Novel Coronavirus–Infected Pneumonia. New England Journal of Medicine. 2020 Mar 26;382(13):1199–207. DOI: 10.1056/NEJMoa2001316.
     # Infectivity Period (in days)      # tempo_de_infecciosidade
-    infectivity_period = 10             # 5 / 7.5 / 10 / 12.5 / 15
+    infectivity_period = 10             # 5 / 7.5 / 10 / 12.5 / 15 && 3 days or 7 days	Woelfel et al22
     # Incubation Period (in days)
-    incubation_period = 5               # 1 / 2.5 / 5 / 7.5 / 10 / 12.5 / 15
+    incubation_period = 5.2               # 1 / 2.5 / 5 / 7.5 / 10 / 12.5 / 15
 
     # Variaveis de apoio
     incubation_rate = 1 / incubation_period
