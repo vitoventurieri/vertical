@@ -18,10 +18,10 @@ def get_input_data():
         # Brazilian Population
         population=210000000,             # 210 millions, 2020 forecast, Source: IBGE's app
         # Brazilian old people proportion (age: 55+)
-        population_rate_elderly=0.2,      # 20%, 2020 forecast, Source: IBGE's app
+        population_rate_elderly=0.1425,      # Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
         # Brazilian places
-        bed_ward=295083,                  # regular bed, Source: CNES, 13/04/2020
-        bed_icu=32329,                    # bed UTIs, Source: CNES, 13/04/2020
+        bed_ward=298791,                  # regular bed, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
+        bed_icu=32304,                    # bed UTIs, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
     )
 
     # Basic Reproduction Number # ErreZero
@@ -95,11 +95,11 @@ def get_input_data():
         # Scenaries for health system colapse
         lotation=(0.3, 0.5, 0.8, 1),        # 30, 50, 80, 100% capacity
         init_exposed_elderly=20000,         # initial exposed population old ones: 55+ years
-        init_exposed_young=20000,           # initial exposed population young ones: 0-54 years
-        init_infected_elderly=5520,         # initial infected population old ones: 55+ years
-        init_infected_young=10000,          # initial infected population young ones: 0-54 years
-        init_removed_elderly=3000,          # initial removed population old ones: 55+ years
-        init_removed_young=6240,            # initial removed population young ones: 0-54 years
+        init_exposed_young=20000,           # initial exposed population young ones: 0-59 years
+        init_infected_elderly= 22727 * demograph_parameters.population_rate_elderly,         # initial infected population old ones: 60+ years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)  
+        init_infected_young=22727 * (1-demograph_parameters.population_rate_elderly),          # initial infected population young ones: 0-59 years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
+        init_removed_elderly=15927 * demograph_parameters.population_rate_elderly,          # initial removed population old ones: 60+ years
+        init_removed_young=15927 * (1-demograph_parameters.population_rate_elderly),            # initial removed population young ones: 0-59 years
         t_max=2*365 	                    # number of days to run
     )
 
