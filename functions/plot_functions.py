@@ -17,7 +17,7 @@ def auxiliar_names(covid_parameters, model_parameters):
 	# Variaveis de apoio
 	# incubation_period = 1 / alpha
 	# infectiviy_period = 1 / beta
-	basic_reproduction_number = gamma / beta
+	basic_reproduction_number = beta / gamma
 	r0 = basic_reproduction_number
 	
 	omega_i = mp.contact_reduction_elderly
