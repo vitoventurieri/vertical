@@ -11,6 +11,7 @@ if __name__ == '__main__':
 
 	filename, legenda = auxiliar_names(covid_parameters, model_parameters)
 
-	results.to_csv(os.path.join(get_output_dir(), filename + '.csv'), index=False)
+	results.to_csv(os.path.join(get_output_dir(), 'results_' + filename + '.csv'), index=False)
+	#results.to_excel(os.path.join(get_output_dir(), 'results_' + filename + '.xlsx'), index=False)
 
 	plots(filename, legenda, results, demograph_parameters, model_parameters)

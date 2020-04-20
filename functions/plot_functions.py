@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from .utils import *
-
+from datetime import datetime
 
 def auxiliar_names(covid_parameters, model_parameters):
 	"""
@@ -37,7 +37,10 @@ def auxiliar_names(covid_parameters, model_parameters):
 	#pInt = ("%.1f" % pvalue[psel])[0]           # parte inteira do parametro (1 caractere)
 	#pDec = ("%.1f" % pvalue[psel])[2]           # parte decimal do parametro (1 caractere)
 	
-	filename = ('SEIR'
+	time = datetime.today()
+	time = time.strftime('%Y%m%d%H%M')
+	
+	filename = (time
 	+ '_r' + ("%.1f" % r0)[0] + '_' + ("%.1f" % r0)[2]
 	+ '__g' + ("%.1f" % gamma)[0] + '_' + ("%.1f" % gamma)[2]
 	+ '__wI' + ("%.1f" % omega_i)[0] + '_' + ("%.1f" % omega_i)[2]
@@ -66,7 +69,7 @@ def auxiliar_names(covid_parameters, model_parameters):
 def plots(filename, legenda, results, demograph_parameters, model_parameters):
 
     """
-    Makes two plots? 0) SEIR curve, 1) Hospital Demand
+    Makes two plots: 0) SEIR curve, 1) Hospital Demand
     """
 	
     N = demograph_parameters.population

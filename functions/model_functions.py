@@ -91,11 +91,11 @@ def HUM_analysis(SEIR, t, covid_parameters):
     dt = t[1] - t[0]
     for i in t[1:]:
         # Leitos Normais demandados
-        dHidt = tax_int_i * alpha * Ei[i-1] - Hi[i-1] / (los_leito + delay_leito)
-        dHjdt = tax_int_j * alpha * Ej[i-1] - Hj[i-1] / (los_leito + delay_leito)
+        dHidt = tax_int_i * alpha * Ei[i-1] - Hi[i-1] / (los_leito)
+        dHjdt = tax_int_j * alpha * Ej[i-1] - Hj[i-1] / (los_leito)
         # Leitos UTIs demandados
-        dUidt = tax_uti_i * alpha * Ei[i-1] - Ui[i-1] / (los_uti + delay_uti)
-        dUjdt = tax_uti_j * alpha * Ej[i-1] - Uj[i-1] / (los_uti + delay_uti)
+        dUidt = tax_uti_i * alpha * Ei[i-1] - Ui[i-1] / (los_uti)
+        dUjdt = tax_uti_j * alpha * Ej[i-1] - Uj[i-1] / (los_uti)
         # Removidos
         dRidt = gamma * Ii[i-1]
         dRjdt = gamma * Ij[i-1]
@@ -227,6 +227,7 @@ def health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp):
     # TimeSeries
     datelist = [d.strftime('%d/%m/%Y')
             for d in pd.date_range(datetime.today(), periods = t_max)]
+        #for d in pd.date_range(start = '26/2/2020', periods = t_max)]
 
     print('Dia em que colapsa o sistema de saude (leitos comuns): 30, 50, 80, 100% capacidade')
 
