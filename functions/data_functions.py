@@ -18,18 +18,18 @@ def get_input_data():
         # Brazilian Population
         population=210000000,             # 210 millions, 2020 forecast, Source: IBGE's app
         # Brazilian old people proportion (age: 55+)
-        population_rate_elderly=0.2,      # 20%, 2020 forecast, Source: IBGE's app
+        population_rate_elderly=0.1425,      # Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
         # Brazilian places
-        bed_ward=295083,                  # regular bed, Source: CNES, 13/04/2020
-        bed_icu=32329,                    # bed UTIs, Source: CNES, 13/04/2020
+        bed_ward=298791,                  # regular bed, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
+        bed_icu=32304,                    # bed UTIs, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
     )
 
     # Basic Reproduction Number # ErreZero
-    basic_reproduction_number = 2.3     # 0.8 / 1.3 / 1.8 / 2.3 / 2.8
+    basic_reproduction_number = 2.2     # 0.8 / 1.3 / 1.8 / 2.3 / 2.8 26.&& 2.2 is from Li Q, Guan X, Wu P et al. Early Transmission Dynamics in Wuhan, China, of Novel Coronavirus–Infected Pneumonia. New England Journal of Medicine. 2020 Mar 26;382(13):1199–207. DOI: 10.1056/NEJMoa2001316.
     # Infectivity Period (in days)      # tempo_de_infecciosidade
-    infectivity_period = 10             # 5 / 7.5 / 10 / 12.5 / 15
+    infectivity_period = 10             # 5 / 7.5 / 10 / 12.5 / 15 && 3 days or 7 days	Woelfel et al22
     # Incubation Period (in days)
-    incubation_period = 5               # 1 / 2.5 / 5 / 7.5 / 10 / 12.5 / 15
+    incubation_period = 5.2               # 1 / 2.5 / 5 / 7.5 / 10 / 12.5 / 15
 
     # Variaveis de apoio
     incubation_rate = 1 / incubation_period
@@ -59,20 +59,20 @@ def get_input_data():
         beta=contamination_rate,
         # Infectivity rate (1/day)
         gamma=infectiviy_rate,
-        # Mortality Rates, Source: min CDC
-        mortality_rate_elderly=0.034,         # old ones: 55+ years
-        mortality_rate_young=0.002,           # young ones: 0-54 years
+        # Mortality Rates, Source: Verity, et al
+        mortality_rate_elderly=0.03495,         # old ones: 60+ years
+        mortality_rate_young=0.00127,           # young ones: 0-59 years
         # Length of Stay (in days)
         los_ward=8.9,                         # regular, Source: Wuhan
         los_icu=8,                            # UTI, Source: Wuhan
         # Delay (in days)
         delay_ward=2,                         #
         delay_icu=3,                          #
-        # Internation Rate by type and age, Source: min CDC
-        internation_rate_ward_elderly=0.263,  # regular for old ones: 55+ years
-        internation_rate_icu_elderly=0.071,   # UTI for old ones: 55+ years
-        internation_rate_ward_young=0.154,    # regular for young ones: 0-54 years
-        internation_rate_icu_young=0.03       # UTI for young ones: 0-54 years
+        # Internation Rate by type and age, Source for hospitalization verity et al; Proportion those need ICU: Severe Outcomes Among Patients with Coronavirus Disease 2019 CDC
+        internation_rate_ward_elderly=0.1026,  # regular for old ones: 60+ years
+        internation_rate_icu_elderly=0.0395,   # UTI for old ones: 60+ years
+        internation_rate_ward_young=0.0209,    # regular for young ones: 0-59 years
+        internation_rate_icu_young=0.0052       # UTI for young ones: 0-59 years
     )
 
     model_parameters = namedtuple('Model_Parameters',
@@ -95,11 +95,11 @@ def get_input_data():
         # Scenaries for health system colapse
         lotation=(0.3, 0.5, 0.8, 1),        # 30, 50, 80, 100% capacity
         init_exposed_elderly=20000,         # initial exposed population old ones: 55+ years
-        init_exposed_young=20000,           # initial exposed population young ones: 0-54 years
-        init_infected_elderly=5520,         # initial infected population old ones: 55+ years
-        init_infected_young=10000,          # initial infected population young ones: 0-54 years
-        init_removed_elderly=3000,          # initial removed population old ones: 55+ years
-        init_removed_young=6240,            # initial removed population young ones: 0-54 years
+        init_exposed_young=20000,           # initial exposed population young ones: 0-59 years
+        init_infected_elderly= 22727 * demograph_parameters.population_rate_elderly,         # initial infected population old ones: 60+ years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)  
+        init_infected_young=22727 * (1-demograph_parameters.population_rate_elderly),          # initial infected population young ones: 0-59 years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
+        init_removed_elderly=15927 * demograph_parameters.population_rate_elderly,          # initial removed population old ones: 60+ years
+        init_removed_young=15927 * (1-demograph_parameters.population_rate_elderly),            # initial removed population young ones: 0-59 years
         t_max=2*365 	                    # number of days to run
     )
 
