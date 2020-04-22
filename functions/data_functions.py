@@ -16,7 +16,7 @@ def get_input_data():
 
     demograph_parameters = demograph_parameters(
         # Brazilian Population
-        population = 210000000,             # 210 millions, 2020 forecast, Source: IBGE's app
+        population = 211755692,             # 211 millions, 2020 forecast, Source: IBGE's app
         # Brazilian old people proportion (age: 60+)
         population_rate_elderly = 0.1425,      # Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
         # Brazilian places
