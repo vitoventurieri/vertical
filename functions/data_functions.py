@@ -87,20 +87,32 @@ def get_input_data():
                                    'init_removed_young',            # Rj0
                                    't_max'                          # t_max
                                    ])
-
+    I0 = 20943 # 1 # (a total of 20943 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
+    R0 = 19636 # 0 #
+    pI = demograph_parameters.population_rate_elderly # based in the proportion of elderly
+    Ii0 = I0 * pI
+    Ij0 = I0 * (1 - pI)
+    Ri0 = R0 * pI
+    Rj0 = R0 * (1 - pI)
+    E0 = basic_reproduction_number * I0
+    Ei0 = E0 * pI
+    Ej0 = E0 * (1 - pI)
+	
+    # Initial conditions will change to match deaths at the present date
+	
     model_parameters = model_parameters(
         # Social contact reduction factor
-        contact_reduction_elderly = 1.0,      # 0.2#0.4#0.6#0.8#1.0# # old ones: 60+ years
-        contact_reduction_young = 1.0,        # 0.2#0.4#0.6#0.8#1.0# # young ones: 0-59 years
+        contact_reduction_elderly = 1.0,      	# 0.2 #0.4 #0.6 #0.8 #1.0 # # old ones: 60+ years
+        contact_reduction_young = 1.0,        	# 0.2 #0.4 #0.6 #0.8 #1.0 # # young ones: 0-59 years
         # Scenaries for health system colapse
-        lotation = (0.3, 0.5, 0.8, 1),        # 30, 50, 80, 100% capacity
-        init_exposed_elderly = 20000,         # initial exposed population old ones: 60+ years
-        init_exposed_young = 20000,           # initial exposed population young ones: 0-59 years
-        init_infected_elderly = 22727 * demograph_parameters.population_rate_elderly,   #0    # initial infected population old ones: 60+ years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)  
-        init_infected_young = 22727 * (1-demograph_parameters.population_rate_elderly), #1    # initial infected population young ones: 0-59 years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
-        init_removed_elderly = 15927 * demograph_parameters.population_rate_elderly,    #0    # initial removed population old ones: 60+ years
-        init_removed_young = 15927 * (1-demograph_parameters.population_rate_elderly),  #0    # initial removed population young ones: 0-59 years
-        t_max = 2 * 365 	               # 1 * 365     # number of days to run
+        lotation = (0.3, 0.5, 0.8, 1),        	# 30, 50, 80, 100% capacity
+        init_exposed_elderly = Ei0,    		# initial exposed population old ones: 60+ years
+        init_exposed_young = Ej0,       	# initial exposed population young ones: 0-59 years
+        init_infected_elderly = Ii0,    	# initial infected population old ones: 60+ years 
+        init_infected_young = Ij0,      	# initial infected population young ones: 0-59 years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
+        init_removed_elderly = Ri0,        	# initial removed population old ones: 60+ years
+        init_removed_young = Rj0,           	# initial removed population young ones: 0-59 years
+        t_max = 1 * 365   # 2 * 365 #	        # number of days to run
     )
 
     return demograph_parameters, covid_parameters, model_parameters

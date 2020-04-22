@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
-
+from scipy.integrate import odeint
 
 # The SEIR model differential equations.
 def Euler(SEIR_0, t, params):
@@ -165,9 +165,9 @@ def run_SEIR_ODE_model(demograph_parameters, covid_parameters, model_parameters)
     # PARAMETROS PARA CALCULAR DERIVADAS
     args = (N, alpha, beta, gamma, omega_i, omega_j)
 
-    # Integrate the SIR equations over the time grid, t
-    # ret = odeint(deriv, y0, t, args)
     # Integrate the SEIR equations over the time grid, t
+    # ret = odeint(derivSEIR, SEIR_0, t, args)
+    # Calculate the variables by Euler Semi Implicit Method
     ret = Euler(SEIR_0, t, args)
     # Update the variables
     Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj = ret.T
@@ -178,11 +178,12 @@ def run_SEIR_ODE_model(demograph_parameters, covid_parameters, model_parameters)
 
     Hi, Hj, Ui, Uj, Mi, Mj = HUM
 
-    print(Hi[:10])
-    print(max(Mi))
-    print(max(Mj))
+    #print(Hi[:10])
+    print('Maximo de obitos idosos em um unico dia: %d' % max(Mi))
+    print('Maximo de obitos jovens em um unico dia: %d' % max(Mj))
+    print('Total de obitos: %d' % sum(Mi + Mj))
 
-    # health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp)
+    health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp)
 
     df = pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej, 'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
                        'Hi': Hi, 'Hj': Hj, 'Ui': Ui, 'Uj': Uj, 'Mi': Mi, 'Mj': Mj}, index=t)
@@ -214,6 +215,7 @@ def health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp):
     dia_colapso_leitos_100 = np.min(np.where(H > capacidade_leitos*lotacao[3]))
     dia_colapso_leitos = (dia_colapso_leitos_30, dia_colapso_leitos_50,
                           dia_colapso_leitos_80, dia_colapso_leitos_100)
+    print('Dias para atingir 30, 50, 80, 100% da capacidade de leitos comuns')
     print(dia_colapso_leitos)
 
     dia_colapso_UTIs_30  = np.min(np.where(U > capacidade_UTIs*lotacao[0]))
@@ -222,6 +224,7 @@ def health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp):
     dia_colapso_UTIs_100 = np.min(np.where(U > capacidade_UTIs*lotacao[3]))
     dia_colapso_UTIs = (dia_colapso_UTIs_30, dia_colapso_UTIs_50,
                         dia_colapso_UTIs_80,dia_colapso_UTIs_100)
+    print('Dias para atingir 30, 50, 80, 100% da capacidade de UTIs')
     print(dia_colapso_UTIs)
 
     # TimeSeries
@@ -229,16 +232,35 @@ def health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp):
             for d in pd.date_range(datetime.today(), periods = t_max)]
         #for d in pd.date_range(start = '26/2/2020', periods = t_max)]
 
-    print('Dia em que colapsa o sistema de saude (leitos comuns): 30, 50, 80, 100% capacidade')
+    print('Dia em que atinge 30, 50, 80, 100% capacidade de leitos comuns')
 
     print(datelist[dia_colapso_leitos[0]])
     print(datelist[dia_colapso_leitos[1]])
     print(datelist[dia_colapso_leitos[2]])
     print(datelist[dia_colapso_leitos[3]])
 
-    print('Dia em que colapsa o sistema de saude (UTI): 30, 50, 80, 100% capacidade')
+    print('Dia em que atinge 30, 50, 80, 100% capacidade de UTIs')
 
     print(datelist[dia_colapso_UTIs[0]])
     print(datelist[dia_colapso_UTIs[1]])
     print(datelist[dia_colapso_UTIs[2]])
     print(datelist[dia_colapso_UTIs[3]])
+
+def derivSEIR(SEIR, t, N, alpha, beta, gamma, omega_i, omega_j):
+    """
+    Calculate the derivatives for the odeint function
+    """
+    # Vetor variaveis incognitas
+    Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj = SEIR
+    
+    dSidt = - beta * omega_i * Si * (Ii + Ij) / N
+    dSjdt = - beta * omega_j * Sj * (Ii + Ij) / N
+    dEidt = - dSidt - alpha * Ei
+    dEjdt = - dSjdt - alpha * Ej
+    dIidt = alpha * Ei - gamma * Ii
+    dIjdt = alpha * Ej - gamma * Ij
+    dRidt = gamma * Ii
+    dRjdt = gamma * Ij
+    
+    return dSidt, dSjdt, dEidt, dEjdt, dIidt, dIjdt, dRidt, dRjdt
+	
