@@ -1,6 +1,7 @@
 from functions.data_functions import get_input_data
 from functions.model_functions import run_SEIR_ODE_model
 from functions.plot_functions import auxiliar_names, plots
+from functions.report_functions import generate_report
 from functions.utils import *
 
 if __name__ == '__main__':
@@ -11,6 +12,8 @@ if __name__ == '__main__':
 
 	filename, legenda = auxiliar_names(covid_parameters, model_parameters)
 
+	report = generate_report(results)
+	report.to_excel(os.path.join(get_output_dir(), 'report_' + filename + '.xlsx'), index=False)
 	#results.to_csv(os.path.join(get_output_dir(), 'results_' + filename + '.csv'), index=False)
 	results.to_excel(os.path.join(get_output_dir(), 'results_' + filename + '.xlsx'), index=False)
 
