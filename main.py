@@ -4,17 +4,22 @@ from functions.plot_functions import auxiliar_names, plots
 from functions.report_functions import generate_report
 from functions.utils import *
 
+import os 
+
 if __name__ == '__main__':
 
 	demograph_parameters, covid_parameters, model_parameters = get_input_data()
 
 	results = run_SEIR_ODE_model(demograph_parameters, covid_parameters, model_parameters)
+	report = generate_report(results, model_parameters)
 
-	filename, legenda = auxiliar_names(covid_parameters, model_parameters)
-
-	report = generate_report(results)
-	
+	filename = auxiliar_names(covid_parameters, model_parameters)
 	report.to_excel(os.path.join(get_output_dir(), 'report_' + filename + '.xlsx'), index=False)
-	results.to_excel(os.path.join(get_output_dir(), 'results_' + filename + '.xlsx'), index=False)
+	results.to_excel(os.path.join(get_output_dir(), 'results_' + filename + '.xlsx'), index=False) 
+	
+	plot_dir = os.path.join(get_output_dir(), f"{filename}_plots")
 
-	plots(filename, legenda, results, demograph_parameters, model_parameters)
+	if not os.path.exists(plot_dir):
+		os.makedirs(plot_dir)
+
+	plots(results,demograph_parameters, model_parameters, plot_dir)
