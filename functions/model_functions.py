@@ -159,39 +159,43 @@ def run_SEIR_ODE_model(demograph_parameters, covid_parameters, model_parameters)
     beta = cp.beta
     gamma = cp.gamma
 
-    omega_i = mp.contact_reduction_elderly
-    omega_j = mp.contact_reduction_young
+    df = pd.DataFrame()
 
-    # PARAMETROS PARA CALCULAR DERIVADAS
-    args = (N, alpha, beta, gamma, omega_i, omega_j)
+    for omega_i in mp.contact_reduction_elderly:
+        for omega_j in mp.contact_reduction_young:
 
-    # Integrate the SEIR equations over the time grid, t
-    # ret = odeint(derivSEIR, SEIR_0, t, args)
-    # Calculate the variables by Euler Semi Implicit Method
-    ret = Euler(SEIR_0, t, args)
-    # Update the variables
-    Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj = ret.T
-    SEIR = Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj
+            # PARAMETROS PARA CALCULAR DERIVADAS
+            args = (N, alpha, beta, gamma, omega_i, omega_j)
 
-    # POST PROCESS to obtain the hospital demand (ward and ICUs) and deaths
-    HUM = HUM_analysis(SEIR, t, cp)
+            # Integrate the SEIR equations over the time grid, t
+            # ret = odeint(derivSEIR, SEIR_0, t, args)
+            # Calculate the variables by Euler Semi Implicit Method
+            ret = Euler(SEIR_0, t, args)
+            # Update the variables
+            Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj = ret.T
+            SEIR = Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj
 
-    Hi, Hj, Ui, Uj, Mi, Mj = HUM
+            # POST PROCESS to obtain the hospital demand (ward and ICUs) and deaths
+            HUM = HUM_analysis(SEIR, t, cp)
 
-    #print(Hi[:10])
-    print('Maximo de obitos idosos em um unico dia: %d' % max(Mi))
-    print('Maximo de obitos jovens em um unico dia: %d' % max(Mj))
-    print('Total de obitos: %d' % sum(Mi + Mj))
+            Hi, Hj, Ui, Uj, Mi, Mj = HUM
 
-    health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp)
+            #print(Hi[:10])
+            print(f'Maximo de obitos idosos em um unico dia (omega_j = {omega_j}): {max(Mi)}')
+            print(f'Maximo de obitos jovens em um unico dia (omega_i = {omega_i}): {max(Mj)}')
+            print('Total de obitos: %d' % sum(Mi + Mj))
 
-    df = pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej, 'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
-                       'Hi': Hi, 'Hj': Hj, 'Ui': Ui, 'Uj': Uj, 'Mi': Mi, 'Mj': Mj}, index=t)
+            health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp, omega_i, omega_j)
 
+            df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej, 'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
+                                'Hi': Hi, 'Hj': Hj, 'Ui': Ui, 'Uj': Uj, 'Mi': Mi, 'Mj': Mj}, index=t)
+                            .assign(omega_i=omega_i)
+                            .assign(omega_j=omega_j))
+
+    
     return df
 
-
-def health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp):
+def health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp, omega_i, omega_j):
     """
     Performs a post_processing analysis,
     forecast the date to a load of the health system for 30,50,80,100 %
@@ -204,47 +208,65 @@ def health_system_colapse_identifier(Hi, Hj, Ui, Uj, dp, mp):
     capacidade_UTIs = dp.bed_icu
 
     lotacao = mp.lotation
-
     t_max = mp.t_max
 
     # IDENTIFICADOR DE DIAS DE COLAPSOS
     # Dia em que colapsa o sistema de saude: 30, 50, 80, 100% capacidade
-    dia_colapso_leitos_30  = np.min(np.where(H > capacidade_leitos*lotacao[0]))
-    dia_colapso_leitos_50  = np.min(np.where(H > capacidade_leitos*lotacao[1]))
-    dia_colapso_leitos_80  = np.min(np.where(H > capacidade_leitos*lotacao[2]))
-    dia_colapso_leitos_100 = np.min(np.where(H > capacidade_leitos*lotacao[3]))
-    dia_colapso_leitos = (dia_colapso_leitos_30, dia_colapso_leitos_50,
-                          dia_colapso_leitos_80, dia_colapso_leitos_100)
-    print('Dias para atingir 30, 50, 80, 100% da capacidade de leitos comuns')
-    print(dia_colapso_leitos)
+    
+    datelist = [d.strftime('%d/%m/%Y')
+                for d in pd.date_range(datetime.today(), periods = t_max)]
 
-    dia_colapso_UTIs_30  = np.min(np.where(U > capacidade_UTIs*lotacao[0]))
-    dia_colapso_UTIs_50  = np.min(np.where(U > capacidade_UTIs*lotacao[1]))
-    dia_colapso_UTIs_80  = np.min(np.where(U > capacidade_UTIs*lotacao[2]))
-    dia_colapso_UTIs_100 = np.min(np.where(U > capacidade_UTIs*lotacao[3]))
-    dia_colapso_UTIs = (dia_colapso_UTIs_30, dia_colapso_UTIs_50,
-                        dia_colapso_UTIs_80,dia_colapso_UTIs_100)
-    print('Dias para atingir 30, 50, 80, 100% da capacidade de UTIs')
-    print(dia_colapso_UTIs)
+    for lotacao_nivel in lotacao:
+        
+        dias_lotacao, = np.where(H > capacidade_leitos*lotacao_nivel)
+
+        if dias_lotacao.size == 0:
+            print(f'Não atingiu lotacao com {lotacao_nivel*100}% de capacidade dos leitos comuns (omega_i = {omega_i} e omega_j = {omega_j})')
+        else:
+            inicio_lotacao =  np.min(dias_lotacao)
+            print(f"{inicio_lotacao} dias para atingir {lotacao_nivel*100}% de capacidade dos leitos comuns (omega_i = {omega_i} e omega_j = {omega_j})."
+                  f" Dia: {datelist[inicio_lotacao]}")
+
+    
+    for lotacao_nivel in lotacao:
+
+        dias_lotacao, = np.where(H > capacidade_UTIs*lotacao_nivel)
+
+        if dias_lotacao.size == 0:
+            print(f'Não atingiu lotacao com {lotacao_nivel*100}% de capacidade das UTIs (omega_i = {omega_i} e omega_j = {omega_j})')
+        else:
+            inicio_lotacao =  np.min(dias_lotacao)
+            print(f"{inicio_lotacao} dias para atingir {lotacao_nivel*100}% de capacidade da UTI (omega_i = {omega_i} e omega_j = {omega_j})."
+                  f" Dia: {datelist[inicio_lotacao]}")
+
+    # dia_colapso_UTIs_30  = np.min(np.where(U > capacidade_UTIs*lotacao[0]))
+    # dia_colapso_UTIs_50  = np.min(np.where(U > capacidade_UTIs*lotacao[1]))
+    # dia_colapso_UTIs_80  = np.min(np.where(U > capacidade_UTIs*lotacao[2]))
+    # dia_colapso_UTIs_100 = np.min(np.where(U > capacidade_UTIs*lotacao[3]))
+    # dia_colapso_UTIs = (dia_colapso_UTIs_30, dia_colapso_UTIs_50,
+    #                     dia_colapso_UTIs_80,dia_colapso_UTIs_100)
+
+    # print('Dias para atingir 30, 50, 80, 100% da capacidade de UTIs')
+    # print(dia_colapso_UTIs)
 
     # TimeSeries
-    datelist = [d.strftime('%d/%m/%Y')
-            for d in pd.date_range(datetime.today(), periods = t_max)]
-        #for d in pd.date_range(start = '26/2/2020', periods = t_max)]
+    # datelist = [d.strftime('%d/%m/%Y')
+    #         for d in pd.date_range(datetime.today(), periods = t_max)]
+    #     #for d in pd.date_range(start = '26/2/2020', periods = t_max)]
 
-    print('Dia em que atinge 30, 50, 80, 100% capacidade de leitos comuns')
+    # print('Dia em que atinge 30, 50, 80, 100% capacidade de leitos comuns')
 
-    print(datelist[dia_colapso_leitos[0]])
-    print(datelist[dia_colapso_leitos[1]])
-    print(datelist[dia_colapso_leitos[2]])
-    print(datelist[dia_colapso_leitos[3]])
+    # print(datelist[dia_colapso_leitos[0]])
+    # print(datelist[dia_colapso_leitos[1]])
+    # print(datelist[dia_colapso_leitos[2]])
+    # print(datelist[dia_colapso_leitos[3]])
 
-    print('Dia em que atinge 30, 50, 80, 100% capacidade de UTIs')
+    # print('Dia em que atinge 30, 50, 80, 100% capacidade de UTIs')
 
-    print(datelist[dia_colapso_UTIs[0]])
-    print(datelist[dia_colapso_UTIs[1]])
-    print(datelist[dia_colapso_UTIs[2]])
-    print(datelist[dia_colapso_UTIs[3]])
+    # print(datelist[dia_colapso_UTIs[0]])
+    # print(datelist[dia_colapso_UTIs[1]])
+    # print(datelist[dia_colapso_UTIs[2]])
+    # print(datelist[dia_colapso_UTIs[3]])
 
 def derivSEIR(SEIR, t, N, alpha, beta, gamma, omega_i, omega_j):
     """
