@@ -1,7 +1,6 @@
 import pandas as pd
 
-CAPACITY_ICU = 32304
-CAPACITY_WARD = 298791
+
 
 def peak_capacity(results, capacity, column):
 
@@ -20,7 +19,8 @@ def generate_report(results, model_parameters):
         .assign(UTI=results['Ui'] + results['Uj']))
     
     report = []
-
+    CAPACITY_ICU = model_parameters.bed_icu #32304
+    CAPACITY_WARD = model_parameters.bed_ward #298791
 
     for omega_i in model_parameters.contact_reduction_elderly:
         for omega_j in model_parameters.contact_reduction_young:
@@ -36,8 +36,8 @@ def generate_report(results, model_parameters):
                     'capacidade_icu': capacity_icu,
                     'duracao_pico_enfemaria': peak_capacity(results_filtered_omega, capacity_ward, 'hospitalizados'),
                     'duracao_pico_uti': peak_capacity(results_filtered_omega, capacity_icu, 'UTI'),
-                    'mortes_jovens': round(results_filtered_omega['Mj'].sum()),
-                    'mortes_idosos': round(results_filtered_omega['Mi'].sum()),
+                    'mortes_jovens': round(results_filtered_omega['Mj'].max()),
+                    'mortes_idosos': round(results_filtered_omega['Mi'].max()),
                     'pico_necessidade_enfermaria_idosos': round(results_filtered_omega['Hi'].max()),
                     'pico_necessidade_enfermaria_jovens': round(results_filtered_omega['Hj'].max()),
                     'pico_necessidade_enfermaria': round(results_filtered_omega['hospitalizados'].max()),

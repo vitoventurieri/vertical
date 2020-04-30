@@ -7,23 +7,7 @@ def get_input_data():
     :return: tuples for the demograph_parameters, covid_parameters and model_parameters
     """
 
-    demograph_parameters = namedtuple('Demograph_Parameters',
-                                      ['population',                # N
-                                       'population_rate_elderly',   # percentual_pop_idosa
-                                       'bed_ward',                  # capacidade_leitos
-                                       'bed_icu'                    # capacidade_UTIs
-                                       ])
-
-    demograph_parameters = demograph_parameters(
-        # Brazilian Population
-        population = 211755692,             # 211 millions, 2020 forecast, Source: IBGE's app
-        # Brazilian old people proportion (age: 60+)
-        population_rate_elderly = 0.1425,      # Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
-        # Brazilian places
-        bed_ward = 298791,                  # bed ward, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
-        bed_icu = 32304,                    # bed ICUs, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
-    )
-
+ 
     # Basic Reproduction Number # ErreZero
     basic_reproduction_number = 2.2     # 0.8 / 1.3 / 1.8 / 2.3 / 2.8 26.&& 2.2 is from Li Q, Guan X, Wu P et al. Early Transmission Dynamics in Wuhan, China, of Novel Coronavirus–Infected Pneumonia. New England Journal of Medicine. 2020 Mar 26;382(13):1199–207. DOI: 10.1056/NEJMoa2001316.
     # Infectivity Period (in days)      # tempo_de_infecciosidade
@@ -85,11 +69,15 @@ def get_input_data():
                                    'init_infected_young',           # Ij0
                                    'init_removed_elderly',          # Ri0
                                    'init_removed_young',            # Rj0
-                                   't_max'                          # t_max
+                                   't_max',                         # t_max
+								   'population',                	# N
+                                   'population_rate_elderly',   	# percentual_pop_idosa
+                                   'bed_ward',                  	# capacidade_leitos
+                                   'bed_icu'                    	# capacidade_UTIs
                                    ])
     I0 = 20943 # 1 # (a total of 20943 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
     R0 = 19636 # 0 #
-    pI = demograph_parameters.population_rate_elderly # based in the proportion of elderly
+    pI = 0.1425 # Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
     Ii0 = I0 * pI
     Ij0 = I0 * (1 - pI)
     Ri0 = R0 * pI
@@ -101,18 +89,25 @@ def get_input_data():
     # Initial conditions will change to match deaths at the present date
 	
     model_parameters = model_parameters(
-        # Social contact reduction factor
-        contact_reduction_elderly = (1., .8, .6, .4, .2), # 0.2 #0.4 #0.6 #0.8 #1.0 # # young ones: 0-59 years
-        contact_reduction_young = (1., .8, .6, .4, .2), # 0.2 #0.4 #0.6 #0.8 #1.0 # # old ones: 60+ years	
-        # Scenaries for health system colapse
-        lotation = (0.3, 0.5, 0.8, 1),        	# 30, 50, 80, 100% capacity
-        init_exposed_elderly = Ei0,    		# initial exposed population old ones: 60+ years
-        init_exposed_young = Ej0,       	# initial exposed population young ones: 0-59 years
-        init_infected_elderly = Ii0,    	# initial infected population old ones: 60+ years 
-        init_infected_young = Ij0,      	# initial infected population young ones: 0-59 years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
-        init_removed_elderly = Ri0,        	# initial removed population old ones: 60+ years
-        init_removed_young = Rj0,           	# initial removed population young ones: 0-59 years
-        t_max = 1 * 365   # 2 * 365 #	        # number of days to run
+		# Social contact reduction factor
+		contact_reduction_elderly = (1., .8, .6, .4, .2), # 0.2 #0.4 #0.6 #0.8 #1.0 # # young ones: 0-59 years
+		contact_reduction_young = (1., .8, .6, .4, .2), # 0.2 #0.4 #0.6 #0.8 #1.0 # # old ones: 60+ years	
+		# Scenaries for health system colapse
+		lotation = (0.3, 0.5, 0.8, 1),        	# 30, 50, 80, 100% capacity
+		init_exposed_elderly = Ei0,    		# initial exposed population old ones: 60+ years
+		init_exposed_young = Ej0,       	# initial exposed population young ones: 0-59 years
+		init_infected_elderly = Ii0,    	# initial infected population old ones: 60+ years 
+		init_infected_young = Ij0,      	# initial infected population young ones: 0-59 years (based in the proportion of elderly of a total of 22727 cases in the last 10 days within a total of 38654 cumulative confirmed cases in 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
+		init_removed_elderly = Ri0,        	# initial removed population old ones: 60+ years
+		init_removed_young = Rj0,           	# initial removed population young ones: 0-59 years
+		t_max = 1 * 365,   # 2 * 365 #	        # number of days to run
+		# Brazilian Population
+		population = 211755692,             # 211 millions, 2020 forecast, Source: IBGE's app
+		# Brazilian old people proportion (age: 60+)
+		population_rate_elderly = pI,      # Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
+		# Brazilian places
+		bed_ward = 298791,                  # bed ward, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
+		bed_icu = 32304                    # bed ICUs, Source: CNES, 19/04/2020 http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
     )
 
-    return demograph_parameters, covid_parameters, model_parameters
+    return covid_parameters, model_parameters
