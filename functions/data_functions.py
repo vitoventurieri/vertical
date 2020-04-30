@@ -4,7 +4,7 @@ from collections import namedtuple
 def get_input_data():
     """
     Provides the inputs for the simulation
-    :return: tuples for the demograph_parameters, covid_parameters and model_parameters
+    :return: tuples for the covid_parameters and model_parameters
     """
 
  
