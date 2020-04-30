@@ -8,9 +8,9 @@ import os
 
 if __name__ == '__main__':
 
-	demograph_parameters, covid_parameters, model_parameters = get_input_data()
+	covid_parameters, model_parameters = get_input_data()
 
-	results = run_SEIR_ODE_model(demograph_parameters, covid_parameters, model_parameters)
+	results = run_SEIR_ODE_model(covid_parameters, model_parameters)
 	report = generate_report(results, model_parameters)
 
 	filename = auxiliar_names(covid_parameters, model_parameters)
@@ -22,4 +22,4 @@ if __name__ == '__main__':
 	if not os.path.exists(plot_dir):
 		os.makedirs(plot_dir)
 
-	plots(results,demograph_parameters, model_parameters, plot_dir)
+	plots(results, model_parameters, plot_dir)
