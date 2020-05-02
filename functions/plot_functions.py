@@ -48,15 +48,15 @@ def auxiliar_names(covid_parameters, model_parameters):
     return filename
 
 
-def plots(results, demograph_parameters, model_parameters, plot_dir):
+def plots(results, model_parameters, plot_dir):
 
     """
     Makes two plots: 0) SEIR curve, 1) Hospital Demand
     """
     
-    N = demograph_parameters.population
-    capacidade_leitos = demograph_parameters.bed_ward
-    capacidade_UTIs = demograph_parameters.bed_icu
+    N = model_parameters.population
+    capacidade_leitos = model_parameters.bed_ward
+    capacidade_UTIs = model_parameters.bed_icu
 
     lotacao = model_parameters.lotation
     omegas_i = model_parameters.contact_reduction_elderly
