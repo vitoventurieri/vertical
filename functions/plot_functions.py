@@ -4,6 +4,19 @@ from datetime import datetime
 import numpy as np
 import matplotlib as mpl
 
+import pandas as pd
+import matplotlib.dates as mdates
+from matplotlib.ticker import FuncFormatter
+
+def number_formatter(number, pos=None):
+    """Convert a number into a human readable format."""
+    magnitude = 0
+    while abs(number) >= 1000:
+        magnitude += 1
+        number /= 1000.0
+    return '%.1f%s' % (number, ['', 'K', 'M', 'B', 'T', 'Q'][magnitude])
+
+
 
 
 def auxiliar_names(covid_parameters, model_parameters):
@@ -90,8 +103,8 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
 	cor = ['b','r','k','g','y','m']     # Line Colors
 	ls = ['-.', '-']                    # Line Style
-	leg_loc = 'upper left' # 'upper right' # 'upper left' #
-	filetype = '.pdf'      # '.pdf' # '.png' #
+	leg_loc = 'best' # 'upper right' # 'upper left' #
+	filetype = '.pdf'      # '.pdf' # '.png' # '.svg' #
     
 	
 	def format_float(float_number, precision=2):
@@ -166,7 +179,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 			
 			r0 = covid_parameters.beta / covid_parameters.gamma
 			r0min = r0[0]
-			r0max = r0[len(results) - 1]
+			r0max = r0[len(results)-1]
          
 			for ii in range(len(results)):
 				a = (r0[ii] - r0min) / (r0max - r0min)
@@ -183,7 +196,8 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 			sm = plt.cm.ScalarMappable(cmap=mymap, 
                                        norm=plt.Normalize(vmin=r0min, vmax=r0max))
 			cbar = plt.colorbar(sm)
-			cbar.set_label('Basic Reproduction Number', rotation = 90, fontsize=fsLabelTitle)
+			cbar.set_label('Basic Reproduction Number', 
+                  rotation = 90, fontsize=fsLabelTitle)
 			
 			plt.savefig(os.path.join(plot_dir,
 								"I_" + filename + 'VariosR0' + filetype))
@@ -214,6 +228,10 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
 			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
 			plt.ylabel(main_label_y, fontsize=fsLabelTitle)		
+			ax = plt.gca()
+			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
+            
+            
 			plt.savefig(os.path.join(plot_dir, "I_no_vert_horiz_isol" + filetype))
 		
 		
@@ -226,10 +244,10 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 			if (IC_analysis == 1): # CONFIDENCE INTERVAL
 				plt.plot(t_space,
 					np.quantile(Ii, 0.5, axis=0),
-					ls[0], color = cor[0])
+					ls[0], color = cor[0], label = 'Elderly')
 				plt.plot(t_space,
 					np.quantile(Ij, 0.5, axis=0),
-					ls[1], color = cor[1])
+					ls[1], color = cor[1], label = 'Young')
 		
 				plt.fill_between(t_space,
 					np.quantile(Ii, 0.05, axis = 0), 
@@ -244,10 +262,12 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 					plt.plot(t_space, Ij, ls[1], color = cor[1])
 		
 			plt.title(main_title, fontsize=fsLabelTitle)
-			plt.legend(['Elderly', 'Young'],
-				loc = leg_loc, fontsize=fsPlotLegend)
+			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
 			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
 			plt.ylabel(main_label_y, fontsize=fsLabelTitle)
+
+			ax = plt.gca()
+			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
 			
 			plt.savefig(os.path.join(plot_dir, "Iey_" + filename  + filetype))
 		
@@ -258,10 +278,14 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 		
 		
 			if (IC_analysis == 1): # CONFIDENCE INTERVAL
-				plt.plot(t_space, np.quantile(Hj, 0.5, axis=0), ls[1], color = cor[1])
-				plt.plot(t_space, np.quantile(Hi, 0.5, axis=0), ls[0], color = cor[0])
-				plt.plot(t_space, np.quantile(Ui, 0.5, axis=0), ls[0], color = cor[2])
-				plt.plot(t_space, np.quantile(Uj, 0.5, axis=0), ls[1], color = cor[3])
+				plt.plot(t_space, np.quantile(Hj, 0.5, axis=0), 
+                         ls[1], color = cor[1], label = 'Ward for Elderly')
+				plt.plot(t_space, np.quantile(Hi, 0.5, axis=0), 
+                         ls[0], color = cor[0], label = 'Ward for Young')
+				plt.plot(t_space, np.quantile(Ui, 0.5, axis=0),
+                         ls[0], color = cor[2], label = 'ICU for Elderly')
+				plt.plot(t_space, np.quantile(Uj, 0.5, axis=0),
+                         ls[1], color = cor[3], label = 'ICU for Young')
 		
 				plt.fill_between(t_space,
 					np.quantile(Hi, 0.05, axis=0), 
@@ -288,11 +312,13 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 		
 		
 			plt.title(main_title, fontsize=fsLabelTitle)
-			plt.legend(['Ward for Elderly', 'Ward for Young',
-								'ICU for Elderly','ICU for Young'],
-								loc = leg_loc, fontsize=fsPlotLegend)
+			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
 			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
-			plt.ylabel('Bed Demand', fontsize=fsLabelTitle)		
+			plt.ylabel('Bed Demand', fontsize=fsLabelTitle)
+            
+			ax = plt.gca()
+			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))            
+            
 			plt.savefig(os.path.join(plot_dir, "HUey_" + filename  + filetype))
 		
 		
@@ -304,10 +330,10 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 			if (IC_analysis == 1): # CONFIDENCE INTERVAL
 				plt.plot(t_space,
 					np.quantile(Mi, 0.5, axis=0),
-					ls[0], color = cor[0] )
+					ls[0], color = cor[0], label = 'Elderly')
 				plt.plot(t_space,
 					np.quantile(Mj, 0.5, axis=0),
-					ls[1], color = cor[1] )
+					ls[1], color = cor[1], label = 'Young')
 		
 				plt.fill_between(t_space,
 					np.quantile(Mi, 0.05, axis=0), 
@@ -322,11 +348,14 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 				plt.plot(t_space, Mj, ls[1], color = cor[1])
 		
 			plt.title(main_title, fontsize=fsLabelTitle)
-			plt.legend(['Elderly', 'Young'],
-				loc = leg_loc, fontsize=fsPlotLegend)
+			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
 			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
 			plt.ylabel('Deceased people', fontsize=fsLabelTitle)
-			# ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+			
+			ax = plt.gca()
+			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))            
+            
+            # ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
 			plt.savefig(os.path.join(plot_dir, "Mey_" + filename  + filetype))
 		
 				
@@ -357,3 +386,93 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 #		plt.xlabel('Dias', fontsize=fsLabelTitle)
 #		plt.ylabel('Leitos', fontsize=fsLabelTitle)
 #		plt.savefig(os.path.join(plot_dir, "HU_" + filename + ".png"))    
+
+
+
+
+
+
+
+
+			startdate = model_parameters.startdate
+			if ((IC_analysis == 1) and (not startdate == 0) and (i == 0) ):
+				dfMS = model_parameters.dfMS
+				state_name = model_parameters.state_name
+				data_sim = pd.to_datetime(t_space, unit='D',
+				           origin=pd.Timestamp(startdate))
+                # data_sim = pd.date_range(start=startdate, periods=t_max, freq='D')
+				
+                # OBITOS - IDOSOS E JOVENS
+				plt.figure(11, figsize = tamfig)
+				plt.style.use(fig_style)
+				
+				plt.plot(data_sim, np.quantile(Mi + Mj, 0.5, axis=0),
+                         ls[0], color = cor[0], label = 'Model')
+				plt.plot(dfMS['data'], dfMS['obitosAcumulado'],
+    				     ls[1], color = cor[1], label = 'Reported Data')
+					
+				plt.fill_between(data_sim,
+				np.quantile(Mi + Mj, 0.05, axis=0), 
+				np.quantile(Mi + Mj, 0.95, axis=0).clip(Mi[0,0]),
+				color = cor[0], alpha=0.2)
+				
+				ax = plt.gca()
+				ax.xaxis.set_major_locator(mdates.DayLocator(interval=14))
+				ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+				plt.gcf().autofmt_xdate() # Rotation
+				ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
+                
+                
+				r0 = model_parameters.r0_fit
+                
+				title_fit = ('r0 = (' + ("%.1f" % r0[0])
+                            + ', ' + ("%.1f" % r0[1]) + ') @' 
+                            + pd.to_datetime((startdate), format='%Y-%m-%d').
+                                strftime('%d/%m/%Y')
+                            + ' - ' + state_name)
+         
+				plt.title(title_fit, fontsize=fsLabelTitle)
+				plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
+				plt.xlabel('Date', fontsize=fsLabelTitle)
+				plt.ylabel('Deceased people', fontsize=fsLabelTitle)
+				plt.savefig(os.path.join(plot_dir,
+                             "Fit_" + state_name + "_M" + filetype))
+
+                # OBITOS - IDOSOS E JOVENS
+				plt.figure(12, figsize = tamfig)
+				plt.style.use(fig_style)
+				
+				plt.plot(data_sim, np.quantile(Ii + Ij, 0.5, axis=0),
+                         ls[0], color = cor[0], label = 'Model')
+				
+				plt.plot(dfMS['data'], dfMS['casosAcumulado'],
+                         ls[1], color = cor[1], label = 'Reported Data')
+					
+				plt.fill_between(data_sim,
+				np.quantile(Ii + Ij, 0.05, axis=0), 
+				np.quantile(Ii + Ij, 0.95, axis=0).clip(Mi[0,0]),
+				color = cor[0], alpha=0.2)
+				
+				ax = plt.gca()
+				ax.xaxis.set_major_locator(mdates.DayLocator(interval=14))
+				ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+				plt.gcf().autofmt_xdate() # Rotation
+				
+				ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
+                
+				plt.title(title_fit, fontsize=fsLabelTitle)
+				plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
+				plt.xlabel('Date', fontsize=fsLabelTitle)
+				plt.ylabel('Infected people', fontsize=fsLabelTitle)
+				plt.savefig(os.path.join(plot_dir,
+                             "Fit_" + state_name + "_I" + filetype))
+
+
+
+
+
+
+
+
+
+
