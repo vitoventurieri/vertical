@@ -82,9 +82,9 @@ obs: 80% ARBITRÁRIO
     
     
     # INPUT
-	state_name = 'São Paulo (UF)' # 'Pernambuco' #'Brasil' # 'Santa Catarina' # 
+	state_name = 'Rio de Janeiro (UF)' # 'Pernambuco' #'Brasil' # 'Santa Catarina' # 
 	metodo = "subreport" # "fator_verity" # 
-	sub_report = 12	
+	sub_report = 10	
     
 	# IMPORT DATA
 	url = 'https://github.com/viniciusriosfuck/vertical/blob/fit_reported_data/HIST_PAINEL_COVIDBR_29mai2020.xlsx?raw=true'
@@ -124,7 +124,11 @@ obs: 80% ARBITRÁRIO
 	    # population = 210_147_125
 	    sub_report = 8        
         # https://www1.folha.uol.com.br/equilibrioesaude/2020/04/brasil-tem-maior-taxa-de-contagio-por-coronavirus-do-mundo-aponta-estudo.shtml
-	
+	elif state_name == 'Rio de Janeiro (UF)':
+	    startdate = '2020-03-23' #
+	    r0 = (1.28, 1.60) # (1.15, 1.32) # (3.4, 5.3) # Imperial College 21
+	    # coduf = 
+	    # population = 17_264_943	
     
     
 	states_set = states[states['state_name'] == state_name ]
@@ -144,7 +148,7 @@ obs: 80% ARBITRÁRIO
 	
 	# IDENTIFY 13 DAYS AGO
 	# Hypothesis: one takes 13 days to recover
-	backdate = pd.to_datetime(startdate) - pd.DateOffset(days=13)
+	backdate = pd.to_datetime(startdate) - pd.DateOffset(days=3)
 	#backdate = pd.to_datetime(backdate.date())#pd.to_datetime(backdate).dt.date#.normalize()
 	# DECEASED
 	M0 = dfMS['obitosAcumulado'][dfMS['data'] == startdate].values[0]
@@ -223,10 +227,11 @@ def get_input_data():
         
 		# 95% Confidence interval bounds for Covid parameters
 		# Incubation Period (in days)
-		incubation_period = (4.1, 7.0)
+		incubation_period = (1.9, 2.1) # (4.1, 7.0)
 	
 		# Infectivity Period (in days)   # tempo_de_infecciosidade
-		infectivity_period = (7.0, 12.0) #	3 days or 7 days
+		#infectivity_period = (7.0, 12.0) #	3 days or 7 days
+		infectivity_period = (2.9, 3.1) #	3 days or 7 days
         # Woelfel et al 22 (eCDC: 7-12 days @ 19/4/20, 
         # https://www.ecdc.europa.eu/en/covid-19/questions-answers)
 		
@@ -295,8 +300,8 @@ def get_input_data():
 		gamma = infectivity_rate,
 		# Mortality Rates, Source: Verity, et al,
         # adjusted with population distribution IBGE 2020
-		mortality_rate_elderly = 0.03495,         # old ones: 60+ years
-		mortality_rate_young = 0.00127,           # young ones: 0-59 years
+		mortality_rate_elderly = 0.0079,#0.03495,         # old ones: 60+ years
+		mortality_rate_young = 0.0079,#0.00127,           # young ones: 0-59 years
 		# Length of Stay (in days), Source: Wuhan
 		los_ward = 8.9,                         # regular
 		los_icu = 8,                            # UTI

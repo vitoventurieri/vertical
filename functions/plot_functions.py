@@ -420,7 +420,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                 
                 
                 # OBITOS - IDOSOS E JOVENS
-				plt.figure(15, figsize = tamfig)
+				plt.figure(23, figsize = tamfig)
 				plt.style.use(fig_style)
 				
 				plt.plot(data_sim, np.quantile(Mi + Mj, 0.5, axis=0),
@@ -461,7 +461,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                              "Fit_" + state_name + "_M" + filetype))
 
                 # INFECTADOS - IDOSOS E JOVENS
-				plt.figure(16, figsize = tamfig)
+				plt.figure(24, figsize = tamfig)
 				plt.style.use(fig_style)
 				
 				plt.plot(data_sim, np.quantile((Ii + Ij),
