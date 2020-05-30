@@ -2,6 +2,7 @@ from collections import namedtuple
 import numpy as np
 import numpy.random as npr
 import pandas as pd
+#from datetime import datetime as dt
 
 
 def make_lognormal_params_95_ci(lb, ub):
@@ -35,11 +36,13 @@ def fit_curve():
         raw data from xlsx file provided dayly by the Brazillian
         Health Ministerium at https://covid.saude.gov.br/
     startdate : string
-        DESCRIPTION: simulation initial date
+        simulation initial date
     state_name : string
          name of the state of interest
     population : int
-        DESCRIPTION: population of the state of interest
+        population of the state of interest
+    sub_report: int
+        subnotification factor
     E0 : int
         Exposed at startdate, defined arbitrarily as 80% of the
         Infected ones
@@ -79,17 +82,18 @@ obs: 80% ARBITRÁRIO
     
     
     # INPUT
-	state_name = 'Brasil' # 'Santa Catarina' #   'Pernambuco' # 'São Paulo (UF)' #
+	state_name = 'São Paulo (UF)' # 'Pernambuco' #'Brasil' # 'Santa Catarina' # 
 	metodo = "subreport" # "fator_verity" # 
-	
+	sub_report = 12	
+    
 	# IMPORT DATA
 	url = 'https://github.com/viniciusriosfuck/vertical/blob/fit_reported_data/HIST_PAINEL_COVIDBR_25mai2020.xlsx?raw=true'
     # df = pd.read_excel(r'C:\Users\Fuck\Downloads\HIST_PAINEL_COVIDBR_21mai2020.xlsx')
 	df = pd.read_excel(url)
 	# data	semanaEpi	populacaoTCU2019	casosAcumulado	obitosAcumulado	Recuperadosnovos	emAcompanhamentoNovos
 	states = { 'coduf': [76, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 35, 41, 42, 43, 50, 51, 52, 53],
-			'state_name': ['Brasil','Rondônia','Acre','Amazonas','Roraima','Pará','Amapá','Tocantins','Maranhão','Piauí','Ceará','Rio Grande do Norte','Paraíba','Pernambuco','Alagoas','Sergipe','Bahia','Minas Gerais','Espiríto Santo','Rio de Janeiro','São Paulo','Paraná','Santa Catarina','Rio Grande do Sul','Mato Grosso do Sul','Mato Grosso','Goiás','Distrito Federal'],
-			'populationTCU2019': [210_147_125, 1_777_225, 881_935, 4_144_597, 605_761, 8_602_865, 845_731, 1_572_866, 7_075_181, 3_273_227, 9_132_078, 3_506_853, 4_018_127, 45_919_049, 3_337_357, 2_298_696, 14_873_064, 21_168_791, 4_018_650, 17_264_943, 7_164_788, 9_557_071, 11_433_957, 11_377_239, 2_778_986, 3_484_466, 7_018_354, 3_015_268]}
+			'state_name': ['Brasil','Rondônia','Acre','Amazonas','Roraima','Pará','Amapá','Tocantins','Maranhão','Piauí','Ceará','Rio Grande do Norte','Paraíba','Pernambuco','Alagoas','Sergipe','Bahia','Minas Gerais','Espiríto Santo','Rio de Janeiro (UF)','São Paulo (UF)','Paraná','Santa Catarina','Rio Grande do Sul','Mato Grosso do Sul','Mato Grosso','Goiás','Distrito Federal'],
+			'populationTCU2019': [210_147_125, 1_777_225, 881_935, 4_144_597, 605_761, 8_602_865, 845_731, 1_572_866, 7_075_181, 3_273_227, 9_132_078, 3_506_853, 4_018_127, 9_557_071, 3_337_357, 2_298_696, 14_873_064, 21_168_791, 4_018_650, 17_264_943, 45_919_049, 11_433_957, 7_164_788, 11_377_239, 2_778_986, 3_484_466, 7_018_354, 3_015_268]}
 	states = pd.DataFrame(states, columns = ['coduf', 'state_name', 'populationTCU2019'])
 	
 	# INITIAL DATE
@@ -98,29 +102,36 @@ obs: 80% ARBITRÁRIO
 	if state_name == 'Pernambuco':
 	    startdate = '2020-05-02'
 	    r0 = (1.1, 1.3)
-	    coduf = 26 
+	    # coduf = 26 
 	    # population = 9_557_071
+	    sub_report = 13
 	elif state_name == 'Santa Catarina':
 	    startdate = '2020-05-10'
 	    r0 = (1.1, 1.2)
-	    coduf = 42
+	    # coduf = 42
 	    # population = 7_164_788
+	    sub_report = 2
 	elif state_name == 'São Paulo (UF)':
-	    startdate = '2020-04-29'
-	    r0 = (1.15, 1.32)
-	    coduf = 35
+	    startdate = '2020-03-15' # '2020-04-29' #
+	    r0 = (2.5, 3.5) # (1.15, 1.32) # (3.4, 5.3) #
+	    # coduf = 35
 	    # population = 45_919_049
+	    sub_report = 8
 	elif state_name == 'Brasil':
 	    startdate = '2020-04-26'
 	    r0 = (2.25, 3.57) # fonte r0: Brasil: Imperial College
-	    coduf = 76
+	    # coduf = 76
 	    # population = 210_147_125
-        
+	    sub_report = 8        
         # https://www1.folha.uol.com.br/equilibrioesaude/2020/04/brasil-tem-maior-taxa-de-contagio-por-coronavirus-do-mundo-aponta-estudo.shtml
 	
-	states_set = states[states['coduf'] == coduf ]
+    
+    
+	states_set = states[states['state_name'] == state_name ]
+    
 	population = states_set['populationTCU2019'].values[0]
-	                 
+	coduf = states_set['coduf'].values[0]                 
+    
 	dfMS = df[df['coduf'] == coduf ]
 	dfMS = dfMS[dfMS['codmun'].isnull()] # only rows without city
 	
@@ -134,17 +145,17 @@ obs: 80% ARBITRÁRIO
 	# IDENTIFY 13 DAYS AGO
 	# Hypothesis: one takes 13 days to recover
 	backdate = pd.to_datetime(startdate) - pd.DateOffset(days=13)
+	#backdate = pd.to_datetime(backdate.date())#pd.to_datetime(backdate).dt.date#.normalize()
 	# DECEASED
 	M0 = dfMS['obitosAcumulado'][dfMS['data'] == startdate].values[0]
 	# CUMULATIVE INFECTED FROM THE PREVIOUS 13 DAYS
 	Infect = dfMS['casosAcumulado'][dfMS['data'].
                                  between(backdate,startdate,inclusive = True)]
-	
+	#print(backdate)
+	#print(Infect)
+	#print(dfMS['data'])	
 	# ESTIMATED INITIAL CONDITIONS
 	if metodo == "subreport":
-	    sub_report = 15
-	    if state_name == 'Santa Catarina':
-	        sub_report = 3
 	    Infect = Infect * sub_report
 	    # INFECTED
 	    I0 = max(Infect) - min(Infect)
@@ -152,11 +163,14 @@ obs: 80% ARBITRÁRIO
 	    R0 = min(Infect) + dfMS['obitosAcumulado'][dfMS['data'] == backdate].values[0]# max(Infect) - I0
 	elif metodo == "fator_verity":
 	    I0 = M0 * 165 # estimated from Verity to Brazil: country, state, city
-	    R0 = I0 * 0.6 # Hypothesis Removed correspond to 60% of the Infected
+	    R0 = I0 * 0.6 # Hypothesis: Removed correspond to 60% of the Infected
 	# EXPOSED
-	E0 = 0.8 * I0  # Hypothesis Exposed correspond to 80% of the Infected   
+	E0 = 0.8 * I0  # Hypothesis: Exposed correspond to 80% of the Infected   
     
-	return dfMS, startdate, state_name, population, E0, I0, R0, M0, r0
+    
+	#E0, I0, R0 = 5, 10, 0
+    
+	return dfMS, startdate, state_name, population, sub_report, E0, I0, R0, M0, r0
 
 
 
@@ -184,10 +198,10 @@ def get_input_data():
     
 	runs = 300 # 1_000 # number of runs for Confidence Interval analysis
     
-	dfMS, startdate, state_name = [], [], []
-	fit_analysis = 1
+	dfMS, startdate, state_name, sub_report, r0_fit = [], [], [], [], []
+	fit_analysis = 1 # 0 #
 	if fit_analysis == 1:
-         [dfMS, startdate, state_name, population_fit,
+         [dfMS, startdate, state_name, population_fit, sub_report,
          E0_fit, I0_fit, R0_fit, M0_fit, r0_fit] = fit_curve()
 
     # CONFIDENCE INTERVAL AND SENSITIVITY ANALYSIS
@@ -321,7 +335,8 @@ def get_input_data():
                                 'dfMS',                    		    # dataframe_Min_Saude_data
                                 'startdate',                    	# start date of the fit and simulation
                                 'state_name',                    	# state simulated
-								'r0_fit'                            # range of r0
+								'r0_fit',                           # range of r0
+                                'sub_report'                        # sub_report factor
                                 ])
 	
 	N = 211_755_692 # 211 millions, 2020 forecast, Source: IBGE's app
@@ -386,7 +401,7 @@ def get_input_data():
 		init_hospitalized_icu_young = Uj0,     	# initial icu hospitalized young ones: 0-59 years
 		init_deceased_elderly = Mi0,        	# initial deceased population old ones: 60+ years
 		init_deceased_young = Mj0,           	# initial deceased population young ones: 0-59 years
-		t_max = 1 * 30,   # 2 * 365 #	        # number of days to run
+		t_max = 3 * 30,   # 2 * 365 #	        # number of days to run
 		# Brazilian Population
 		population = N,             
 		# Brazilian old people proportion (age: 60+), 2020 forecast
@@ -394,14 +409,15 @@ def get_input_data():
         # Proportion of persons aged 60+ in Brazil, Source: IBGE's app
 		# Brazilian bed places , Source: CNES, 05/05/2020
         # http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
-		bed_ward = 298_855,                  # bed ward
-		bed_icu = 32_380,                    # bed ICUs
-		IC_analysis = IC_analysis,			# flag for run type
+		bed_ward = 298_855,                     # bed ward
+		bed_icu = 32_380,                       # bed ICUs
+		IC_analysis = IC_analysis,			    # flag for run type
         # 1: confidence interval, 2: single run, 3: r0 sensitivity analysis
         dfMS = dfMS, #dataframe_Min_Saude_data
         startdate = startdate, # start date of the fit and simulation
         state_name = state_name, # state simulated
-        r0_fit = r0_fit          # range of r0 fitted
+        r0_fit = r0_fit,                        # range of r0 fitted
+        sub_report = sub_report                 # sub_report factor
 	)
 	
 	return covid_parameters, model_parameters

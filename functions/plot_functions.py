@@ -85,12 +85,15 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
     
 	"""
 	
-	N = model_parameters.population
+    
+	mp = model_parameters    
+	N = mp.population
+    
 	#capacidade_leitos = model_parameters.bed_ward
 	#capacidade_UTIs = model_parameters.bed_icu
-	IC_analysis = model_parameters.IC_analysis
+	IC_analysis = mp.IC_analysis
 
-	t_max = model_parameters.t_max
+	t_max = mp.t_max
 	t_space = np.arange(0, t_max)
 	fig_style = "ggplot" # "ggplot" # "classic" #
 	# plot
@@ -112,8 +115,8 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
 	# 1: without; 2: vertical; 3: horizontal isolation 
 	for i in range(3):
-		omega_i = model_parameters.contact_reduction_elderly[i]
-		omega_j = model_parameters.contact_reduction_young[i]
+		omega_i = mp.contact_reduction_elderly[i]
+		omega_j = mp.contact_reduction_young[i]
         
 		f_omega_i = format_float(omega_i, 1)
 		f_omega_j = format_float(omega_j, 1)
@@ -394,16 +397,30 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
 
 
-			startdate = model_parameters.startdate
-			if ((IC_analysis == 1) and (not startdate == 0) and (i == 0) ):
-				dfMS = model_parameters.dfMS
-				state_name = model_parameters.state_name
+			startdate = mp.startdate
+			if ((IC_analysis == 1) and (not startdate == []) and (i == 0) ):
+				
+				for ifig in range(11):
+				    plt.close(ifig)
+                    
+				dfMS = mp.dfMS
+				state_name = mp.state_name
 				data_sim = pd.to_datetime(t_space, unit='D',
 				           origin=pd.Timestamp(startdate))
                 # data_sim = pd.date_range(start=startdate, periods=t_max, freq='D')
-				
+                
+				r0 = mp.r0_fit
+				sub_report = mp.sub_report				
+                
+                
+				E0 = mp.init_exposed_elderly + mp.init_exposed_young
+				I0 = mp.init_infected_elderly + mp.init_infected_young
+				R0 = mp.init_removed_elderly + mp.init_removed_young
+				S0 = N - E0 - I0 - R0
+                
+                
                 # OBITOS - IDOSOS E JOVENS
-				plt.figure(11, figsize = tamfig)
+				plt.figure(15, figsize = tamfig)
 				plt.style.use(fig_style)
 				
 				plt.plot(data_sim, np.quantile(Mi + Mj, 0.5, axis=0),
@@ -417,19 +434,24 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 				color = cor[0], alpha=0.2)
 				
 				ax = plt.gca()
-				ax.xaxis.set_major_locator(mdates.DayLocator(interval=14))
+				ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
 				ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+				#ax.set_xlim(pd.Timestamp('15/03/2020'), pd.Timestamp('15/04/2020'))
+                
 				plt.gcf().autofmt_xdate() # Rotation
 				ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
+				#ax.set_ylim(0, 1_000)
+
                 
-                
-				r0 = model_parameters.r0_fit
                 
 				title_fit = ('r0 = (' + ("%.1f" % r0[0])
                             + ', ' + ("%.1f" % r0[1]) + ') @' 
                             + pd.to_datetime((startdate), format='%Y-%m-%d').
                                 strftime('%d/%m/%Y')
-                            + ' - ' + state_name)
+                            + ' - subreport = ' + ("%d" % sub_report)
+                            + ' - ' + state_name + '\n'
+                            + 'SEIR(0) = ' 
+                            + f"({S0:,.0f}; {E0:,.0f}; {I0:,.0f}; {R0:,.0f})")
          
 				plt.title(title_fit, fontsize=fsLabelTitle)
 				plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
@@ -438,27 +460,33 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 				plt.savefig(os.path.join(plot_dir,
                              "Fit_" + state_name + "_M" + filetype))
 
-                # OBITOS - IDOSOS E JOVENS
-				plt.figure(12, figsize = tamfig)
+                # INFECTADOS - IDOSOS E JOVENS
+				plt.figure(16, figsize = tamfig)
 				plt.style.use(fig_style)
 				
-				plt.plot(data_sim, np.quantile(Ii + Ij, 0.5, axis=0),
+				plt.plot(data_sim, np.quantile((Ii + Ij),
+                                   0.5, axis=0), # median
                          ls[0], color = cor[0], label = 'Model')
 				
-				plt.plot(dfMS['data'], dfMS['casosAcumulado'],
-                         ls[1], color = cor[1], label = 'Reported Data')
-					
+				plt.plot(dfMS['data'], dfMS['casosAcumulado'] * sub_report,
+                         ls[1], color = cor[1], label = 'Reported Data*sub_report')
+                
+				
 				plt.fill_between(data_sim,
-				np.quantile(Ii + Ij, 0.05, axis=0), 
-				np.quantile(Ii + Ij, 0.95, axis=0).clip(Mi[0,0]),
-				color = cor[0], alpha=0.2)
+				np.quantile((Ii + Ij), 0.05, axis=0), 
+				np.quantile((Ii + Ij), 0.95, axis=0).
+                    clip(Mi[0,0]), color = cor[0], alpha=0.2)
 				
 				ax = plt.gca()
-				ax.xaxis.set_major_locator(mdates.DayLocator(interval=14))
+				ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
 				ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+				#ax.set_xlim(pd.Timestamp('15/03/2020'), 
+                #            pd.Timestamp('15/05/2020')) # 15/04/2020
+                
 				plt.gcf().autofmt_xdate() # Rotation
 				
 				ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
+				#ax.set_ylim(0, 100_000) # 10_000
                 
 				plt.title(title_fit, fontsize=fsLabelTitle)
 				plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
@@ -468,7 +496,9 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                              "Fit_" + state_name + "_I" + filetype))
 
 
-
+	if ((IC_analysis == 1) and (not startdate == [])):
+		for ifig in range(11):
+			plt.close(ifig)
 
 
 
