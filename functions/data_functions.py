@@ -87,7 +87,7 @@ obs: 80% ARBITRÁRIO
 	sub_report = 10	
 	
 	# IMPORT DATA
-	url = 'https://github.com/viniciusriosfuck/vertical/blob/fit_reported_data/HIST_PAINEL_COVIDBR_29mai2020.xlsx?raw=true'
+	url = 'https://github.com/viniciusriosfuck/vertical/blob/master/HIST_PAINEL_COVIDBR_29mai2020.xlsx?raw=true'
 	# df = pd.read_excel(r'C:\Users\Fuck\Downloads\HIST_PAINEL_COVIDBR_21mai2020.xlsx')
 	df = pd.read_excel(url)
 	# data	semanaEpi	populacaoTCU2019	casosAcumulado	obitosAcumulado	Recuperadosnovos	emAcompanhamentoNovos
