@@ -122,7 +122,7 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 	"""	
 	
 	N = mp.population
-	
+	pI = mp.population_rate_elderly
 	if mp.IC_analysis == 2: # SINGLE RUN
 		alpha = cp.alpha
 		beta = cp.beta
@@ -132,6 +132,7 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 		beta = cp.beta[ii]
 		gamma = cp.gamma[ii]
 	
+	contact_matrix = mp.contact_matrix
 	taxa_mortalidade_i = cp.mortality_rate_elderly
 	taxa_mortalidade_j = cp.mortality_rate_young
 	
@@ -144,10 +145,12 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 	tax_uti_i = cp.internation_rate_icu_elderly
 	tax_uti_j = cp.internation_rate_icu_young
 	
+	capacidade_UTIs = mp.bed_icu
+
 	args = (N, alpha, beta, gamma,
 			los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
 			taxa_mortalidade_i, taxa_mortalidade_j,
-			omega_i, omega_j)
+			omega_i, omega_j,contact_matrix,pI,capacidade_UTIs)
 	return args
 
 
@@ -155,7 +158,7 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma,
 				los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
 				taxa_mortalidade_i, taxa_mortalidade_j,
-				omega_i, omega_j):
+				omega_i, omega_j,contact_matrix,pI,capacidade_UTIs):
 	"""
 	Computes the derivatives
 
@@ -173,8 +176,11 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma,
 	# Vetor variaveis incognitas
 	Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj = SEIRHUM
 	
-	dSidt = - beta * omega_i * Si * (Ii + Ij) / N
-	dSjdt = - beta * omega_j * Sj * (Ii + Ij) / N
+	Iij = np.array([[Ij*(omega_j**0.5)/((1-pI)*N)],[Ii*(omega_i**0.5)/(pI*N)]])
+	Sij = np.array([[Sj*(omega_j**0.5)],[Si*(omega_i**0.5)]])
+	dSijdt = -beta*np.dot(contact_matrix,Iij)*Sij
+	dSjdt = dSijdt[0]
+	dSidt = dSijdt[1]
 	dEidt = - dSidt - alpha * Ei
 	dEjdt = - dSjdt - alpha * Ej
 	dIidt = alpha * Ei - gamma * Ii
@@ -184,15 +190,21 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma,
 	# Leitos comuns demandados
 	dHidt = tax_int_i * alpha * Ei - Hi / los_leito
 	dHjdt = tax_int_j * alpha * Ej - Hj / los_leito
+
+	coisa = 1/50
+	coisa2 = -coisa*(Ui+Uj-capacidade_UTIs)
+
 	# Leitos UTIs demandados
-	dUidt = tax_uti_i * alpha * Ei - Ui / los_uti
-	dUjdt = tax_uti_j * alpha * Ej - Uj / los_uti
+	dUidt = (tax_uti_i*alpha*Ei-Ui/los_uti)*(1-1/(1+np.exp(coisa2)))
+	dUjdt = (tax_uti_j*alpha*Ej-Uj/los_uti)*(1-1/(1+np.exp(coisa2)))
+	
 	# Removidos
-	dRidt = gamma * Ii
-	dRjdt = gamma * Ij
+	dRidt = gamma * Ii + (tax_uti_i*alpha*Ei)*(1/(1+np.exp(coisa2)))
+	dRjdt = gamma * Ij + (tax_uti_j*alpha*Ej)*(1/(1+np.exp(coisa2)))
+	
 	# Obitos
-	dMidt = taxa_mortalidade_i * dRidt
-	dMjdt = taxa_mortalidade_j * dRjdt
+	dMidt = taxa_mortalidade_i * dRidt + (tax_uti_i*alpha*Ei)*(1/(1+np.exp(coisa2)))
+	dMjdt = taxa_mortalidade_j * dRjdt + (tax_uti_j*alpha*Ej)*(1/(1+np.exp(coisa2)))
 	
 	return (dSidt, dSjdt, dEidt, dEjdt, dIidt, dIjdt, dRidt, dRjdt,
 			dHidt, dHjdt, dUidt, dUjdt, dMidt, dMjdt)
