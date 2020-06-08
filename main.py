@@ -14,6 +14,10 @@ if __name__ == '__main__':
 	filename = auxiliar_names(covid_parameters, model_parameters)
 	plot_dir = os.path.join(get_output_dir(), f"{filename}_plots")
 	
+	
+	#IC_analysis ==  1 -> CONFIDENCE INTERVAL for a lognormal distribution
+	#IC_analysis == 2: -> SINGLE RUN
+	#IC_analysis == else ->  r0 Sensitivity analysis -> Calculate an array for r0 to a sensitivity analysis with 0.1 intervals
 	if model_parameters.IC_analysis == 2:
 		report = generate_report(results, model_parameters)
 		
