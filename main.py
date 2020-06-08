@@ -9,17 +9,19 @@ import os
 if __name__ == '__main__':
 
 	covid_parameters, model_parameters = get_input_data()
-
-	results = run_SEIR_ODE_model(covid_parameters, model_parameters)
-	report = generate_report(results, model_parameters)
-
-	filename = auxiliar_names(covid_parameters, model_parameters)
-	report.to_excel(os.path.join(get_output_dir(), 'report_' + filename + '.xlsx'), index=False)
-	results.to_excel(os.path.join(get_output_dir(), 'results_' + filename + '.xlsx'), index=False) 
 	
+	results = run_SEIR_ODE_model(covid_parameters, model_parameters)
+	filename = auxiliar_names(covid_parameters, model_parameters)
 	plot_dir = os.path.join(get_output_dir(), f"{filename}_plots")
-
+	
+	if model_parameters.IC_analysis == 2:
+		report = generate_report(results, model_parameters)
+		
+		report.to_excel(os.path.join(get_output_dir(), 'report_' + filename + '.xlsx'), index=False)
+		results.to_excel(os.path.join(get_output_dir(), 'results_' + filename + '.xlsx'), index=False)
+		
+	
 	if not os.path.exists(plot_dir):
 		os.makedirs(plot_dir)
-
-	plots(results, model_parameters, plot_dir)
+	
+	plots(results, covid_parameters, model_parameters, plot_dir)
