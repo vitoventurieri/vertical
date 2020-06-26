@@ -1,3 +1,9 @@
+# TO DO
+# 1) Revisar fit
+# 6) Incorporar plot para efeito de sobrecarga do sistema
+# 7) Incorporar cenário alternativo com isolamento horizontal,
+#     talvez travar o range de omega nos plots
+
 import matplotlib.pyplot as plt
 from .utils import *
 from datetime import datetime
@@ -16,8 +22,8 @@ def number_formatter(number, pos=None):
         number /= 1000.0
     return '%.1f%s' % (number, ['', 'K', 'M', 'B', 'T', 'Q'][magnitude])
 
-
-
+def format_float(float_number, precision=2):
+    return str(round(float_number,2)).replace(".", "")
 
 def auxiliar_names(covid_parameters, model_parameters):
     """
@@ -30,7 +36,7 @@ def auxiliar_names(covid_parameters, model_parameters):
 
     if model_parameters.IC_analysis == 2: # SINGLE RUN
 
-    	beta = covid_parameters.beta				# infectiviy_rate
+    	beta = covid_parameters.beta			# infectiviy_rate
     	gamma = covid_parameters.gamma			# contamination_rate
 
     	basic_reproduction_number = beta / gamma
@@ -47,12 +53,124 @@ def auxiliar_names(covid_parameters, model_parameters):
     	filename = (time + '_sensitivity_analysis')
     return filename
 
+def pos_format(title_fig,
+			main_label_y,
+			main_label_x,
+			fsLabelTitle,leg_loc,fsPlotLegend):
+    """
+    põe labels e título, pós-formata fontes, eixo y, legenda
+    """
+    plt.title(title_fig, fontsize=fsLabelTitle)
+    plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
+    plt.xlabel(main_label_x, fontsize=fsLabelTitle)
+    plt.ylabel(main_label_y, fontsize=fsLabelTitle)		
+    ax = plt.gca()
+    ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
+
+# TIPOS DE PLOT
+# PLOT CONFIDENCE INTERVAL
+def plot_ci(Y,cor,t_space):
+    """
+    plota intervalo dos percentis 5 e 95%
+    """
+    plt.fill_between(t_space,
+		     np.quantile(Y, 0.05, axis = 0),
+		     np.quantile(Y, 0.95, axis = 0).clip(Y[0,0]),
+		     color = cor, alpha=0.2)
+		
+# PLOT CONFIDENCE INTERVAL
+def plot_median(Y,cor,ls,line_label,t_space):
+    """
+    plota mediana, i.e. percentil 50%
+    """
+    plt.plot(t_space,
+	     np.quantile(Y, 0.5, axis=0), # MEDIANA
+	     ls,
+	     color = cor,
+	     label = line_label)
+
+# PLOT TOTAL (i.e sem ser por idade)
+def plot_total(Yi,Yj,name_variable,
+			title_fig,
+			fig_number,
+			main_label_y,
+			main_label_x,
+			tamfig,fig_style,IC_analysis,t_space,
+			ls,cor,isolation_name,i,omega_i,omega_j,
+			fsLabelTitle,leg_loc,fsPlotLegend,
+			plot_dir,filetype):
+    """
+    plota curvas totais (i.e sem ser por idade)
+    com intervalo de confiança (5% percentil, mediana, 95% percentil)
+    ou um único valor (SINGLE RUN)
+    """
+    plt.figure(fig_number, figsize = tamfig)
+    plt.style.use(fig_style)
+    if (IC_analysis == 1): # CONFIDENCE INTERVAL
+        plot_median(Yi+Yj, cor[i], ls[(i)%2],'Total' + isolation_name[i], t_space)
+        plot_ci(Yi+Yj, cor[i], t_space)
+	
+    else: # SINGLE RUN
+    	  plt.plot(t_space,
+		   (Yi+Yj),
+		   ls[(i)%2], 		#0: dashed linestyle, 1: solid linestyle
+		   color = cor[i],
+		   label = 'Total' + isolation_name[i])
+    		
+    pos_format(title_fig, main_label_y,	main_label_x,
+	       fsLabelTitle, leg_loc, fsPlotLegend)
+    plt.savefig(os.path.join(plot_dir, name_variable + "_diff_isol" + filetype))
+
+# PLOT POR IDADE - IDOSOS E JOVENS
+def plot_byage(Yi,Yj,name_variable,
+			title_fig,
+			fig_number,
+			main_label_y,
+			main_label_x,
+			tamfig,fig_style,IC_analysis,t_space,
+			ls,cor,isolation_name,i,omega_i,omega_j,
+			fsLabelTitle,leg_loc,fsPlotLegend,
+			plot_dir,filetype):
+    """
+    plota curvas por idade
+    com intervalo de confiança (5% percentil, 50% mediana, 95% percentil)
+    ou um único valor (SINGLE RUN)
+    """
+    plt.figure(fig_number, figsize = tamfig)
+    plt.style.use(fig_style)
+    if (IC_analysis == 1): # CONFIDENCE INTERVAL
+        plot_median(Yi, cor[2*i], ls[i%2],'Elderly' + isolation_name[i], t_space)
+        plot_ci(Yi,cor[2*i],t_space)
+        plot_median(Yj, cor[1+2*i], ls[(i+1)%2],'Young' + isolation_name[i], t_space)
+        plot_ci(Yj,cor[1+2*i],t_space)
+        complemento = '_diff_isol'
+
+    else: # SINGLE RUN
+        plt.plot(t_space,
+		 Yi,
+		 ls[i%2],		#0: dashed linestyle, 1: solid linestyle
+		 color = cor[2*i],
+		 label = ('Elderly' + isolation_name[i]))
+        plt.plot(t_space,
+		 Yj,
+		 ls[(i+1)%2],		#0: dashed linestyle, 1: solid linestyle
+		 color = cor[1+2*i],
+		 label = ('Young' + isolation_name[i]))
+        complemento = isolation_name[i]
+    		
+    pos_format(title_fig, main_label_y,	main_label_x,
+		             fsLabelTitle,leg_loc,fsPlotLegend)
+    plt.savefig(os.path.join(plot_dir, 
+                         name_variable + "ij" + complemento + filetype))
+
 
 def plots(results, covid_parameters, model_parameters, plot_dir):
 
 	"""
 	Makes plots:
         CONFIDENCE INTERVAL AND SINGLE RUN
+	
+	Figures numbers:
 
     1,4,7) Infected by age group for each degree of isolation
     
@@ -62,7 +180,15 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
     
     10) Infected for different degrees of isolation
     
+    100) INFECTADOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
+
+    110) HOSPITALIZADOS TOTAL - DIFERENTES ISOLAMENTOS
+
+    101) HOSPITALIZADOS UTI - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
     
+    23) Fit Infected
+    
+    24) Fit Deceased
     
         CONFIDENCE INTERVAL
     5% QUARTIL, MEDIANA, 95% QUARTIL
@@ -95,6 +221,8 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
 	t_max = mp.t_max
 	t_space = np.arange(0, t_max)
+	
+# VARIÁVEIS PADRÃO DOS PLOTS
 	fig_style = "ggplot" # "ggplot" # "classic" #
 	# plot
 	tamfig = (8,6)     # Figure Size
@@ -106,15 +234,18 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
 	cor = ['b','r','k','g','y','m']     # Line Colors
 	ls = ['-.', '-']                    # Line Style
-	leg_loc = 'best' # 'upper right' # 'upper left' #
+	leg_loc = 'upper left' # 'best' # 'upper right' # 
 	filetype = '.pdf'      # '.pdf' # '.png' # '.svg' #
+	
+	isolation_name = [' (unmitigated)', ' (vertical isolation)', ' (horizontal isolation)']
+	
+	print('Plotando resultados')
     
 	
-	def format_float(float_number, precision=2):
-		return str(round(float_number,2)).replace(".", "")
+
 
 	# 1: without; 2: vertical; 3: horizontal isolation 
-	for i in range(3):
+	for i in range(len(mp.contact_reduction_elderly)): # 2: paper
 		omega_i = mp.contact_reduction_elderly[i]
 		omega_j = mp.contact_reduction_young[i]
         
@@ -175,8 +306,8 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 				Mi[ii,] = results[ii].query('omega_i == @omega_i & omega_j == @omega_j')['Mi']
 				Mj[ii,] = results[ii].query('omega_i == @omega_i & omega_j == @omega_j')['Mj']
 		
-        
-		if IC_analysis == 3: # SENSITIVITY ANALYSIS
+# SENSITIVITY ANALYSIS r0         
+		if IC_analysis == 3:
 			plt.figure(i, figsize = tamfig)
 			plt.style.use(fig_style)
 			
@@ -195,132 +326,96 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
 			plt.ylabel(main_label_y, fontsize=fsLabelTitle)
 			mymap = mpl.colors.LinearSegmentedColormap.from_list(
-                'mycolors',['blue','red'])
+				'mycolors',['blue','red'])
 			sm = plt.cm.ScalarMappable(cmap=mymap, 
                                        norm=plt.Normalize(vmin=r0min, vmax=r0max))
 			cbar = plt.colorbar(sm)
-			cbar.set_label('Basic Reproduction Number', 
-                  rotation = 90, fontsize=fsLabelTitle)
+			cbar.set_label('Basic Reproduction Number',
+				       rotation = 90, fontsize=fsLabelTitle)
 			
 			plt.savefig(os.path.join(plot_dir,
-								"I_" + filename + 'VariosR0' + filetype))
+						 "I_" + filename + 'VariosR0' + filetype))
+		
 		else: # SINGLE RUN OR CONFIDENCE INTERVAL
-				# INFECTADOS - DIFERENTES ISOLAMENTOS
-			plt.figure(10, figsize = tamfig)
-			plt.style.use(fig_style)
-			
-			if (IC_analysis == 1): # CONFIDENCE INTERVAL
-				plt.plot(t_space,
-						np.quantile(Ii+Ij, 0.5, axis=0), # MEDIANA
-						ls[0],
-						color = cor[2*i],
-						label = f'$\omega_e={omega_i}$, $\omega_y={omega_j}$')
-		
-				plt.fill_between(t_space,
-					np.quantile(Ii+Ij, 0.05, axis=0), # QUARTIL 5%
-					np.quantile(Ii+Ij, 0.95, axis=0).clip(Ii[0,0]+Ij[0,0]), # QUARTIL 95%
-					color=cor[2*i], alpha = 0.2)
-			else: # SINGLE RUN
-				plt.plot(t_space,
-						(Ii+Ij),
-						ls[0],
-						color = cor[2*i],
-						label = f'$\omega_e={omega_i}$, $\omega_y={omega_j}$')
-				
-			plt.title('Different isolation degrees', fontsize=fsLabelTitle)
-			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
-			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
-			plt.ylabel(main_label_y, fontsize=fsLabelTitle)		
-			ax = plt.gca()
-			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
-            
-            
-			plt.savefig(os.path.join(plot_dir, "I_no_vert_horiz_isol" + filetype))
-		
-		
-		
-				# INFECTADOS - IDOSOS E JOVENS
-			plt.figure(i, figsize = tamfig)
-			plt.style.use(fig_style)
-		
-		
-			if (IC_analysis == 1): # CONFIDENCE INTERVAL
-				plt.plot(t_space,
-					np.quantile(Ii, 0.5, axis=0),
-					ls[0], color = cor[0], label = 'Elderly')
-				plt.plot(t_space,
-					np.quantile(Ij, 0.5, axis=0),
-					ls[1], color = cor[1], label = 'Young')
-		
-				plt.fill_between(t_space,
-					np.quantile(Ii, 0.05, axis = 0), 
-					np.quantile(Ii, 0.95, axis = 0).clip(Ii[0,0]),
-					color = cor[0], alpha=0.2)
-				plt.fill_between(t_space,
-					np.quantile(Ij, 0.05, axis = 0), 
-					np.quantile(Ij, 0.95, axis = 0).clip(Ij[0,0]),
-					color = cor[1], alpha=0.2)
-			else: # SINGLE RUN
-					plt.plot(t_space, Ii, ls[0], color = cor[0])
-					plt.plot(t_space, Ij, ls[1], color = cor[1])
-		
-			plt.title(main_title, fontsize=fsLabelTitle)
-			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
-			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
-			plt.ylabel(main_label_y, fontsize=fsLabelTitle)
+# INFECTADOS TOTAL - DIFERENTES ISOLAMENTOS
+			plot_total(Ii,Ij,'I',					#Yi,Yj,variable_name_Y
+				   'Infected People by different isolation degrees',	#figure title
+				   10,							#figure number
+				   main_label_y,					#label_y
+				   main_label_x,
+				   tamfig,fig_style,IC_analysis,t_space,
+				   ls,cor,isolation_name,i,omega_i,omega_j,
+				   fsLabelTitle,leg_loc,fsPlotLegend,
+				   plot_dir,filetype)
 
-			ax = plt.gca()
-			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
-			
-			plt.savefig(os.path.join(plot_dir, "Iey_" + filename  + filetype))
+# INFECTADOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
+			plot_byage(Ii,Ij,'I',					#Yi,Yj,variable_name_Y
+				   'Infected by age group for different isolation degrees',	#figure title
+				   100,							#figure number
+				   main_label_y,					#label_y
+				   main_label_x,
+				   tamfig,fig_style,IC_analysis,t_space,
+				   ls,cor,isolation_name,i,omega_i,omega_j,
+				   fsLabelTitle,leg_loc,fsPlotLegend,
+				   plot_dir,filetype)
+
+# HOSPITALIZADOS TOTAL - DIFERENTES ISOLAMENTOS
+			plot_total(Hi,Hj,'H',					#Yi,Yj,variable_name_Y
+				   'Hospitalized People by different isolation degrees',	#figure title
+				   110,							#figure number
+				   'Bed Demand',					#label_y
+				   main_label_x,
+				   tamfig,fig_style,IC_analysis,t_space,
+				   ls,cor,isolation_name,i,omega_i,omega_j,
+				   fsLabelTitle,leg_loc,fsPlotLegend,
+				   plot_dir,filetype)
+	 
+# HOSPITALIZADOS UTI - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
+			plot_byage(Ui,Uj,'U',					#Yi,Yj,variable_name_Y
+				   'ICU Bed Demand by age group for different isolation degrees',	#figure title
+				   101,							#figure number
+				   'ICU Bed Demand',					#label_y
+				   main_label_x,
+				   tamfig,fig_style,IC_analysis,t_space,
+				   ls,cor,isolation_name,i,omega_i,omega_j,
+				   fsLabelTitle,leg_loc,fsPlotLegend,
+				   plot_dir,filetype)
+		
+# INFECTADOS - IDOSOS E JOVENS
+			plot_byage(Ii,Ij,'I',					#Yi,Yj,variable_name_Y
+				   'Infected by age group' + isolation_name[i],	#figure title
+				   i,							#figure number
+				   main_label_y,					#label_y
+				   main_label_x,
+				   tamfig,fig_style,IC_analysis,t_space,
+				   ls,cor,isolation_name,i,omega_i,omega_j,
+				   fsLabelTitle,leg_loc,fsPlotLegend,
+				   plot_dir,filetype)
 		
 		
-				# LEITOS DEMANDADOS - IDOSOS E JOVENS
+# LEITOS DEMANDADOS - IDOSOS E JOVENS
 			plt.figure(3+i, figsize = tamfig)
 			plt.style.use(fig_style)
-		
-		
+
 			if (IC_analysis == 1): # CONFIDENCE INTERVAL
-				plt.plot(t_space, np.quantile(Hj, 0.5, axis=0), 
-                         ls[1], color = cor[1], label = 'Ward for Elderly')
-				plt.plot(t_space, np.quantile(Hi, 0.5, axis=0), 
-                         ls[0], color = cor[0], label = 'Ward for Young')
-				plt.plot(t_space, np.quantile(Ui, 0.5, axis=0),
-                         ls[0], color = cor[2], label = 'ICU for Elderly')
-				plt.plot(t_space, np.quantile(Uj, 0.5, axis=0),
-                         ls[1], color = cor[3], label = 'ICU for Young')
-		
-				plt.fill_between(t_space,
-					np.quantile(Hi, 0.05, axis=0), 
-					np.quantile(Hi, 0.95, axis=0).clip(Hi[0,0]),
-					color = cor[0], alpha=0.2)
-				plt.fill_between(t_space,
-					np.quantile(Hj, 0.05, axis=0), 
-					np.quantile(Hj, 0.95, axis=0).clip(Hj[0,0]),
-					color = cor[1], alpha=0.2)
-				plt.fill_between(t_space,
-					np.quantile(Ui, 0.05, axis=0), 
-					np.quantile(Ui, 0.95, axis=0).clip(Ui[0,0]),
-					color = cor[2], alpha=0.2)
-				plt.fill_between(t_space,
-					np.quantile(Uj, 0.05, axis=0), 
-					np.quantile(Uj, 0.95, axis=0).clip(Uj[0,0]),
-					color = cor[3], alpha=0.2)
+				plot_median(Hi, cor[0], ls[0], 'Ward for Elderly', t_space)
+				plot_median(Hj, cor[1], ls[1], 'Ward for Young', t_space)
+				plot_median(Ui, cor[2], ls[1], 'ICU for Elderly', t_space)
+				plot_median(Uj, cor[3], ls[0], 'ICU for Young', t_space)
+
+				plot_ci(Hi, cor[0], t_space)
+				plot_ci(Hj, cor[1], t_space)
+				plot_ci(Ui, cor[2], t_space)
+				plot_ci(Uj, cor[3], t_space)
+				
 			else: # SINGLE RUN
 				plt.plot(t_space, Hi, ls[0], color = cor[0] )
 				plt.plot(t_space, Hj, ls[1], color = cor[1] )
 				plt.plot(t_space, Ui, ls[0], color = cor[2] )
 				plt.plot(t_space, Uj, ls[1], color = cor[3] )
 		
-		
-		
-			plt.title(main_title, fontsize=fsLabelTitle)
-			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
-			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
-			plt.ylabel('Bed Demand', fontsize=fsLabelTitle)
-            
-			ax = plt.gca()
-			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))            
+			pos_format(main_title, 'Bed Demand', main_label_x,
+				   fsLabelTitle,leg_loc,fsPlotLegend)           
             
 			plt.savefig(os.path.join(plot_dir, "HUey_" + filename  + filetype))
 		
@@ -329,34 +424,16 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 			plt.figure(6+i, figsize = tamfig)
 			plt.style.use(fig_style)
 		
-		
-			if (IC_analysis == 1): # CONFIDENCE INTERVAL
-				plt.plot(t_space,
-					np.quantile(Mi, 0.5, axis=0),
-					ls[0], color = cor[0], label = 'Elderly')
-				plt.plot(t_space,
-					np.quantile(Mj, 0.5, axis=0),
-					ls[1], color = cor[1], label = 'Young')
-		
-				plt.fill_between(t_space,
-					np.quantile(Mi, 0.05, axis=0), 
-					np.quantile(Mi, 0.95, axis=0).clip(Mi[0,0]),
-					color = cor[0], alpha=0.2)
-				plt.fill_between(t_space,
-					np.quantile(Mj, 0.05, axis = 0), 
-					np.quantile(Mj, 0.95, axis = 0).clip(Mj[0,0]),
-					color = cor[1], alpha=0.2)
-			else: # SINGLE RUN
-				plt.plot(t_space, Mi, ls[0], color = cor[0])
-				plt.plot(t_space, Mj, ls[1], color = cor[1])
-		
-			plt.title(main_title, fontsize=fsLabelTitle)
-			plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
-			plt.xlabel(main_label_x, fontsize=fsLabelTitle)
-			plt.ylabel('Deceased people', fontsize=fsLabelTitle)
-			
-			ax = plt.gca()
-			ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))            
+# OBITOS - IDOSOS E JOVENS
+			plot_byage(Mi, Mj,'M',					#Yi,Yj,variable_name_Y
+				   'Deacesed by age group' + isolation_name[i],	#figure title
+				   6+i,						#figure number
+				   'Deceased people',				#label_y
+				   main_label_x,
+				   tamfig,fig_style,IC_analysis,t_space,
+				   ls,cor,isolation_name,i,omega_i,omega_j,
+				   fsLabelTitle,leg_loc,fsPlotLegend,
+				   plot_dir,filetype)         
             
             # ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
 			plt.savefig(os.path.join(plot_dir, "Mey_" + filename  + filetype))
@@ -396,7 +473,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
 
 
-
+# FIT
 			startdate = mp.startdate
 			if ((IC_analysis == 1) and (not startdate == []) and (i == 0) ):
 				
@@ -410,7 +487,9 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                 # data_sim = pd.date_range(start=startdate, periods=t_max, freq='D')
                 
 				r0 = mp.r0_fit
-				sub_report = mp.sub_report				
+				sub_report = mp.sub_report
+				
+				x_ticks = 14 # de quantos em quantos dias aparece tick no plot
                 
                 
 				E0 = mp.init_exposed_elderly + mp.init_exposed_young
@@ -419,90 +498,68 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 				S0 = N - E0 - I0 - R0
                 
                 
-                # OBITOS - IDOSOS E JOVENS
+# OBITOS - IDOSOS E JOVENS
 				plt.figure(23, figsize = tamfig)
 				plt.style.use(fig_style)
-				
-				plt.plot(data_sim, np.quantile(Mi + Mj, 0.5, axis=0),
-                         ls[0], color = cor[0], label = 'Model')
+		
+				plot_median(Mi + Mj, cor[0], ls[0], 'Model', data_sim)
+
 				plt.plot(dfMS['data'], dfMS['obitosAcumulado'],
     				     ls[1], color = cor[1], label = 'Reported Data')
 					
-				plt.fill_between(data_sim,
-				np.quantile(Mi + Mj, 0.05, axis=0), 
-				np.quantile(Mi + Mj, 0.95, axis=0).clip(Mi[0,0]),
-				color = cor[0], alpha=0.2)
+				plot_ci(Mi+Mj, cor[0], data_sim)
 				
 				ax = plt.gca()
-				ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
+				ax.xaxis.set_major_locator(mdates.DayLocator(interval=x_ticks))
 				ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
 				#ax.set_xlim(pd.Timestamp('15/03/2020'), pd.Timestamp('15/04/2020'))
                 
 				plt.gcf().autofmt_xdate() # Rotation
-				ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
+				
 				#ax.set_ylim(0, 1_000)
-
-                
                 
 				title_fit = ('r0 = (' + ("%.1f" % r0[0])
-                            + ', ' + ("%.1f" % r0[1]) + ') @' 
-                            + pd.to_datetime((startdate), format='%Y-%m-%d').
-                                strftime('%d/%m/%Y')
-                            + ' - subreport = ' + ("%d" % sub_report)
-                            + ' - ' + state_name + '\n'
-                            + 'SEIR(0) = ' 
-                            + f"({S0:,.0f}; {E0:,.0f}; {I0:,.0f}; {R0:,.0f})")
+					     + ', ' + ("%.1f" % r0[1]) + ') @' 
+					     + pd.to_datetime((startdate), format='%Y-%m-%d')
+					     .strftime('%d/%m/%Y')
+					     + ' - subreport = ' + ("%d" % sub_report)
+					     + ' - ' + state_name + '\n'
+					     + 'SEIR(0) = ' 
+					     + f"({S0:,.0f}; {E0:,.0f}; {I0:,.0f}; {R0:,.0f})")
          
-				plt.title(title_fit, fontsize=fsLabelTitle)
-				plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
-				plt.xlabel('Date', fontsize=fsLabelTitle)
-				plt.ylabel('Deceased people', fontsize=fsLabelTitle)
+				pos_format(title_fit, 'Deceased people', 'Date',
+					   fsLabelTitle,leg_loc,fsPlotLegend)
+		
 				plt.savefig(os.path.join(plot_dir,
-                             "Fit_" + state_name + "_M" + filetype))
+							 "Fit_" + state_name + "_M" + filetype))
 
-                # INFECTADOS - IDOSOS E JOVENS
+# INFECTADOS - IDOSOS E JOVENS
 				plt.figure(24, figsize = tamfig)
 				plt.style.use(fig_style)
 				
-				plt.plot(data_sim, np.quantile((Ii + Ij),
-                                   0.5, axis=0), # median
-                         ls[0], color = cor[0], label = 'Model')
+				plot_median(Ii+Ij, cor[0], ls[0], 'Model', data_sim)
 				
 				plt.plot(dfMS['data'], dfMS['casosAcumulado'] * sub_report,
-                         ls[1], color = cor[1], label = 'Reported Data*sub_report')
-                
-				
-				plt.fill_between(data_sim,
-				np.quantile((Ii + Ij), 0.05, axis=0), 
-				np.quantile((Ii + Ij), 0.95, axis=0).
-                    clip(Mi[0,0]), color = cor[0], alpha=0.2)
+					 ls[1], color = cor[1], label = 'Reported Data*sub_report')
+
+				plot_ci(Ii+Ij, cor[0], data_sim)
 				
 				ax = plt.gca()
-				ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
+				ax.xaxis.set_major_locator(mdates.DayLocator(interval=x_ticks))
 				ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
 				#ax.set_xlim(pd.Timestamp('15/03/2020'), 
                 #            pd.Timestamp('15/05/2020')) # 15/04/2020
                 
 				plt.gcf().autofmt_xdate() # Rotation
 				
-				ax.yaxis.set_major_formatter(FuncFormatter(number_formatter))
 				#ax.set_ylim(0, 100_000) # 10_000
-                
-				plt.title(title_fit, fontsize=fsLabelTitle)
-				plt.legend(loc = leg_loc, fontsize=fsPlotLegend)
-				plt.xlabel('Date', fontsize=fsLabelTitle)
-				plt.ylabel('Infected people', fontsize=fsLabelTitle)
+				pos_format(title_fit, 'Infected people', 'Date',
+					   fsLabelTitle,leg_loc,fsPlotLegend)
+				
 				plt.savefig(os.path.join(plot_dir,
-                             "Fit_" + state_name + "_I" + filetype))
+							 "Fit_" + state_name + "_I" + filetype))
 
 
 	if ((IC_analysis == 1) and (not startdate == [])):
 		for ifig in range(11):
 			plt.close(ifig)
-
-
-
-
-
-
-
