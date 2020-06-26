@@ -1,6 +1,6 @@
 # Quarentena Vertical
 
-O proposito desse projeto e avaliar a eficacia da estrategia de quarentena vertical.
+O proposito desse projeto e avaliar a eficacia da estrategia da quarentena vertical na redução do contágio do SARS-CoV-2 comparado a outros cenários (isolamento total ou sem isolamento)
 
 ## Setup para rodar os modelos
 1. Instale python 3.6 ou superior
