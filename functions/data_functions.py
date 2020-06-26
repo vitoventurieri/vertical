@@ -436,8 +436,8 @@ def get_input_data():
 	
 	model_parameters = model_parameters(
 		# Social contact reduction factor (without, vertical, horizontal) isolation
-		contact_reduction_elderly = (1., .4, .4), # young ones: 0-59 years
-		contact_reduction_young = (1., 1., .6), # old ones: 60+ years	
+		contact_reduction_elderly = (1., .4), 	# young ones: 0-59 years
+		contact_reduction_young = (1., 1.), 	# old ones: 60+ years	
 		# Scenaries for health system colapse
 		lotation = (0.3, 0.5, 0.8, 1),        	# 30, 50, 80, 100% capacity
 		init_exposed_elderly = Ei0,    			# initial exposed population old ones: 60+ years
