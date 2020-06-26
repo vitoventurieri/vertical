@@ -22,7 +22,7 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 	# Initial conditions vector
 	SEIRHUM_0 = initial_conditions(mp)
 	
-	
+	niveis_isolamento = len(mp.contact_reduction_elderly)
     
 	if mp.IC_analysis == 2:
 	
@@ -30,7 +30,7 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 		df = pd.DataFrame()
 		
 		# 1: without; 2: vertical; 3: horizontal isolation 
-		for i in range(3): # different isolation levels
+		for i in range(niveis_isolamento): # 2: paper
 			omega_i = mp.contact_reduction_elderly[i]
 			omega_j = mp.contact_reduction_young[i]
 		
@@ -41,20 +41,28 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 			# Update the variables
 			Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj = ret.T
 	
-			df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej, 'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
-									'Hi': Hi, 'Hj': Hj, 'Ui': Ui, 'Uj': Uj, 'Mi': Mi, 'Mj': Mj}, index=t)
+			df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej,
+						     'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
+						     'Hi': Hi, 'Hj': Hj, 'Ui': Ui, 'Uj': Uj,
+						     'Mi': Mi, 'Mj': Mj}, index=t)
 								.assign(omega_i = omega_i)
 								.assign(omega_j = omega_j))
 		DF_list = df
 	
 	else:
 		DF_list = list() # list of data frames
+		
+		runs = len(cp.alpha)
+		print('Rodando ' + str(runs) + ' casos')
+		print('Para ' + str(mp.t_max) + ' dias')
+		print('Para cada um dos ' + str(niveis_isolamento) + ' niveis de isolamento de entrada')
+		print('')
 	
-		for ii in range(len(cp.alpha)): # sweeps the data frames list
+		for ii in range(runs): # sweeps the data frames list
 			df = pd.DataFrame()
 		
 			# 1: without; 2: vertical; 3: horizontal isolation 
-			for i in range(3): # different isolation levels
+			for i in range(niveis_isolamento): # 2: paper
 				omega_i = mp.contact_reduction_elderly[i]
 				omega_j = mp.contact_reduction_young[i]
 			
@@ -65,8 +73,10 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 				# Update the variables
 				Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj = ret.T
 			
-				df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej, 'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
-										'Hi': Hi, 'Hj': Hj, 'Ui': Ui, 'Uj': Uj, 'Mi': Mi, 'Mj': Mj}, index=t)
+				df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej,
+							     'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
+							     'Hi': Hi, 'Hj': Hj, 'Ui': Ui, 'Uj': Uj,
+							     'Mi': Mi, 'Mj': Mj}, index=t)
 									.assign(omega_i = omega_i)
 									.assign(omega_j = omega_j))
 			DF_list.append(df)
