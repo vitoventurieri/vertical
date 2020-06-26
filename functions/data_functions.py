@@ -2,8 +2,6 @@ from collections import namedtuple
 import numpy as np
 import numpy.random as npr
 import pandas as pd
-import sys
-from .utils import *
 #from datetime import datetime as dt
 
 
@@ -87,21 +85,11 @@ obs: 80% ARBITRÁRIO
 	state_name = 'Rio de Janeiro (UF)' # 'Pernambuco' #'Brasil' # 'Santa Catarina' # 
 	metodo = "subreport" # "fator_verity" # 
 	sub_report = 10	
-
-	print('Para: ' + state_name + ' com o metodo ' + metodo)
 	
 	# IMPORT DATA
-	#url = 'https://github.com/viniciusriosfuck/vertical/blob/master/data/HIST_PAINEL_COVIDBR_24jun2020.xlsx?raw=true'
-
-	print('Importando arquivo do Ministerio da Saude')
-	print('Este processo demora ...')
-	# Da pra trocar pra csv
-	#df = pd.read_excel(url)
-	data_folder = os.path.join(get_root_dir(), 'data\\')
-	filename = 'HIST_PAINEL_COVIDBR_24jun2020.xlsx'
-	df = pd.read_excel(data_folder + filename)
-	print('Importado')
-	
+	url = 'https://github.com/viniciusriosfuck/vertical/blob/master/HIST_PAINEL_COVIDBR_29mai2020.xlsx?raw=true'
+	# df = pd.read_excel(r'C:\Users\Fuck\Downloads\HIST_PAINEL_COVIDBR_21mai2020.xlsx')
+	df = pd.read_excel(url)
 	# data	semanaEpi	populacaoTCU2019	casosAcumulado	obitosAcumulado	Recuperadosnovos	emAcompanhamentoNovos
 	states = { 'coduf': [76, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 35, 41, 42, 43, 50, 51, 52, 53],
 			'state_name': ['Brasil','Rondônia','Acre','Amazonas','Roraima','Pará','Amapá','Tocantins','Maranhão','Piauí','Ceará','Rio Grande do Norte','Paraíba','Pernambuco','Alagoas','Sergipe','Bahia','Minas Gerais','Espiríto Santo','Rio de Janeiro (UF)','São Paulo (UF)','Paraná','Santa Catarina','Rio Grande do Sul','Mato Grosso do Sul','Mato Grosso','Goiás','Distrito Federal'],
@@ -109,45 +97,45 @@ obs: 80% ARBITRÁRIO
 	states = pd.DataFrame(states, columns = ['coduf', 'state_name', 'populationTCU2019'])
 	
 	# INITIAL DATE
-    # fonte r0: UF e cidades Brasil: nosso projeto
-    # http://coletivocovid19.site/modelo/
+	# fonte r0: UF e cidades Brasil: nosso projeto
+	# http://coletivocovid19.site/modelo/
 	if state_name == 'Pernambuco':
-	    startdate = '2020-05-02'
-	    r0 = (1.1, 1.3)
-	    # coduf = 26 
-	    # population = 9_557_071
-	    sub_report = 13
+		startdate = '2020-05-02'
+		r0 = (1.1, 1.3)
+		# coduf = 26 
+		# population = 9_557_071
+		sub_report = 13
 	elif state_name == 'Santa Catarina':
-	    startdate = '2020-05-10'
-	    r0 = (1.1, 1.2)
-	    # coduf = 42
-	    # population = 7_164_788
-	    sub_report = 2
+		startdate = '2020-05-10'
+		r0 = (1.1, 1.2)
+		# coduf = 42
+		# population = 7_164_788
+		sub_report = 2
 	elif state_name == 'São Paulo (UF)':
-	    startdate = '2020-03-15' # '2020-04-29' #
-	    r0 = (2.5, 3.5) # (1.15, 1.32) # (3.4, 5.3) #
-	    # coduf = 35
-	    # population = 45_919_049
-	    sub_report = 8
+		startdate = '2020-03-15' # '2020-04-29' #
+		r0 = (2.5, 3.5) # (1.15, 1.32) # (3.4, 5.3) #
+		# coduf = 35
+		# population = 45_919_049
+		sub_report = 8
 	elif state_name == 'Brasil':
-	    startdate = '2020-04-26'
-	    r0 = (1.1, 1.3) #(2.25, 3.57) # fonte r0: Brasil: Imperial College
-	    # coduf = 76
-	    # population = 210_147_125
-	    sub_report = 8        
-        # https://www1.folha.uol.com.br/equilibrioesaude/2020/04/brasil-tem-maior-taxa-de-contagio-por-coronavirus-do-mundo-aponta-estudo.shtml
+		startdate = '2020-04-26'
+		r0 = (2.25, 3.57) # fonte r0: Brasil: Imperial College
+		# coduf = 76
+		# population = 210_147_125
+		sub_report = 8        
+		# https://www1.folha.uol.com.br/equilibrioesaude/2020/04/brasil-tem-maior-taxa-de-contagio-por-coronavirus-do-mundo-aponta-estudo.shtml
 	elif state_name == 'Rio de Janeiro (UF)':
-	    startdate = '2020-03-23' #
-	    r0 = (1.28, 1.60) # (1.15, 1.32) # (3.4, 5.3) # Imperial College 21
-	    # coduf = 
-	    # population = 17_264_943	
-    
-    
+		startdate = '2020-03-23' #
+		r0 = (1.28, 1.60) # (1.15, 1.32) # (3.4, 5.3) # Imperial College 21
+		# coduf = 
+		# population = 17_264_943	
+	
+	
 	states_set = states[states['state_name'] == state_name ]
-    
+	
 	population = states_set['populationTCU2019'].values[0]
 	coduf = states_set['coduf'].values[0]                 
-    
+	
 	dfMS = df[df['coduf'] == coduf ]
 	dfMS = dfMS[dfMS['codmun'].isnull()] # only rows without city
 	
@@ -166,26 +154,26 @@ obs: 80% ARBITRÁRIO
 	M0 = dfMS['obitosAcumulado'][dfMS['data'] == startdate].values[0]
 	# CUMULATIVE INFECTED FROM THE PREVIOUS 13 DAYS
 	Infect = dfMS['casosAcumulado'][dfMS['data'].
-                                 between(backdate,startdate,inclusive = True)]
+								 between(backdate,startdate,inclusive = True)]
 	#print(backdate)
 	#print(Infect)
 	#print(dfMS['data'])	
 	# ESTIMATED INITIAL CONDITIONS
 	if metodo == "subreport":
-	    Infect = Infect * sub_report
-	    # INFECTED
-	    I0 = max(Infect) - min(Infect)
-	    # RECOVERED
-	    R0 = min(Infect) + dfMS['obitosAcumulado'][dfMS['data'] == backdate].values[0]# max(Infect) - I0
+		Infect = Infect * sub_report
+		# INFECTED
+		I0 = max(Infect) - min(Infect)
+		# RECOVERED
+		R0 = min(Infect) + dfMS['obitosAcumulado'][dfMS['data'] == backdate].values[0]# max(Infect) - I0
 	elif metodo == "fator_verity":
-	    I0 = M0 * 165 # estimated from Verity to Brazil: country, state, city
-	    R0 = I0 * 0.6 # Hypothesis: Removed correspond to 60% of the Infected
+		I0 = M0 * 165 # estimated from Verity to Brazil: country, state, city
+		R0 = I0 * 0.6 # Hypothesis: Removed correspond to 60% of the Infected
 	# EXPOSED
 	E0 = 0.8 * I0  # Hypothesis: Exposed correspond to 80% of the Infected   
-    
-    
+	
+	
 	#E0, I0, R0 = 5, 10, 0
-    
+	
 	return dfMS, startdate, state_name, population, sub_report, E0, I0, R0, M0, r0
 
 
@@ -204,36 +192,18 @@ def get_input_data():
 	IC_Analysis
 	1: Confidence Interval; 2: Single Run; 3: Sensitivity Analysis
 	
-	
-	1: CONFIDENCE INTERVAL for a lognormal distribution
-	2: SINGLE RUN
-	3: r0 Sensitivity analysis: Calculate an array for r0 
-	to perform a sensitivity analysis with 0.1 intervals
-	
 	"""
 		
 	
-	IC_analysis = 1  # 1 # 2 # 3 
-	if(IC_analysis == 1):
-		 print('Confidence Interval Analysis (r0, gamma and alpha, lognormal distribution)')
-	elif(IC_analysis == 2):
-		 print('Single Run Analysis')
-	elif(IC_analysis == 3):
-		 print('Sensitivity r0 Analysis')
-	else:
-		sys.exit('ERROR: Not programmed such Analysis, please enter 1, 2 or 3')
+	IC_analysis = 2  # 1 # 2 # 3 
+	# 1: CONFIDENCE INTERVAL (r0, gamma and alpha, lognormal distribution)
+	# 2: SINGLE RUN
+	# 3: SENSITIVITY ANALYSIS (r0)
 	
-	runs = 100 # 1_000 # number of runs for Confidence Interval analysis
+	runs = 300 # 1_000 # number of runs for Confidence Interval analysis
 	
 	dfMS, startdate, state_name, sub_report, r0_fit = [], [], [], [], []
-
-	fit_analysis = 1 # 0 #
-	if(fit_analysis == 1):
-		if(IC_analysis == 1):
-			print('With fit analysis')
-		else:
-			sys.exit('ERROR: Not programmed fit analysis for other case than Confidence Interval')
-	
+	fit_analysis = 0 # 0 #
 	if fit_analysis == 1:
 		 [dfMS, startdate, state_name, population_fit, sub_report,
 		 E0_fit, I0_fit, R0_fit, M0_fit, r0_fit] = fit_curve()
@@ -252,18 +222,14 @@ def get_input_data():
 	infectivity_period = 10.0
 	pI = 0.1425 #962/7600 #  Proportion of persons aged 60+ in Brazil,
 	# 2020 forecast, Source: IBGE's app
-	
 	contact_matrix = np.array([[16.24264923,0.34732121],[ 5.14821886 ,0.72978211]])
 	M_matrix = np.zeros((len(contact_matrix),len(contact_matrix[0])))
-	
 	Population_proportion = np.array([1-pI,pI])
-	
 	for i in range(len(contact_matrix)):
 		for j in range(len(contact_matrix[0])):
 			M_matrix[i][j] = contact_matrix[i][j]*Population_proportion[i]/Population_proportion[j]
 	Normalization_constant,_ = np.linalg.eig(M_matrix)
 	Normalization_constant = max(Normalization_constant.real)
-	
 	if IC_analysis == 1: # CONFIDENCE INTERVAL for a lognormal distribution
 		
 		# PARAMETERS ARE ARRAYS
@@ -320,10 +286,10 @@ def get_input_data():
 		# beta = r0 * gamma
 		contamination_rate = R0_array * infectivity_rate 
 	contamination_rate = contamination_rate/Normalization_constant
-	#print(contamination_rate)
+	print(contamination_rate)
 
 	covid_parameters = namedtuple('Covid_Parameters',
-								['alpha',                            # incubation rate
+								['alpha',                             # incubation rate
 								'beta',                              # contamination rate
 								'gamma',                             # infectivity rate
 								'mortality_rate_elderly',            # taxa_mortalidade_i
@@ -345,11 +311,11 @@ def get_input_data():
 		gamma = infectivity_rate,
 		# Mortality Rates, Source: Verity, et al,
 		# adjusted with population distribution IBGE 2020
-		mortality_rate_elderly = 0.0079,#0.03495,       # old ones: 60+ years
-		mortality_rate_young = 0.0079,#0.00127,         # young ones: 0-59 years
+		mortality_rate_elderly = 0.0079,#0.03495,         # old ones: 60+ years
+		mortality_rate_young = 0.0079,#0.00127,           # young ones: 0-59 years
 		# Length of Stay (in days), Source: Wuhan
-		los_ward = 8.9,                         		# regular
-		los_icu = 8,                            		# UTI
+		los_ward = 8.9,                         # regular
+		los_icu = 8,                            # UTI
 		# Internation Rate by type and age, 
 		# Source for hospitalization verity et al;
 		# Proportion those need ICU:
@@ -395,7 +361,7 @@ def get_input_data():
 	
 	# INITIAL CONDITIONS
 	E0 = 0 #64 #260_000 #basic_reproduction_number * I0
-	I0 = 100 #100#304_000 #  (a total of 20943 cases in the last 10 days 
+	I0 = 1 #100#304_000 #  (a total of 20943 cases in the last 10 days 
 	# within a total of 38654 cumulative confirmed cases in 
 	# 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
 	R0 = 0 #407#472_000 # 
@@ -433,8 +399,8 @@ def get_input_data():
 	
 	model_parameters = model_parameters(
 		# Social contact reduction factor (without, vertical, horizontal) isolation
-		contact_reduction_elderly = (1., .4), 	# old ones: 60+ years	
-		contact_reduction_young = (1., 1.), 	# young ones: 0-59 years
+		contact_reduction_elderly = (1., .4, .4), # young ones: 0-59 years
+		contact_reduction_young = (1., 1., .6), # old ones: 60+ years	
 		# Scenaries for health system colapse
 		lotation = (0.3, 0.5, 0.8, 1),        	# 30, 50, 80, 100% capacity
 		init_exposed_elderly = Ei0,    			# initial exposed population old ones: 60+ years
@@ -449,7 +415,7 @@ def get_input_data():
 		init_hospitalized_icu_young = Uj0,     	# initial icu hospitalized young ones: 0-59 years
 		init_deceased_elderly = Mi0,        	# initial deceased population old ones: 60+ years
 		init_deceased_young = Mj0,           	# initial deceased population young ones: 0-59 years
-		t_max = 4*30, # 3*30 # 2*365 			# number of days to run
+		t_max = 2 * 365, #	        # number of days to run
 		# Brazilian Population
 		population = N,             
 		# Brazilian old people proportion (age: 60+), 2020 forecast
@@ -461,49 +427,12 @@ def get_input_data():
 		bed_icu = 32_380,                       # bed ICUs
 		IC_analysis = IC_analysis,			    # flag for run type
 		# 1: confidence interval, 2: single run, 3: r0 sensitivity analysis
-		dfMS = dfMS, 							#dataframe_Min_Saude_data
-		startdate = startdate, 					# start date of the fit and simulation
-		state_name = state_name, 				# state simulated
+		dfMS = dfMS, #dataframe_Min_Saude_data
+		startdate = startdate, # start date of the fit and simulation
+		state_name = state_name, # state simulated
 		r0_fit = r0_fit,                        # range of r0 fitted
-		sub_report = sub_report,                # sub_report factor
+		sub_report = sub_report,                 # sub_report factor
 		contact_matrix = contact_matrix
 	)
-
-	parametros = {'incubation_period = 1/alpha': [incubation_period],
-              'basic_reproduction_number = beta/gamma': [basic_reproduction_number],
-              'infectivity_period = 1/gamma': [infectivity_period],
-              'runs': [runs],
-              'contact_reduction_elderly': [model_parameters.contact_reduction_elderly],
-              'contact_reduction_young': [model_parameters.contact_reduction_young],
-              'lotation': [model_parameters.lotation],
-              'init_exposed_elderly': [Ei0],
-              'init_exposed_young': [Ej0],
-              'init_infected_elderly': [Ii0],
-              'init_infected_young': [Ij0],
-              'init_removed_elderly': [Ri0],
-              'init_removed_young': [Rj0],
-              'init_hospitalized_ward_elderly': [Hi0],
-              'init_hospitalized_ward_young': [Hj0],
-              'init_hospitalized_icu_elderly': [Ui0],
-              'init_hospitalized_icu_young': [Uj0],
-              'init_deceased_elderly': [Mi0],
-              'init_deceased_young': [Mj0],
-              't_max': [model_parameters.t_max],
-              'population': [N],
-              'population_rate_elderly': [pI],
-              'bed_ward': [model_parameters.bed_ward],
-              'bed_icu': [model_parameters.bed_icu],
-              'IC_analysis': [IC_analysis],
-              'fit_analysis': [fit_analysis],
-              'startdate': [startdate],
-              'state_name': [state_name],
-              'r0_fit': [r0_fit],
-              'sub_report' : [sub_report]}
-
-	output_parameters = pd.DataFrame(parametros).T
-	print(output_parameters)
-	print('')
-
-
 	
-	return covid_parameters, model_parameters, output_parameters
+	return covid_parameters, model_parameters
