@@ -409,10 +409,10 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 				plot_ci(Uj, cor[3], t_space)
 				
 			else: # SINGLE RUN
-				plt.plot(t_space, Hi, ls[0], color = cor[0] )
-				plt.plot(t_space, Hj, ls[1], color = cor[1] )
-				plt.plot(t_space, Ui, ls[0], color = cor[2] )
-				plt.plot(t_space, Uj, ls[1], color = cor[3] )
+				plt.plot(t_space, Hi, ls[0], color = cor[0], label = 'Ward for Elderly')
+				plt.plot(t_space, Hj, ls[1], color = cor[1], label = 'Ward for Young')
+				plt.plot(t_space, Ui, ls[1], color = cor[2], label = 'ICU for Elderly')
+				plt.plot(t_space, Uj, ls[0], color = cor[3], label = 'ICU for Young')
 		
 			pos_format(main_title, 'Bed Demand', main_label_x,
 				   fsLabelTitle,leg_loc,fsPlotLegend)           
