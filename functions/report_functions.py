@@ -23,9 +23,10 @@ def generate_report(results, model_parameters):
 	CAPACITY_WARD = model_parameters.bed_ward #298791
 	
 	# 1: without; 2: vertical; 3: horizontal isolation 
-	for i in range(3):
+	for i in range(len(model_parameters.contact_reduction_elderly)): # 2: paper
 		omega_i = model_parameters.contact_reduction_elderly[i]
 		omega_j = model_parameters.contact_reduction_young[i]
+		
 		for availability in model_parameters.lotation:
 			
 			results_filtered_omega = results.query('omega_i == @omega_i & omega_j == @omega_j')
