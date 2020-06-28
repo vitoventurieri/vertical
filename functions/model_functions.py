@@ -36,7 +36,7 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 		
 			# Integrate the SEIR equations over the time grid, t
 			# PARAMETROS PARA CALCULAR DERIVADAS
-			args = args_assignment(cp, mp, omega_i, omega_j, ii)
+			args = args_assignment(cp, mp, omega_i, omega_j, i, ii)
 			ret = odeint(derivSEIRHUM, SEIRHUM_0, t, args)
 			# Update the variables
 			Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj = ret.T
@@ -60,7 +60,7 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 			
 				# Integrate the SEIR equations over the time grid, t
 				# PARAMETROS PARA CALCULAR DERIVADAS
-				args = args_assignment(cp, mp, omega_i, omega_j, ii)
+				args = args_assignment(cp, mp, omega_i, omega_j, i, ii)
 				ret = odeint(derivSEIRHUM, SEIRHUM_0, t, args)
 				# Update the variables
 				Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj = ret.T
@@ -104,7 +104,7 @@ def initial_conditions(mp):
 	return SEIRHUM_0
 
 
-def args_assignment(cp, mp, omega_i, omega_j, ii):
+def args_assignment(cp, mp, omega_i, omega_j, i, ii):
 	"""
 	Assembly of the derivative parameters
 	input: covid_parameters, model_parameters
@@ -123,6 +123,7 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 	
 	N = mp.population
 	pI = mp.population_rate_elderly
+	Normalization_constant = mp.Normalization_constant[0]
 	if mp.IC_analysis == 2: # SINGLE RUN
 		alpha = cp.alpha
 		beta = cp.beta
@@ -132,7 +133,7 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 		beta = cp.beta[ii]
 		gamma = cp.gamma[ii]
 	
-	contact_matrix = mp.contact_matrix
+	contact_matrix = mp.contact_matrix[i]
 	taxa_mortalidade_i = cp.mortality_rate_elderly
 	taxa_mortalidade_j = cp.mortality_rate_young
 	
@@ -150,7 +151,7 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 	args = (N, alpha, beta, gamma,
 			los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
 			taxa_mortalidade_i, taxa_mortalidade_j,
-			omega_i, omega_j,contact_matrix,pI,capacidade_UTIs)
+			omega_i, omega_j,contact_matrix,pI,capacidade_UTIs,Normalization_constant)
 	return args
 
 
@@ -158,7 +159,7 @@ def args_assignment(cp, mp, omega_i, omega_j, ii):
 def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma,
 				los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
 				taxa_mortalidade_i, taxa_mortalidade_j,
-				omega_i, omega_j,contact_matrix,pI,capacidade_UTIs):
+				omega_i, omega_j,contact_matrix,pI,capacidade_UTIs,Normalization_constant):
 	"""
 	Computes the derivatives
 
@@ -176,9 +177,11 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma,
 	# Vetor variaveis incognitas
 	Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj = SEIRHUM
 	
-	Iij = np.array([[Ij*(omega_j**0.5)/((1-pI)*N)],[Ii*(omega_i**0.5)/(pI*N)]])
-	Sij = np.array([[Sj*(omega_j**0.5)],[Si*(omega_i**0.5)]])
-	dSijdt = -beta*np.dot(contact_matrix,Iij)*Sij
+	#Iij = np.array([[Ij*(omega_j**0.5)/((1-pI)*N)],[Ii*(omega_i**0.5)/(pI*N)]])
+	#Sij = np.array([[Sj*(omega_j**0.5)],[Si*(omega_i**0.5)]])
+	Iij = np.array([[Ij/((1-pI)*N)],[Ii/(pI*N)]])
+	Sij = np.array([[Sj],[Si]])
+	dSijdt = -(beta/Normalization_constant)*np.dot(contact_matrix,Iij)*Sij
 	dSjdt = dSijdt[0]
 	dSidt = dSijdt[1]
 	dEidt = - dSidt - alpha * Ei

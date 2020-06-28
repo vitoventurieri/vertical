@@ -87,7 +87,7 @@ obs: 80% ARBITRÁRIO
 	sub_report = 10	
 	
 	# IMPORT DATA
-	url = 'https://github.com/viniciusriosfuck/vertical/blob/fit_reported_data/HIST_PAINEL_COVIDBR_29mai2020.xlsx?raw=true'
+	url = 'https://github.com/viniciusriosfuck/vertical/blob/master/HIST_PAINEL_COVIDBR_29mai2020.xlsx?raw=true'
 	# df = pd.read_excel(r'C:\Users\Fuck\Downloads\HIST_PAINEL_COVIDBR_21mai2020.xlsx')
 	df = pd.read_excel(url)
 	# data	semanaEpi	populacaoTCU2019	casosAcumulado	obitosAcumulado	Recuperadosnovos	emAcompanhamentoNovos
@@ -195,7 +195,7 @@ def get_input_data():
 	"""
 		
 	
-	IC_analysis = 2  # 1 # 2 # 3 
+	IC_analysis = 1  # 1 # 2 # 3 
 	# 1: CONFIDENCE INTERVAL (r0, gamma and alpha, lognormal distribution)
 	# 2: SINGLE RUN
 	# 3: SENSITIVITY ANALYSIS (r0)
@@ -211,36 +211,43 @@ def get_input_data():
 	# CONFIDENCE INTERVAL AND SENSITIVITY ANALYSIS
 	# 95% Confidence interval bounds or range for sensitivity analysis
 	# Basic Reproduction Number # ErreZero
-	basic_reproduction_number = (2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
+	basic_reproduction_number = (2.19,2.21)#(2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
 	if fit_analysis == 1:
 		 basic_reproduction_number = r0_fit
 
 	# SINGLE RUN AND SENSITIVITY ANALYSIS
 	# Incubation Period (in days)
-	incubation_period = 5.2             # (4.1, 7.0) #	
+	incubation_period = 2             # (4.1, 7.0) #	
 	# Infectivity Period (in days)      # tempo_de_infecciosidade
-	infectivity_period = 10.0
+	infectivity_period = 3
 	pI = 0.1425 #962/7600 #  Proportion of persons aged 60+ in Brazil,
 	# 2020 forecast, Source: IBGE's app
-	contact_matrix = np.array([[16.24264923,0.34732121],[ 5.14821886 ,0.72978211]])
-	M_matrix = np.zeros((len(contact_matrix),len(contact_matrix[0])))
+	contact_matrix = [None]*3
+	contact_matrix[0] = np.array([[16.24264923,0.34732121],[ 5.14821886 ,0.72978211]])
+	contact_matrix[1] = np.array([[16.24264923,0.10472942],[ 3.28294615 ,0.38361959]])
+	contact_matrix[2] = np.array([[7.47115329,0.10472942],[ 3.28294615 ,0.38361959]])
+
 	Population_proportion = np.array([1-pI,pI])
-	for i in range(len(contact_matrix)):
-		for j in range(len(contact_matrix[0])):
-			M_matrix[i][j] = contact_matrix[i][j]*Population_proportion[i]/Population_proportion[j]
-	Normalization_constant,_ = np.linalg.eig(M_matrix)
-	Normalization_constant = max(Normalization_constant.real)
+	Normalization_constant = np.zeros(3)
+	for k in range(3):
+		M_matrix = np.zeros((len(contact_matrix[k]),len(contact_matrix[k][0])))
+	
+		for i in range(len(contact_matrix[k])):
+			for j in range(len(contact_matrix[k][0])):
+				M_matrix[i][j] = contact_matrix[k][i][j]*Population_proportion[i]/Population_proportion[j]
+		Temp,_ = np.linalg.eig(M_matrix)
+		Normalization_constant[k] = max(Temp.real)
 	if IC_analysis == 1: # CONFIDENCE INTERVAL for a lognormal distribution
 		
 		# PARAMETERS ARE ARRAYS
 		
 		# 95% Confidence interval bounds for Covid parameters
 		# Incubation Period (in days)
-		incubation_period = (1.9, 2.1) # (4.1, 7.0)
+		incubation_period = (2.1, 7) # (4.1, 7.0)
 	
 		# Infectivity Period (in days)   # tempo_de_infecciosidade
 		#infectivity_period = (7.0, 12.0) #	3 days or 7 days
-		infectivity_period = (2.9, 3.1) #	3 days or 7 days
+		infectivity_period = (1, 6.7) #	3 days or 7 days
 		# Woelfel et al 22 (eCDC: 7-12 days @ 19/4/20, 
 		# https://www.ecdc.europa.eu/en/covid-19/questions-answers)
 		
@@ -261,7 +268,7 @@ def get_input_data():
 	elif IC_analysis == 2: # SINGLE RUN
 	
 		# PARAMETERS ARE FLOATS
-		basic_reproduction_number = 2.2
+		basic_reproduction_number = 2.5
 		# 2.2 is from Li Q, Guan X, Wu P et al. 
 		# Early Transmission Dynamics in Wuhan, China, 
 		# of Novel Coronavirus–Infected Pneumonia.
@@ -285,8 +292,7 @@ def get_input_data():
 		infectivity_rate = np.repeat(1 / infectivity_period, len(R0_array)) 
 		# beta = r0 * gamma
 		contamination_rate = R0_array * infectivity_rate 
-	contamination_rate = contamination_rate/Normalization_constant
-	print(contamination_rate)
+	contamination_rate = contamination_rate
 
 	covid_parameters = namedtuple('Covid_Parameters',
 								['alpha',                             # incubation rate
@@ -353,7 +359,8 @@ def get_input_data():
 								'state_name',                    	# state simulated
 								'r0_fit',                           # range of r0
 								'sub_report',                       # sub_report factor
-								'contact_matrix'					# contact matrix
+								'contact_matrix',					# contact matrix
+								'Normalization_constant'			# normalization constant for contact matrix
 								])
 	
 	N = 211_755_692 # 211 millions, 2020 forecast, Source: IBGE's app
@@ -361,7 +368,7 @@ def get_input_data():
 	
 	# INITIAL CONDITIONS
 	E0 = 0 #64 #260_000 #basic_reproduction_number * I0
-	I0 = 1 #100#304_000 #  (a total of 20943 cases in the last 10 days 
+	I0 = 30 #100#304_000 #  (a total of 20943 cases in the last 10 days 
 	# within a total of 38654 cumulative confirmed cases in 
 	# 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
 	R0 = 0 #407#472_000 # 
@@ -432,7 +439,8 @@ def get_input_data():
 		state_name = state_name, # state simulated
 		r0_fit = r0_fit,                        # range of r0 fitted
 		sub_report = sub_report,                 # sub_report factor
-		contact_matrix = contact_matrix
+		contact_matrix = contact_matrix,
+		Normalization_constant = Normalization_constant
 	)
 	
 	return covid_parameters, model_parameters
