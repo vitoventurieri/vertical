@@ -1,0 +1,196 @@
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# colocar na variavel datasetrz os r(ts)para cada dia
+
+def run_SEIR_ODE_model_erlang(
+        N: 'population size',
+        E0: 'init. exposed population',
+        I10: 'init. infected population1',
+        I20: 'init. infected population2',
+        I0: 'init. infected population',
+        R0: 'init. removed population',
+        beta: 'infection probability', 
+        beta1: 'infection probability day 1',
+        beta2: 'infection probability day 2',
+        beta3: 'infection probability day 3',
+        gamma: 'removal probability',
+        alpha_inv: 'incubation period', 
+        t_max: 'numer of days to run'
+    ) -> pd.DataFrame:
+
+    S0 = N - I10 - I20 - I0 - R0 - E0
+    alpha = 1/alpha_inv
+
+    # A grid of time points (in days)
+    t = range(t_max)
+
+    # The SEIR model differential equations.
+    def deriv(y, t, N, beta, beta1, beta2, beta3, gamma, alpha):
+        S, E, I1, I2, I, R = y
+        dSdt = -beta * S * (I1 + I2 + I) / N
+        #dSfamiliadt = -dSdt*probaumentadanafamilia
+        dEdt = -dSdt - alpha*E
+        dI1dt = alpha*E - beta1*I1
+        dI2dt = beta1*I1 - beta1*I2
+        dIdt = beta1*I2 - beta1*I
+        dRdt = beta1*I
+        return dSdt, dEdt, dI1dt, dI2dt, dIdt, dRdt
+
+    # Initial conditions vector
+    y0 = S0, E0, I10, I20, I0, R0
+
+    # Integrate the SIR equations over the time grid, t.
+    ret = odeint(deriv, y0, t, args=(N, beta, beta1, beta2, beta3, gamma, alpha))
+    S, E, I1, I2, I, R = ret.T
+
+    return pd.DataFrame({'S': S, 'E': E, 'I1': I1, 'I2': I2, 'I': I, 'R': R}, index=t)
+
+
+if __name__ == '__main__':
+    #Re_series = pd.Series(range(700,1)) # aqui tem que ir a sequencia de dias do rt
+    
+    #Initial parameters
+    
+    N = 500_000
+    E0, I10, I20, I0, R0 = 35, 10, 10, 10, 0
+    Sinicial = N - I10 - I20 - I0 - R0 - E0
+    gamma, alpha_inv = 1/10, 3
+    errezero = 2.2
+    
+    #solves several ODEs in sequence using r(e) from the Re_series
+    beta = gamma*errezero
+    numero_compartimentos_I = 3
+    beta1 = numero_compartimentos_I*gamma
+    beta2 = numero_compartimentos_I*gamma
+    beta3 = numero_compartimentos_I*gamma
+    t_max = 100
+    
+    results = run_SEIR_ODE_model_erlang(N, E0, I10, I20, I0, R0, beta, beta1, beta2, beta3, gamma, alpha_inv, t_max)
+    #fitado = pd.concat([fitado, results.loc[1:,:]], ignore_index=True)
+    #E0, I0, R0 = fitado.loc[j,'E'],fitado.loc[j,'I'], fitado.loc[j,'R']
+    results['somas'] = results['I1'] + results ['I2'] + results ['I']
+        
+    # plot
+    #variable
+    plt.style.use('ggplot')
+    (results
+    [['E', 'I', 'I2', 'R']]
+     .plot(figsize=(8,6), fontsize=20, logy=False))
+    params_title = (
+        f'SEIR($\gamma$={gamma}, $\\alpha$={1/alpha_inv}, $N$={N}, '
+        f'$E_0$={int(E0)}, $I_0$={int(I0+I10+I20)}, $R_0$={int(R0)})'
+    )
+    plt.title(f'Numero de Pessoas Atingidas com modelo no "t_final -1" da simulacao:\n r(e)=vide lista, ' + params_title,
+              fontsize=20)
+    plt.legend(['Expostas', 'Infectadas', 'Infectadas2', 'Recuperadas'], fontsize=20)
+    plt.xlabel('Dias', fontsize=20)
+    plt.ylabel('Pessoas', fontsize=20)
+    
+    #plt.plot(casos_brasil)
+    plt.show()
+    
+    plt.style.use('ggplot')
+    (results
+    [['E', 'somas']]
+     .plot(logy=False))
+    plt.legend(['Expostas', 'somas'], fontsize=20)
+    plt.xlabel('Dias', fontsize=20)
+    plt.ylabel('Pessoas', fontsize=20)
+    plt.show()
+    
+    #______________________________________
+
+
+def run_SEIR_ODE_model(
+        N: 'population size',
+        E0: 'init. exposed population',
+        I0: 'init. infected population',
+        R0: 'init. removed population',
+        beta: 'infection probability',
+        gamma: 'removal probability', 
+        alpha_inv: 'incubation period', 
+        t_max: 'numer of days to run'
+    ) -> pd.DataFrame:
+
+    S0 = N - I0 - R0 - E0
+    alpha = 1/alpha_inv
+
+    # A grid of time points (in days)
+    t = range(t_max)
+
+    # The SEIR model differential equations.
+    def deriv(y, t, N, beta, gamma, alpha):
+        S, E, I, R = y
+        dSdt = -beta * S * I / N
+        dEdt = -dSdt - alpha*E
+        dIdt = alpha*E - gamma*I
+        dRdt = gamma * I
+        return dSdt, dEdt, dIdt, dRdt
+
+    # Initial conditions vector
+    y0 = S0, E0, I0, R0
+
+    # Integrate the SIR equations over the time grid, t.
+    ret = odeint(deriv, y0, t, args=(N, beta, gamma, alpha))
+    S, E, I, R = ret.T
+
+    return pd.DataFrame({'S': S, 'E': E, 'I': I, 'R': R}, index=t)
+
+
+if __name__ == '__main__':
+    #Re_series = pd.Series(range(700,1)) # aqui tem que ir a sequencia de dias do rt
+    
+    #Initial parameters
+    
+    N = 500_000
+    E0, I0, R0 = 35, 30, 0
+    Sinicial = N - I0 - R0 - E0
+    gamma, alpha_inv = 1/10, 3 
+    
+    #solves several ODEs in sequence using r(e) from the Re_series
+    errezero = 2.2
+    beta = gamma*errezero
+    #beta1 = 1
+    #beta2 = 1
+    #beta3 = 1
+    t_max = 100
+    
+    results2 = run_SEIR_ODE_model(N, E0, I0, R0, beta, gamma, alpha_inv, t_max)
+    #fitado = pd.concat([fitado, results.loc[1:,:]], ignore_index=True)
+    #E0, I0, R0 = fitado.loc[j,'E'],fitado.loc[j,'I'], fitado.loc[j,'R']
+    #results['somas'] = results['I1'] + results ['I2'] + results ['I']
+        
+    # plot
+    #variable
+    plt.style.use('ggplot')
+    (results2
+    [['E', 'I', 'R']]
+     .plot(figsize=(8,6), fontsize=20, logy=False))
+    params_title = (
+        f'SEIR($\gamma$={gamma}, $\\alpha$={1/alpha_inv}, $N$={N}, '
+        f'$E_0$={int(E0)}, $I_0$={int(I0)}, $R_0$={int(R0)})'
+    )
+    plt.title(f'Numero de Pessoas Atingidas com modelo no "t_final -1" da simulacao:\n r(e)=vide lista, ' + params_title,
+              fontsize=20)
+    plt.legend(['Expostas', 'Infectadas', 'Recuperadas'], fontsize=20)
+    plt.xlabel('Dias', fontsize=20)
+    plt.ylabel('Pessoas', fontsize=20)
+    
+    #plt.plot(casos_brasil)
+    plt.show()
+    
+    plt.style.use('ggplot')
+    (results2
+    [['E', 'I']]
+     .plot(logy=False))
+    plt.legend(['Expostas', 'Infectadas'], fontsize=20)
+    plt.xlabel('Dias', fontsize=20)
+    plt.ylabel('Pessoas', fontsize=20)
+    plt.show()
+    
+    results['somas'].plot()
+    results2['I'].plot()
+    plt.legend(['Erlang', 'Exponential'], fontsize=20)
