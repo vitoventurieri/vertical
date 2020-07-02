@@ -66,7 +66,7 @@ if __name__ == '__main__':
     beta1 = numero_compartimentos_I*gamma
     beta2 = numero_compartimentos_I*gamma
     beta3 = numero_compartimentos_I*gamma
-    t_max = 100
+    t_max = 150
     
     results = run_SEIR_ODE_model_erlang(N, E0, I10, I20, I0, R0, beta, beta1, beta2, beta3, gamma, alpha_inv, t_max)
     #fitado = pd.concat([fitado, results.loc[1:,:]], ignore_index=True)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     #beta1 = 1
     #beta2 = 1
     #beta3 = 1
-    t_max = 100
+    t_max = 150
     
     results2 = run_SEIR_ODE_model(N, E0, I0, R0, beta, gamma, alpha_inv, t_max)
     #fitado = pd.concat([fitado, results.loc[1:,:]], ignore_index=True)
