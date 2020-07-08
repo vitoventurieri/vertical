@@ -223,7 +223,7 @@ def get_input_data():
 	else:
 		sys.exit('ERROR: Not programmed such Analysis, please enter 1, 2 or 3')
 	
-	runs = 300 # 1_000 # number of runs for Confidence Interval analysis
+	runs = 1_000 # 1_000 # number of runs for Confidence Interval analysis
 	
 	dfMS, startdate, state_name, sub_report, r0_fit = [], [], [], [], []
 	
@@ -348,7 +348,9 @@ def get_input_data():
 				      'internation_rate_ward_elderly',     # tax_int_i
 				      'internation_rate_ward_young',       # tax_int_j
 				      'internation_rate_icu_elderly',      # tax_uti_i
-				      'internation_rate_icu_young'         # tax_uti_j
+				      'internation_rate_icu_young',         # tax_uti_j
+				      'pH',
+				      'pU'
 				      ])
 	
 	covid_parameters = covid_parameters(
@@ -363,6 +365,8 @@ def get_input_data():
 		# adjusted with population distribution IBGE 2020
 		mortality_rate_elderly = 0.03495,         	# old ones: 60+ years
 		mortality_rate_young = 0.00127,           	# young ones: 0-59 years
+		pH = 0.6,									# probability of death for someone that needs a ward bed and does not receive it
+		pU = 0.9,									# probability of death for someone that needs an ICU bed and does not receive it
 		# Length of Stay (in days), Source: Wuhan
 		los_ward = 8.9,                         		# regular
 		los_icu = 8,                            		# UTI

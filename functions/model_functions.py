@@ -164,7 +164,8 @@ def args_assignment(cp, mp, omega_i, omega_j, i, ii):
 	contact_matrix = mp.contact_matrix[i]
 	taxa_mortalidade_i = cp.mortality_rate_elderly
 	taxa_mortalidade_j = cp.mortality_rate_young
-	
+	pH = cp.pH
+	pU = cp.pU
 	los_leito = cp.los_ward
 	los_uti = cp.los_icu
 
@@ -183,7 +184,7 @@ def args_assignment(cp, mp, omega_i, omega_j, i, ii):
 	args = (N, alpha, beta, gamma,delta,
 			los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
 			taxa_mortalidade_i, taxa_mortalidade_j,omega_i, omega_j,contact_matrix,pI,
-			infection_to_hospitalization,infection_to_icu,capacidade_UTIs,capacidade_Ward,Normalization_constant)
+			infection_to_hospitalization,infection_to_icu,capacidade_UTIs,capacidade_Ward,Normalization_constant,pH,pU)
 	return args
 
 
@@ -191,7 +192,7 @@ def args_assignment(cp, mp, omega_i, omega_j, i, ii):
 def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
 				los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
 				taxa_mortalidade_i, taxa_mortalidade_j,omega_i, omega_j,contact_matrix,pI,
-				infection_to_hospitalization,infection_to_icu,capacidade_UTIs,capacidade_Ward,Normalization_constant):
+				infection_to_hospitalization,infection_to_icu,capacidade_UTIs,capacidade_Ward,Normalization_constant,pH,pU):
 	"""
 	Computes the derivatives
 
@@ -248,8 +249,8 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
 	ddUjdt = (pUj / infection_to_icu)*(1/(1+np.exp(coisa3)))
 
 	# Obitos
-	dMidt = pMi * delta + ddHidt + ddUidt
-	dMjdt = pMj * delta + ddHjdt + ddUjdt
+	dMidt = pMi * delta + ddHidt*pH + ddUidt*pU
+	dMjdt = pMj * delta + ddHjdt*pH + ddUjdt*pU
 	
 	return (dSidt, dSjdt, dEidt, dEjdt, dIidt, dIjdt, dRidt, dRjdt,
 			dHidt, dHjdt, ddHidt, ddHjdt, dUidt, dUjdt, ddUidt, ddUjdt, dMidt, dMjdt,
