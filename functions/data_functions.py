@@ -213,7 +213,7 @@ def get_input_data():
 	"""
 		
 	
-	IC_analysis = 1  # 1 # 2 # 3 
+	IC_analysis = 2  # 1 # 2 # 3 
 	if(IC_analysis == 1):
 		 print('Confidence Interval Analysis (r0, gamma and alpha, lognormal distribution)')
 	elif(IC_analysis == 2):
