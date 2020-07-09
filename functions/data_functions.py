@@ -90,10 +90,7 @@ obs: 80% ARBITRÁRIO
 	
 	print('Para: ' + state_name + ' com o metodo ' + metodo)
 	
-	# IMPORT DATA
-	
-	
-	
+	# IMPORT DATA	
 	print('Importando arquivo do Ministerio da Saude')
 	print('Este processo demora ...')
 	
@@ -105,8 +102,6 @@ obs: 80% ARBITRÁRIO
 	df = pd.read_excel(data_folder + filename)
 	
 	print('Importado')
-	
-	
 	
 	# data	semanaEpi	populacaoTCU2019	casosAcumulado	obitosAcumulado	Recuperadosnovos	emAcompanhamentoNovos
 	states = { 'coduf': [76, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 35, 41, 42, 43, 50, 51, 52, 53],
@@ -228,7 +223,7 @@ def get_input_data():
 	else:
 		sys.exit('ERROR: Not programmed such Analysis, please enter 1, 2 or 3')
 	
-	runs = 300 # 1_000 # number of runs for Confidence Interval analysis
+	runs = 1_000 # 1_000 # number of runs for Confidence Interval analysis
 	
 	dfMS, startdate, state_name, sub_report, r0_fit = [], [], [], [], []
 	
@@ -247,43 +242,52 @@ def get_input_data():
 	# CONFIDENCE INTERVAL AND SENSITIVITY ANALYSIS
 	# 95% Confidence interval bounds or range for sensitivity analysis
 	# Basic Reproduction Number # ErreZero
-	basic_reproduction_number = (2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
+	basic_reproduction_number = (2.4,3.3)#(2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
 	if fit_analysis == 1:
 		 basic_reproduction_number = r0_fit
 
 	# SINGLE RUN AND SENSITIVITY ANALYSIS
 	# Incubation Period (in days)
-	incubation_period = 5.2             # (4.1, 7.0) #	
+	incubation_period = 2             # (4.1, 7.0) #	
 	# Infectivity Period (in days)      # tempo_de_infecciosidade
-	infectivity_period = 10.0
+	infectivity_period = 3
+	infection_to_death_period = 17
 	pI = 0.1425 #962/7600 #  Proportion of persons aged 60+ in Brazil,
 	# 2020 forecast, Source: IBGE's app
-	contact_matrix = np.array([[16.24264923,0.34732121],[ 5.14821886 ,0.72978211]])
-	M_matrix = np.zeros((len(contact_matrix),len(contact_matrix[0])))
+	contact_matrix = [None]*3
+	contact_matrix[0] = np.array([[16.24264923,0.54534103],[ 3.2788393 ,0.72978211]])
+	contact_matrix[1] = np.array([[16.24264923,0.2391334],[ 1.43777922 ,0.38361959]])
+	contact_matrix[2] = np.array([[7.47115329,0.2391334],[ 1.43777922 ,0.38361959]])
+
 	Population_proportion = np.array([1-pI,pI])
-	for i in range(len(contact_matrix)):
-		for j in range(len(contact_matrix[0])):
-			M_matrix[i][j] = contact_matrix[i][j]*Population_proportion[i]/Population_proportion[j]
-	Normalization_constant,_ = np.linalg.eig(M_matrix)
-	Normalization_constant = max(Normalization_constant.real)
+	Normalization_constant = np.zeros(3)
+	for k in range(3):
+		M_matrix = np.zeros((len(contact_matrix[k]),len(contact_matrix[k][0])))
 	
+		for i in range(len(contact_matrix[k])):
+			for j in range(len(contact_matrix[k][0])):
+				M_matrix[i][j] = contact_matrix[k][i][j]*Population_proportion[i]/Population_proportion[j]
+		Temp,_ = np.linalg.eig(M_matrix)
+		Normalization_constant[k] = max(Temp.real)
 	if IC_analysis == 1: # CONFIDENCE INTERVAL for a lognormal distribution
 		
 		# PARAMETERS ARE ARRAYS
 		
 		# 95% Confidence interval bounds for Covid parameters
 		# Incubation Period (in days)
-		incubation_period = (1.9, 2.1) # (4.1, 7.0)
+		incubation_period = (2.1, 7) # (4.1, 7.0)
 	
 		# Infectivity Period (in days)   # tempo_de_infecciosidade
 		#infectivity_period = (7.0, 12.0) #	3 days or 7 days
-		infectivity_period = (2.9, 3.1) #	3 days or 7 days
+		infectivity_period = (1, 6.7) #	3 days or 7 days
 		# Woelfel et al 22 (eCDC: 7-12 days @ 19/4/20, 
 		# https://www.ecdc.europa.eu/en/covid-19/questions-answers)
+		infection_to_death_period = (16.9,17.1)
 		
 		# Computes mean and std for a lognormal distribution
 		alpha_inv_params = make_lognormal_params_95_ci(*incubation_period)
 		gamma_inv_params = make_lognormal_params_95_ci(*infectivity_period)
+		delta_inv_params = make_lognormal_params_95_ci(*infection_to_death_period)
 		R0__params = make_lognormal_params_95_ci(*basic_reproduction_number)
 	
 		# samples for a lognormal distribution (Monte Carlo Method)
@@ -293,6 +297,7 @@ def get_input_data():
 		infectivity_rate = 1/npr.lognormal(*map(np.log, gamma_inv_params),runs)
 		# beta = r0 * gamma
 		contamination_rate = npr.lognormal(*map(np.log, R0__params), runs) * infectivity_rate
+		infection_to_death_rate = 1/npr.lognormal(*map(np.log, delta_inv_params),runs)
 		
 		
 	elif IC_analysis == 2: # SINGLE RUN
@@ -308,6 +313,8 @@ def get_input_data():
 		incubation_rate = 1 / incubation_period
 		# gamma
 		infectivity_rate = 1 / infectivity_period
+		# delta
+		infection_to_death_rate = 1/infection_to_death_period
 		# beta = r0 * gamma
 		contamination_rate = basic_reproduction_number * infectivity_rate
 		
@@ -319,24 +326,31 @@ def get_input_data():
 		# alpha with length
 		incubation_rate = np.repeat(1 / incubation_period, len(R0_array))
 		# gamma
-		infectivity_rate = np.repeat(1 / infectivity_period, len(R0_array)) 
+		infectivity_rate = np.repeat(1 / infectivity_period, len(R0_array))
+		# delta
+		infection_to_death_rate =  np.repeat(1 / infection_to_death_period, len(R0_array))
 		# beta = r0 * gamma
 		contamination_rate = R0_array * infectivity_rate 
-	contamination_rate = contamination_rate/Normalization_constant
-	#print(contamination_rate)
+	contamination_rate = contamination_rate
+
 
 	covid_parameters = namedtuple('Covid_Parameters',
 				      ['alpha',                            # incubation rate
 				      'beta',                              # contamination rate
 				      'gamma',                             # infectivity rate
+				      'delta',							   # infection to death rate
 				      'mortality_rate_elderly',            # taxa_mortalidade_i
 				      'mortality_rate_young',              # taxa_mortalidade_j
 				      'los_ward',                          # los_leito
 				      'los_icu',                           # los_uti
+				      'infection_to_hospitalization',	   # infection to hospitalization period
+				      'infection_to_icu',	   # infection to icu period
 				      'internation_rate_ward_elderly',     # tax_int_i
 				      'internation_rate_ward_young',       # tax_int_j
 				      'internation_rate_icu_elderly',      # tax_uti_i
-				      'internation_rate_icu_young'         # tax_uti_j
+				      'internation_rate_icu_young',         # tax_uti_j
+				      'pH',
+				      'pU'
 				      ])
 	
 	covid_parameters = covid_parameters(
@@ -346,13 +360,18 @@ def get_input_data():
 		beta = contamination_rate,
 		# Infectivity rate (1/day)
 		gamma = infectivity_rate,
+		delta = infection_to_death_rate,
 		# Mortality Rates, Source: Verity, et al,
 		# adjusted with population distribution IBGE 2020
-		mortality_rate_elderly = 0.0079,#0.03495,         	# old ones: 60+ years
-		mortality_rate_young = 0.0079,#0.00127,           	# young ones: 0-59 years
+		mortality_rate_elderly = 0.03495,         	# old ones: 60+ years
+		mortality_rate_young = 0.00127,           	# young ones: 0-59 years
+		pH = 0.6,									# probability of death for someone that needs a ward bed and does not receive it
+		pU = 0.9,									# probability of death for someone that needs an ICU bed and does not receive it
 		# Length of Stay (in days), Source: Wuhan
 		los_ward = 8.9,                         		# regular
 		los_icu = 8,                            		# UTI
+		infection_to_hospitalization = 10,
+		infection_to_icu = 10,
 		# Internation Rate by type and age, 
 		# Source for hospitalization verity et al;
 		# Proportion those need ICU:
@@ -364,41 +383,46 @@ def get_input_data():
 	)
 	
 	model_parameters = namedtuple('Model_Parameters',
-				      ['contact_reduction_elderly',     # omega_i
-				      'contact_reduction_young',       	# omega_j
-				      'lotation',                      	# lotacao
-				      'init_exposed_elderly',          	# Ei0
-				      'init_exposed_young',            	# Ej0
-				      'init_infected_elderly',         	# Ii0
-				      'init_infected_young',           	# Ij0
-				      'init_removed_elderly',          	# Ri0
-				      'init_removed_young',            	# Rj0
-				      'init_hospitalized_ward_elderly',	# Hi0
-				      'init_hospitalized_ward_young',   # Hj0
-				      'init_hospitalized_icu_elderly',  # Ui0
-				      'init_hospitalized_icu_young',    # Uj0
-				      'init_deceased_elderly',         	# Mi0
-				      'init_deceased_young',           	# Mj0
-				      't_max',                         	# t_max
-				      'population',                	# N
-				      'population_rate_elderly',   	# percentual_pop_idosa
-				      'bed_ward',                  	# capacidade_leitos
-				      'bed_icu',                    	# capacidade_UTIs
-				      'IC_analysis',			# Type of analysis
-				      'dfMS',                    	# dataframe_Min_Saude_data
-				      'startdate',                    	# start date of the fit and simulation
-				      'state_name',                    	# state simulated
-				      'r0_fit',                         # range of r0
-				      'sub_report',                     # sub_report factor
-				      'contact_matrix'			# contact matrix
-				      ])
+								['contact_reduction_elderly',     	# omega_i
+								'contact_reduction_young',       	# omega_j
+								'lotation',                      	# lotacao
+								'init_exposed_elderly',          	# Ei0
+								'init_exposed_young',            	# Ej0
+								'init_infected_elderly',         	# Ii0
+								'init_infected_young',           	# Ij0
+								'init_removed_elderly',          	# Ri0
+								'init_removed_young',            	# Rj0
+								'init_hospitalized_ward_elderly',	# Hi0
+								'init_hospitalized_ward_young',     # Hj0
+								'init_hospitalized_ward_elderly_excess', # dHi0
+								'init_hospitalized_ward_young_excess',	 # dHj0
+								'init_hospitalized_icu_elderly',    # Ui0
+								'init_hospitalized_icu_young',      # Uj0
+								'init_hospitalized_icu_elderly_excess', # dUi0
+								'init_hospitalized_icu_young_excess', # dUj0
+								'init_deceased_elderly',         	# Mi0
+								'init_deceased_young',           	# Mj0
+								't_max',                         	# t_max
+								'population',                		# N
+								'population_rate_elderly',   		# percentual_pop_idosa
+								'bed_ward',                  		# capacidade_leitos
+								'bed_icu',                    		# capacidade_UTIs
+								'IC_analysis',						# Type of analysis
+								'dfMS',                    		    # dataframe_Min_Saude_data
+								'startdate',                    	# start date of the fit and simulation
+								'state_name',                    	# state simulated
+								'r0_fit',                           # range of r0
+								'sub_report',                       # sub_report factor
+								'contact_matrix',					# contact matrix
+								'Normalization_constant'			# normalization constant for contact matrix
+								])
 	
 	N = 211_755_692 # 211 millions, 2020 forecast, Source: IBGE's app
 	#7_600_000_000, #
 	
 	# INITIAL CONDITIONS
 	E0 = 0 #64 #260_000 #basic_reproduction_number * I0
-	I0 = 1 #100#304_000 #  (a total of 20943 cases in the last 10 days 
+	I0 = 30 #100#304_000 #  (a total of 20943 cases in the last 10 days 
 	# within a total of 38654 cumulative confirmed cases in 
 	# 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
 	R0 = 0 #407#472_000 # 
@@ -421,7 +445,11 @@ def get_input_data():
 	# Leitos UTIs demandados
 	Ui0 = Ii0 * covid_parameters.internation_rate_icu_elderly
 	Uj0 = Ij0 * covid_parameters.internation_rate_icu_young
-	
+	# Excesso de demanda para leitos
+	dHi0 = 0
+	dHj0 = 0
+	dUi0 = 0
+	dUj0 = 0
 	# Obitos
 	#M_0 = 3_000
 	Mi0 = Ri0 * covid_parameters.mortality_rate_elderly
@@ -447,12 +475,16 @@ def get_input_data():
 		init_removed_elderly = Ri0,        		# initial removed population old ones: 60+ years
 		init_removed_young = Rj0,           	# initial removed population young ones: 0-59 years
 		init_hospitalized_ward_elderly = Hi0,   # initial ward hospitalized old ones: 60+ years
-		init_hospitalized_ward_young = Hj0,     # initial ward hospitalized young ones: 0-59 years
+		init_hospitalized_ward_young = Hj0,		# initial ward hospitalized young ones: 0-59 years
+		init_hospitalized_ward_elderly_excess = dHi0, # initial ward hospitalized demand excess old ones: 60+ years
+		init_hospitalized_ward_young_excess = dHj0,   # initial ward hospitalized demand excess young ones: 0-59 years
 		init_hospitalized_icu_elderly = Ui0,   	# initial icu hospitalized old ones: 60+ years
 		init_hospitalized_icu_young = Uj0,     	# initial icu hospitalized young ones: 0-59 years
+		init_hospitalized_icu_elderly_excess = dUi0, # initial iCU hospitalized demand excess old ones: 60+ years
+		init_hospitalized_icu_young_excess = dUj0,   # initial iCU hospitalized demand excess young ones: 0-59 years
 		init_deceased_elderly = Mi0,        	# initial deceased population old ones: 60+ years
 		init_deceased_young = Mj0,           	# initial deceased population young ones: 0-59 years
-		t_max = 2 * 365, #	        # number of days to run
+		t_max = 365, #	        # number of days to run
 		# Brazilian Population
 		population = N,             
 		# Brazilian old people proportion (age: 60+), 2020 forecast
@@ -469,7 +501,8 @@ def get_input_data():
 		state_name = state_name, # state simulated
 		r0_fit = r0_fit,                        # range of r0 fitted
 		sub_report = sub_report,                 # sub_report factor
-		contact_matrix = contact_matrix
+		contact_matrix = contact_matrix,
+		Normalization_constant = Normalization_constant
 	)
 
 	parametros = {'incubation_period = 1/alpha': [incubation_period],
