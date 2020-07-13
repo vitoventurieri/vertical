@@ -213,7 +213,7 @@ def get_input_data():
 	"""
 		
 	
-	IC_analysis = 2  # 1 # 2 # 3 
+	IC_analysis = 1  # 1 # 2 # 3 
 	if(IC_analysis == 1):
 		 print('Confidence Interval Analysis (r0, gamma and alpha, lognormal distribution)')
 	elif(IC_analysis == 2):
@@ -223,7 +223,7 @@ def get_input_data():
 	else:
 		sys.exit('ERROR: Not programmed such Analysis, please enter 1, 2 or 3')
 	
-	runs = 1_000 # 1_000 # number of runs for Confidence Interval analysis
+	runs = 1_00 # 1_000 # number of runs for Confidence Interval analysis
 	
 	dfMS, startdate, state_name, sub_report, r0_fit = [], [], [], [], []
 	
@@ -242,15 +242,15 @@ def get_input_data():
 	# CONFIDENCE INTERVAL AND SENSITIVITY ANALYSIS
 	# 95% Confidence interval bounds or range for sensitivity analysis
 	# Basic Reproduction Number # ErreZero
-	basic_reproduction_number = (2.4,3.3)#(2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
+	basic_reproduction_number = (2.4, 3.3)#(2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
 	if fit_analysis == 1:
 		 basic_reproduction_number = r0_fit
 
 	# SINGLE RUN AND SENSITIVITY ANALYSIS
 	# Incubation Period (in days)
-	incubation_period = 2             # (4.1, 7.0) #	
+	incubation_period = 5.2 - 2.31 #incubation period Qun  Li,  Xuhua  Guan new england  - presymptomatic xi he Temporal nature
 	# Infectivity Period (in days)      # tempo_de_infecciosidade
-	infectivity_period = 3
+	infectivity_period = 2.31 + 0.762 #shift curva nature + media distribuição gamma shiftada da nature
 	infection_to_death_period = 17
 	pI = 0.1425 #962/7600 #  Proportion of persons aged 60+ in Brazil,
 	# 2020 forecast, Source: IBGE's app
@@ -275,14 +275,17 @@ def get_input_data():
 		
 		# 95% Confidence interval bounds for Covid parameters
 		# Incubation Period (in days)
-		incubation_period = (2.1, 7) # (4.1, 7.0)
+		lb_incub = 4.1 -2.31
+		ub_incub = 7.0 -2.31
+		incubation_period = (lb_incub, ub_incub) #The mean incubation period was 5.2 days (95% confidence interval [CI], 4.1 to 7.0) li,guan Early Transmission Dynamics in Wuhan, China, of Novel Coronavirus–Infected Pneumonia
 	
 		# Infectivity Period (in days)   # tempo_de_infecciosidade
 		#infectivity_period = (7.0, 12.0) #	3 days or 7 days
-		infectivity_period = (1, 6.7) #	3 days or 7 days
-		# Woelfel et al 22 (eCDC: 7-12 days @ 19/4/20, 
-		# https://www.ecdc.europa.eu/en/covid-19/questions-answers)
-		infection_to_death_period = (16.9,17.1)
+		lb_infectivity = 2.31 + 0.762 - 0.146
+		ub_infectivity = 2.31 + 0.762 + 0.146
+		infectivity_period = (lb_infectivity, ub_infectivity) # shift da distribuicao gamma do artigo nature + média da curva nature + ou - 1.96 std 
+
+		infection_to_death_period = (16.9, 17.1)
 		
 		# Computes mean and std for a lognormal distribution
 		alpha_inv_params = make_lognormal_params_95_ci(*incubation_period)
@@ -368,8 +371,8 @@ def get_input_data():
 		pH = 0.6,									# probability of death for someone that needs a ward bed and does not receive it
 		pU = 0.9,									# probability of death for someone that needs an ICU bed and does not receive it
 		# Length of Stay (in days), Source: Wuhan
-		los_ward = 8.9,                         		# regular
-		los_icu = 8,                            		# UTI
+		los_ward = 11.5,                         		# regular fonte : https://media.tghn.org/medialibrary/2020/06/ISARIC_Data_Platform_COVID-19_Report_8JUN20.pdf
+		los_icu = 10.8,                            		# UTI fonte: https://media.tghn.org/medialibrary/2020/06/ISARIC_Data_Platform_COVID-19_Report_8JUN20.pdf
 		infection_to_hospitalization = 10,
 		infection_to_icu = 10,
 		# Internation Rate by type and age, 
