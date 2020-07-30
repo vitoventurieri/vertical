@@ -28,6 +28,45 @@ def make_lognormal_params_95_ci(lb, ub):
 	return mean, std
 
 
+def parameter_for_rt_fit_analisys(city):
+    #fortaleza = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_Fortaleza.csv", sep=',')
+    #sao_paulo = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_SaoPaulo.csv", sep=',')
+    #maceio = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_Maceio.csv", sep=',')
+    #sao_luiz = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_SaoLuis.csv", sep=',')
+    
+    if city == 'fortaleza':
+        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_CE_wcota.csv", sep=';')
+    elif city == 'sao_paulo':
+        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_SP_wcota.csv", sep=';')
+    elif city == 'maceio':
+        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_AL_wcota.csv", sep=';')
+    elif city == 'sao_luiz':
+        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_MA_wcota.csv", sep=';') 
+    #dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+    
+    starting_day = {}
+    I0_fit = {}
+    E0_fit = {}
+    R0_fit = {}
+    M0_fit = {}
+    population_fit = {}
+    
+    starting_day = 20
+    expected_mortality = 0.0065
+    expected_initial_rt = 2
+    
+    I0_fit[city] = (dfcity.loc[starting_day,'deaths'] - dfcity.loc[(starting_day-3),'deaths']) /expected_mortality
+    E0_fit[city] = I0_fit[city]*expected_initial_rt
+    R0_fit[city] = dfcity.loc[(starting_day-3),'deaths']/expected_mortality
+    M0_fit[city] = dfcity.loc[(starting_day),'deaths']
+    
+    population_fit['fortaleza'] = 2_643_000
+    population_fit['sao_paulo'] = 12_180_000
+    population_fit['maceio'] = 932_000
+    population_fit['sao_luiz'] = 958_000
+
+    return (E0_fit[city], I0_fit[city], R0_fit[city], M0_fit[city], population_fit[city])
+
 def fit_curve():
 	'''
 	provides comparison to reported data
@@ -213,17 +252,19 @@ def get_input_data():
 	"""
 		
 	
-	IC_analysis = 1  # 1 # 2 # 3 
+	IC_analysis = 4  # 1 # 2 # 3 
 	if(IC_analysis == 1):
-		 print('Confidence Interval Analysis (r0, gamma and alpha, lognormal distribution)')
+		print('Confidence Interval Analysis (r0, gamma and alpha, lognormal distribution)')
 	elif(IC_analysis == 2):
-		 print('Single Run Analysis')
+		print('Single Run Analysis')
 	elif(IC_analysis == 3):
-		 print('Sensitivity r0 Analysis')
+		print('Sensitivity r0 Analysis')
+	elif(IC_analysis == 4):
+		print('Time variable inputted Rt analysis with confidence interval')
 	else:
-		sys.exit('ERROR: Not programmed such Analysis, please enter 1, 2 or 3')
+		sys.exit('ERROR: Not programmed such Analysis, please enter 1, 2, 3 or 4')
 	
-	runs = 1_00 # 1_000 # number of runs for Confidence Interval analysis
+	runs = 10 # 1_000 # number of runs for Confidence Interval analysis
 	
 	dfMS, startdate, state_name, sub_report, r0_fit = [], [], [], [], []
 	
@@ -242,15 +283,15 @@ def get_input_data():
 	# CONFIDENCE INTERVAL AND SENSITIVITY ANALYSIS
 	# 95% Confidence interval bounds or range for sensitivity analysis
 	# Basic Reproduction Number # ErreZero
-	basic_reproduction_number = (2.4, 3.3)#(2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
+	basic_reproduction_number = (2.7,2.7)#(2.4, 3.3)     # 1.4 / 2.2 / 3.9  		
 	if fit_analysis == 1:
 		 basic_reproduction_number = r0_fit
 
 	# SINGLE RUN AND SENSITIVITY ANALYSIS
 	# Incubation Period (in days)
-	incubation_period = 5.2 - 2.31 #incubation period Qun  Li,  Xuhua  Guan new england  - presymptomatic xi he Temporal nature
+	incubation_period = 2             # (4.1, 7.0) #	
 	# Infectivity Period (in days)      # tempo_de_infecciosidade
-	infectivity_period = 2.31 + 0.762 #shift curva nature + media distribuição gamma shiftada da nature
+	infectivity_period = 3
 	infection_to_death_period = 17
 	pI = 0.1425 #962/7600 #  Proportion of persons aged 60+ in Brazil,
 	# 2020 forecast, Source: IBGE's app
@@ -275,17 +316,14 @@ def get_input_data():
 		
 		# 95% Confidence interval bounds for Covid parameters
 		# Incubation Period (in days)
-		lb_incub = 4.1 -2.31
-		ub_incub = 7.0 -2.31
-		incubation_period = (lb_incub, ub_incub) #The mean incubation period was 5.2 days (95% confidence interval [CI], 4.1 to 7.0) li,guan Early Transmission Dynamics in Wuhan, China, of Novel Coronavirus–Infected Pneumonia
+		incubation_period = (3.3, 3.3)#(2.1, 7) # (4.1, 7.0)
 	
 		# Infectivity Period (in days)   # tempo_de_infecciosidade
 		#infectivity_period = (7.0, 12.0) #	3 days or 7 days
-		lb_infectivity = 2.31 + 0.762 - 0.146
-		ub_infectivity = 2.31 + 0.762 + 0.146
-		infectivity_period = (lb_infectivity, ub_infectivity) # shift da distribuicao gamma do artigo nature + média da curva nature + ou - 1.96 std 
-
-		infection_to_death_period = (16.9, 17.1)
+		infectivity_period = (3.5, 3.5) #	3 days or 7 days
+		# Woelfel et al 22 (eCDC: 7-12 days @ 19/4/20, 
+		# https://www.ecdc.europa.eu/en/covid-19/questions-answers)
+		infection_to_death_period = (16.9,17.1)
 		
 		# Computes mean and std for a lognormal distribution
 		alpha_inv_params = make_lognormal_params_95_ci(*incubation_period)
@@ -320,10 +358,8 @@ def get_input_data():
 		infection_to_death_rate = 1/infection_to_death_period
 		# beta = r0 * gamma
 		contamination_rate = basic_reproduction_number * infectivity_rate
-		
-	else: # r0 Sensitivity analysis
-		
-		# PARAMETERS ARE ARRAYS
+	elif IC_analysis == 3:
+			# PARAMETERS ARE ARRAYS
 		# Calculate array for r0 to a sensitivity analysis
 		R0_array = np.arange(*basic_reproduction_number, 0.1) # step 0.1 for r0
 		# alpha with length
@@ -334,7 +370,37 @@ def get_input_data():
 		infection_to_death_rate =  np.repeat(1 / infection_to_death_period, len(R0_array))
 		# beta = r0 * gamma
 		contamination_rate = R0_array * infectivity_rate 
-	contamination_rate = contamination_rate
+
+	else: # r0 Sensitivity analysis
+		# PARAMETERS ARE ARRAYS
+		
+		# 95% Confidence interval bounds for Covid parameters
+		# Incubation Period (in days)
+		incubation_period = (4.1-3.0, 7.1-0.8) # (4.1, 7.0)
+	
+		# Infectivity Period (in days)   # tempo_de_infecciosidade
+		#infectivity_period = (7.0, 12.0) #	3 days or 7 days
+		infectivity_period = (2.92, 3.22) #	3 days or 7 days
+		# Woelfel et al 22 (eCDC: 7-12 days @ 19/4/20, 
+		# https://www.ecdc.europa.eu/en/covid-19/questions-answers)
+		infection_to_death_period = (16.9,17.1)
+		
+		# Computes mean and std for a lognormal distribution
+		alpha_inv_params = make_lognormal_params_95_ci(*incubation_period)
+		gamma_inv_params = make_lognormal_params_95_ci(*infectivity_period)
+		delta_inv_params = make_lognormal_params_95_ci(*infection_to_death_period)
+		R0__params = make_lognormal_params_95_ci(*basic_reproduction_number)
+	
+		# samples for a lognormal distribution (Monte Carlo Method)
+		# alpha
+		incubation_rate = 1/npr.lognormal(*map(np.log, alpha_inv_params),runs)
+		# gamma
+		infectivity_rate = 1/npr.lognormal(*map(np.log, gamma_inv_params),runs)
+		# beta = r0 * gamma
+		contamination_rate = npr.lognormal(*map(np.log, R0__params), runs) * infectivity_rate
+		infection_to_death_rate = 1/npr.lognormal(*map(np.log, delta_inv_params),runs)
+
+		
 
 
 	covid_parameters = namedtuple('Covid_Parameters',
@@ -371,8 +437,8 @@ def get_input_data():
 		pH = 0.6,									# probability of death for someone that needs a ward bed and does not receive it
 		pU = 0.9,									# probability of death for someone that needs an ICU bed and does not receive it
 		# Length of Stay (in days), Source: Wuhan
-		los_ward = 11.5,                         		# regular fonte : https://media.tghn.org/medialibrary/2020/06/ISARIC_Data_Platform_COVID-19_Report_8JUN20.pdf
-		los_icu = 10.8,                            		# UTI fonte: https://media.tghn.org/medialibrary/2020/06/ISARIC_Data_Platform_COVID-19_Report_8JUN20.pdf
+		los_ward = 8.9,                         		# regular
+		los_icu = 8,                            		# UTI
 		infection_to_hospitalization = 10,
 		infection_to_icu = 10,
 		# Internation Rate by type and age, 
@@ -420,18 +486,21 @@ def get_input_data():
 								'Normalization_constant'			# normalization constant for contact matrix
 								])
 	
-	N = 211_755_692 # 211 millions, 2020 forecast, Source: IBGE's app
+	N = 12_000_000 #211_755_692 # 211 millions, 2020 forecast, Source: IBGE's app
 	#7_600_000_000, #
 	
 	# INITIAL CONDITIONS
-	E0 = 0 #64 #260_000 #basic_reproduction_number * I0
-	I0 = 30 #100#304_000 #  (a total of 20943 cases in the last 10 days 
+	E0 = 2300 #64 #260_000 #basic_reproduction_number * I0
+	I0 = 1800 #100#304_000 #  (a total of 20943 cases in the last 10 days 
 	# within a total of 38654 cumulative confirmed cases in 
 	# 19/04/2020 17:00 GMT-3 - source https://covid.saude.gov.br/)
-	R0 = 0 #407#472_000 # 
+	R0 = 3000 #407#472_000 # 
 	
 	if fit_analysis == 1:
 		 E0, I0, R0, M0, N = E0_fit, I0_fit, R0_fit, M0_fit, population_fit
+        
+    #Caso queira usar parametros personalizados, escreva cidade em parameter_for_rt_fit_analisys('sao_paulo')
+	E0, I0, R0, M0, N = parameter_for_rt_fit_analisys('fortaleza')
 	
 	
 	Ei0 = E0 * pI
@@ -455,8 +524,8 @@ def get_input_data():
 	dUj0 = 0
 	# Obitos
 	#M_0 = 3_000
-	Mi0 = Ri0 * covid_parameters.mortality_rate_elderly
-	Mj0 = Rj0 * covid_parameters.mortality_rate_young
+	Mi0 = Ri0 * covid_parameters.mortality_rate_elderly*0
+	Mj0 = Rj0 * covid_parameters.mortality_rate_young*0
 	
 	if fit_analysis == 1:
 		 Mi0 = M0 * pI
@@ -487,7 +556,7 @@ def get_input_data():
 		init_hospitalized_icu_young_excess = dUj0,   # initial iCU hospitalized demand excess young ones: 0-59 years
 		init_deceased_elderly = Mi0,        	# initial deceased population old ones: 60+ years
 		init_deceased_young = Mj0,           	# initial deceased population young ones: 0-59 years
-		t_max = 365, #	        # number of days to run
+		t_max = 180, #	        # number of days to run
 		# Brazilian Population
 		population = N,             
 		# Brazilian old people proportion (age: 60+), 2020 forecast
