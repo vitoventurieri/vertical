@@ -654,9 +654,6 @@ def get_input_data(IC_analysis = 4, city='fortaleza'):
 		city = city
 	)
 
-	print("Testando!!!")
-	print(model_parameters)
-
 	parametros = {'incubation_period = 1/alpha': [incubation_period],
 			  'basic_reproduction_number = beta/gamma': [basic_reproduction_number],
 			  'infectivity_period = 1/gamma': [infectivity_period],

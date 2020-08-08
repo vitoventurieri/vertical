@@ -9,7 +9,6 @@ import os
 if __name__ == '__main__':
 
 	covid_parameters, model_parameters, output_parameters = get_input_data()
-	covid_parameters, model_parameters, output_parameters = get_input_data(city='sao_luiz')
 	
 	results = run_SEIR_ODE_model(covid_parameters, model_parameters)
 	
