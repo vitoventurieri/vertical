@@ -6,6 +6,57 @@ import sys
 from .utils import *
 #from datetime import datetime as dt
 
+class Conditions:
+	
+	def __init__(self,
+				 I0,
+				 E0,
+				 R0,
+				 M0,
+				 population,
+				 fit_analysis,
+				 covid_parameters,
+				 bed_ward = 298_855,
+				 bed_icu = 32_380,
+				 elderely_proportion = .1425) -> None:
+
+		self.I0 = I0
+		self.E0 = E0
+		self.R0 = R0
+		self.M0 = M0
+		self.population = population
+		self.bed_icu = bed_icu
+		self.bed_ward = bed_ward
+		self.elderely_proportion = elderely_proportion
+
+		self.Ei0 = self.E0 * self.elderely_proportion
+		self.Ii0 = self.I0 * self.elderely_proportion
+		self.Ri0 = self.R0 * self.elderely_proportion
+		
+		self.Ej0 = self.E0 * (1 - self.elderely_proportion)
+		self.Ij0 = self.I0 * (1 - self.elderely_proportion)
+		self.Rj0 = self.R0 * (1 - self.elderely_proportion)
+		
+		# Leitos normais demandados
+		self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly
+		self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young
+
+		self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly
+		self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young
+		
+		# Excesso de demanda para leitos
+		self.dHi0 = 0
+		self.dHj0 = 0
+		self.dUi0 = 0
+		self.dUj0 = 0
+		# Obitos
+		#M_0 = 3_000
+		if fit_analysis != 1:
+			self.Mi0 = self.Ri0 * covid_parameters.mortality_rate_elderly*0
+			self.Mj0 = self.Rj0 * covid_parameters.mortality_rate_young*0
+		else:
+			self.Mi0 = self.M0 * self.elderely_proportion
+			self.Mj0 = self.Rj0 * (1 - self.elderely_proportion)
 
 def make_lognormal_params_95_ci(lb, ub):
 	'''
@@ -29,45 +80,63 @@ def make_lognormal_params_95_ci(lb, ub):
 
 
 def parameter_for_rt_fit_analisys(city):
-    #fortaleza = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_Fortaleza.csv", sep=',')
-    #sao_paulo = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_SaoPaulo.csv", sep=',')
-    #maceio = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_Maceio.csv", sep=',')
-    #sao_luiz = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_SaoLuis.csv", sep=',')
-    
-    if city == 'fortaleza':
-        dfcity = pd.read_csv(r"data/casos_CE_wcota.csv", sep=';')
-    elif city == 'sao_paulo':
-        dfcity = pd.read_csv(r"data/casos_SP_wcota.csv", sep=';')
-    elif city == 'maceio':
-        dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
-    elif city == 'sao_luiz':
-        dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
-    #dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
-    
-    starting_day = {}
-    I0_fit = {}
-    E0_fit = {}
-    R0_fit = {}
-    M0_fit = {}
-    population_fit = {}
-    
-    starting_day = 20
-    expected_mortality = 0.0065
-    expected_initial_rt = 2
-    
-    I0_fit[city] = (dfcity.loc[starting_day,'deaths'] - dfcity.loc[(starting_day-3),'deaths']) /expected_mortality
-    E0_fit[city] = I0_fit[city]*expected_initial_rt
-    R0_fit[city] = dfcity.loc[(starting_day-3),'deaths']/expected_mortality
-    M0_fit[city] = dfcity.loc[(starting_day),'deaths']
-    
-    population_fit['fortaleza'] = 2_643_000
-    population_fit['sao_paulo'] = 12_180_000
-    population_fit['maceio'] = 932_000
-    population_fit['sao_luiz'] = 958_000
+	#fortaleza = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_Fortaleza.csv", sep=',')
+	#sao_paulo = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_SaoPaulo.csv", sep=',')
+	#maceio = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_Maceio.csv", sep=',')
+	#sao_luiz = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_SaoLuis.csv", sep=',')
+	
+	if city == 'fortaleza':
+		dfcity = pd.read_csv(r"data/casos_CE_wcota.csv", sep=';')
+	elif city == 'sao_paulo':
+		dfcity = pd.read_csv(r"data/casos_SP_wcota.csv", sep=';')
+	elif city == 'maceio':
+		dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
+	elif city == 'sao_luiz':
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+		dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	#dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
+	
+	starting_day = {}
+	I0_fit = {}
+	E0_fit = {}
+	R0_fit = {}
+	M0_fit = {}
+	population_fit = {}
+	
+	starting_day = 20
+	expected_mortality = 0.0065
+	expected_initial_rt = 2
+	
+	I0_fit[city] = (dfcity.loc[starting_day,'deaths'] - dfcity.loc[(starting_day-3),'deaths']) /expected_mortality
+	E0_fit[city] = I0_fit[city]*expected_initial_rt
+	R0_fit[city] = dfcity.loc[(starting_day-3),'deaths']/expected_mortality
+	M0_fit[city] = dfcity.loc[(starting_day),'deaths']
+	
+	population_fit['fortaleza'] = 2_643_000
+	population_fit['sao_paulo'] = 12_180_000
+	population_fit['maceio'] = 932_000
+	population_fit['sao_luiz'] = 958_000
 
-    return (E0_fit[city], I0_fit[city], R0_fit[city], M0_fit[city], population_fit[city])
+	return (E0_fit[city], I0_fit[city], R0_fit[city], M0_fit[city], population_fit[city])
 
-def fit_curve():
+def fit_curve(state_name = 'Rio de Janeiro (UF)',
+			  metodo = 'subreport',
+			  sub_report = 10):
 	'''
 	provides comparison to reported data
 
@@ -123,9 +192,9 @@ obs: 80% ARBITRÁRIO
 	
 	
 	# INPUT
-	state_name = 'Rio de Janeiro (UF)' # 'Pernambuco' #'Brasil' # 'Santa Catarina' # 
-	metodo = "subreport" # "fator_verity" # 
-	sub_report = 10
+	# state_name = 'Rio de Janeiro (UF)' # 'Pernambuco' #'Brasil' # 'Santa Catarina' # 
+	# metodo = "subreport" # "fator_verity" # 
+	# sub_report = 10
 	
 	print('Para: ' + state_name + ' com o metodo ' + metodo)
 	
@@ -136,9 +205,9 @@ obs: 80% ARBITRÁRIO
 	#url = 'https://github.com/viniciusriosfuck/vertical/blob/master/data/HIST_PAINEL_COVIDBR_24jun2020.xlsx?raw=true'
 	#df = pd.read_excel(url)
 	
-	data_folder = os.path.join(get_root_dir(), 'data\\')
+	data_folder = os.path.join(get_root_dir(), 'data')
 	filename = 'HIST_PAINEL_COVIDBR_24jun2020.xlsx'
-	df = pd.read_excel(data_folder + filename)
+	df = pd.read_excel(f'data/{filename}')
 	
 	print('Importado')
 	
@@ -404,23 +473,23 @@ def get_input_data(IC_analysis = 4, city='fortaleza'):
 
 
 	covid_parameters = namedtuple('Covid_Parameters',
-				      ['alpha',                            # incubation rate
-				      'beta',                              # contamination rate
-				      'gamma',                             # infectivity rate
-				      'delta',							   # infection to death rate
-				      'mortality_rate_elderly',            # taxa_mortalidade_i
-				      'mortality_rate_young',              # taxa_mortalidade_j
-				      'los_ward',                          # los_leito
-				      'los_icu',                           # los_uti
-				      'infection_to_hospitalization',	   # infection to hospitalization period
-				      'infection_to_icu',	   # infection to icu period
-				      'internation_rate_ward_elderly',     # tax_int_i
-				      'internation_rate_ward_young',       # tax_int_j
-				      'internation_rate_icu_elderly',      # tax_uti_i
-				      'internation_rate_icu_young',         # tax_uti_j
-				      'pH',
-				      'pU'
-				      ])
+					  ['alpha',                            # incubation rate
+					  'beta',                              # contamination rate
+					  'gamma',                             # infectivity rate
+					  'delta',							   # infection to death rate
+					  'mortality_rate_elderly',            # taxa_mortalidade_i
+					  'mortality_rate_young',              # taxa_mortalidade_j
+					  'los_ward',                          # los_leito
+					  'los_icu',                           # los_uti
+					  'infection_to_hospitalization',	   # infection to hospitalization period
+					  'infection_to_icu',	   # infection to icu period
+					  'internation_rate_ward_elderly',     # tax_int_i
+					  'internation_rate_ward_young',       # tax_int_j
+					  'internation_rate_icu_elderly',      # tax_uti_i
+					  'internation_rate_icu_young',         # tax_uti_j
+					  'pH',
+					  'pU'
+					  ])
 	
 	covid_parameters = covid_parameters(
 		# Incubation rate (1/day)
@@ -499,64 +568,70 @@ def get_input_data(IC_analysis = 4, city='fortaleza'):
 	
 	if fit_analysis == 1:
 		 E0, I0, R0, M0, N = E0_fit, I0_fit, R0_fit, M0_fit, population_fit
-        
-    #Caso queira usar parametros personalizados, escreva cidade em parameter_for_rt_fit_analisys('sao_paulo')
+		
+	#Caso queira usar parametros personalizados, escreva cidade em parameter_for_rt_fit_analisys('sao_paulo')
 	E0, I0, R0, M0, N = parameter_for_rt_fit_analisys(city)
 	
+	### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
+	### Os parametros padrao podem ser mudados, como cama/UTI por cidade
+	conditions = Conditions(I0, E0, R0, M0, N, fit_analysis, covid_parameters)
 	
-	Ei0 = E0 * pI
-	Ii0 = I0 * pI
-	Ri0 = R0 * pI
+	## A lógica foi escondida dentro do objeto Conditions, não fica no meio do fluxo
+	# Ei0 = E0 * pI
+	# Ii0 = I0 * pI
+	# Ri0 = R0 * pI
 	
-	Ej0 = E0 * (1 - pI)
-	Ij0 = I0 * (1 - pI)
-	Rj0 = R0 * (1 - pI)
+	# Ej0 = E0 * (1 - pI)
+	# Ij0 = I0 * (1 - pI)
+	# Rj0 = R0 * (1 - pI)
 	
-	# Leitos normais demandados
-	Hi0 = Ii0 * covid_parameters.internation_rate_ward_elderly
-	Hj0 = Ij0 * covid_parameters.internation_rate_ward_young
-	# Leitos UTIs demandados
-	Ui0 = Ii0 * covid_parameters.internation_rate_icu_elderly
-	Uj0 = Ij0 * covid_parameters.internation_rate_icu_young
-	# Excesso de demanda para leitos
-	dHi0 = 0
-	dHj0 = 0
-	dUi0 = 0
-	dUj0 = 0
-	# Obitos
-	#M_0 = 3_000
-	Mi0 = Ri0 * covid_parameters.mortality_rate_elderly*0
-	Mj0 = Rj0 * covid_parameters.mortality_rate_young*0
+	# # Leitos normais demandados
+	# Hi0 = Ii0 * covid_parameters.internation_rate_ward_elderly
+	# Hj0 = Ij0 * covid_parameters.internation_rate_ward_young
+	# # Leitos UTIs demandados
+	# Ui0 = Ii0 * covid_parameters.internation_rate_icu_elderly
+	# Uj0 = Ij0 * covid_parameters.internation_rate_icu_young
+	# # Excesso de demanda para leitos
+	# dHi0 = 0
+	# dHj0 = 0
+	# dUi0 = 0
+	# dUj0 = 0
+	# # Obitos
+	# #M_0 = 3_000
+	# Mi0 = Ri0 * covid_parameters.mortality_rate_elderly*0
+	# Mj0 = Rj0 * covid_parameters.mortality_rate_young*0
 	
-	if fit_analysis == 1:
-		 Mi0 = M0 * pI
-		 Mj0 = M0 * (1 - pI)    
+	# if fit_analysis == 1:
+	# 	 Mi0 = M0 * pI
+	# 	 Mj0 = M0 * (1 - pI)    
 	
 	
 	# Perhaps initial conditions will change to match deaths at the present date
 	
+	# Mantive aqui para questões de não estragar o restante, mas o normal seria usar o objeto mesmo
+	# para o resto dos problemas.
 	model_parameters = model_parameters(
 		# Social contact reduction factor (without, vertical, horizontal) isolation
 		contact_reduction_elderly = (1., .4), 	# young ones: 0-59 years
 		contact_reduction_young = (1., 1.), 	# old ones: 60+ years	
 		# Scenaries for health system colapse
 		lotation = (0.3, 0.5, 0.8, 1),        	# 30, 50, 80, 100% capacity
-		init_exposed_elderly = Ei0,    			# initial exposed population old ones: 60+ years
-		init_exposed_young = Ej0,       		# initial exposed population young ones: 0-59 years
-		init_infected_elderly = Ii0,    		# initial infected population old ones: 60+ years 
-		init_infected_young = Ij0,      		# initial infected population young ones: 0-59 years
-		init_removed_elderly = Ri0,        		# initial removed population old ones: 60+ years
-		init_removed_young = Rj0,           	# initial removed population young ones: 0-59 years
-		init_hospitalized_ward_elderly = Hi0,   # initial ward hospitalized old ones: 60+ years
-		init_hospitalized_ward_young = Hj0,		# initial ward hospitalized young ones: 0-59 years
-		init_hospitalized_ward_elderly_excess = dHi0, # initial ward hospitalized demand excess old ones: 60+ years
-		init_hospitalized_ward_young_excess = dHj0,   # initial ward hospitalized demand excess young ones: 0-59 years
-		init_hospitalized_icu_elderly = Ui0,   	# initial icu hospitalized old ones: 60+ years
-		init_hospitalized_icu_young = Uj0,     	# initial icu hospitalized young ones: 0-59 years
-		init_hospitalized_icu_elderly_excess = dUi0, # initial iCU hospitalized demand excess old ones: 60+ years
-		init_hospitalized_icu_young_excess = dUj0,   # initial iCU hospitalized demand excess young ones: 0-59 years
-		init_deceased_elderly = Mi0,        	# initial deceased population old ones: 60+ years
-		init_deceased_young = Mj0,           	# initial deceased population young ones: 0-59 years
+		init_exposed_elderly = conditions.Ei0,    			# initial exposed population old ones: 60+ years
+		init_exposed_young = conditions.Ej0,       		# initial exposed population young ones: 0-59 years
+		init_infected_elderly = conditions.Ii0,    		# initial infected population old ones: 60+ years 
+		init_infected_young = conditions.Ij0,      		# initial infected population young ones: 0-59 years
+		init_removed_elderly = conditions.Ri0,        		# initial removed population old ones: 60+ years
+		init_removed_young = conditions.Rj0,           	# initial removed population young ones: 0-59 years
+		init_hospitalized_ward_elderly = conditions.Hi0,   # initial ward hospitalized old ones: 60+ years
+		init_hospitalized_ward_young = conditions.Hj0,		# initial ward hospitalized young ones: 0-59 years
+		init_hospitalized_ward_elderly_excess = conditions.dHi0, # initial ward hospitalized demand excess old ones: 60+ years
+		init_hospitalized_ward_young_excess = conditions.dHj0,   # initial ward hospitalized demand excess young ones: 0-59 years
+		init_hospitalized_icu_elderly = conditions.Ui0,   	# initial icu hospitalized old ones: 60+ years
+		init_hospitalized_icu_young = conditions.Uj0,     	# initial icu hospitalized young ones: 0-59 years
+		init_hospitalized_icu_elderly_excess = conditions.dUi0, # initial iCU hospitalized demand excess old ones: 60+ years
+		init_hospitalized_icu_young_excess = conditions.dUj0,   # initial iCU hospitalized demand excess young ones: 0-59 years
+		init_deceased_elderly = conditions.Mi0,        	# initial deceased population old ones: 60+ years
+		init_deceased_young = conditions.Mj0,           	# initial deceased population young ones: 0-59 years
 		t_max = 180, #	        # number of days to run
 		# Brazilian Population
 		population = N,             
@@ -565,8 +640,8 @@ def get_input_data(IC_analysis = 4, city='fortaleza'):
 		# Proportion of persons aged 60+ in Brazil, Source: IBGE's app
 		# Brazilian bed places , Source: CNES, 05/05/2020
 		# http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
-		bed_ward = 298_855,                     # bed ward
-		bed_icu = 32_380,                       # bed ICUs
+		bed_ward = conditions.bed_ward,                     # bed ward
+		bed_icu = conditions.bed_icu,                       # bed ICUs
 		IC_analysis = IC_analysis,			    # flag for run type
 		# 1: confidence interval, 2: single run, 3: r0 sensitivity analysis
 		dfMS = dfMS, #dataframe_Min_Saude_data
@@ -579,36 +654,39 @@ def get_input_data(IC_analysis = 4, city='fortaleza'):
 		city = city
 	)
 
+	print("Testando!!!")
+	print(model_parameters)
+
 	parametros = {'incubation_period = 1/alpha': [incubation_period],
-              'basic_reproduction_number = beta/gamma': [basic_reproduction_number],
-              'infectivity_period = 1/gamma': [infectivity_period],
-              'runs': [runs],
-              'contact_reduction_elderly': [model_parameters.contact_reduction_elderly],
-              'contact_reduction_young': [model_parameters.contact_reduction_young],
-              'lotation': [model_parameters.lotation],
-              'init_exposed_elderly': [Ei0],
-              'init_exposed_young': [Ej0],
-              'init_infected_elderly': [Ii0],
-              'init_infected_young': [Ij0],
-              'init_removed_elderly': [Ri0],
-              'init_removed_young': [Rj0],
-              'init_hospitalized_ward_elderly': [Hi0],
-              'init_hospitalized_ward_young': [Hj0],
-              'init_hospitalized_icu_elderly': [Ui0],
-              'init_hospitalized_icu_young': [Uj0],
-              'init_deceased_elderly': [Mi0],
-              'init_deceased_young': [Mj0],
-              't_max': [model_parameters.t_max],
-              'population': [N],
-              'population_rate_elderly': [pI],
-              'bed_ward': [model_parameters.bed_ward],
-              'bed_icu': [model_parameters.bed_icu],
-              'IC_analysis': [IC_analysis],
-              'fit_analysis': [fit_analysis],
-              'startdate': [startdate],
-              'state_name': [state_name],
-              'r0_fit': [r0_fit],
-              'sub_report' : [sub_report],
+			  'basic_reproduction_number = beta/gamma': [basic_reproduction_number],
+			  'infectivity_period = 1/gamma': [infectivity_period],
+			  'runs': [runs],
+			  'contact_reduction_elderly': [model_parameters.contact_reduction_elderly],
+			  'contact_reduction_young': [model_parameters.contact_reduction_young],
+			  'lotation': [model_parameters.lotation],
+			  'init_exposed_elderly': [conditions.Ei0],
+			  'init_exposed_young': [conditions.Ej0],
+			  'init_infected_elderly': [conditions.Ii0],
+			  'init_infected_young': [conditions.Ij0],
+			  'init_removed_elderly': [conditions.Ri0],
+			  'init_removed_young': [conditions.Rj0],
+			  'init_hospitalized_ward_elderly': [conditions.Hi0],
+			  'init_hospitalized_ward_young': [conditions.Hj0],
+			  'init_hospitalized_icu_elderly': [conditions.Ui0],
+			  'init_hospitalized_icu_young': [conditions.Uj0],
+			  'init_deceased_elderly': [conditions.Mi0],
+			  'init_deceased_young': [conditions.Mj0],
+			  't_max': [model_parameters.t_max],
+			  'population': [N],
+			  'population_rate_elderly': [pI],
+			  'bed_ward': [model_parameters.bed_ward],
+			  'bed_icu': [model_parameters.bed_icu],
+			  'IC_analysis': [IC_analysis],
+			  'fit_analysis': [fit_analysis],
+			  'startdate': [startdate],
+			  'state_name': [state_name],
+			  'r0_fit': [r0_fit],
+			  'sub_report' : [sub_report],
 			  'city': [model_parameters.city]}
 
 	output_parameters = pd.DataFrame(parametros).T
