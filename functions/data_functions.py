@@ -35,13 +35,13 @@ def parameter_for_rt_fit_analisys(city):
     #sao_luiz = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_SaoLuis.csv", sep=',')
     
     if city == 'fortaleza':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_CE_wcota.csv", sep=';')
+        dfcity = pd.read_csv(r"data/casos_CE_wcota.csv", sep=';')
     elif city == 'sao_paulo':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_SP_wcota.csv", sep=';')
+        dfcity = pd.read_csv(r"data/casos_SP_wcota.csv", sep=';')
     elif city == 'maceio':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_AL_wcota.csv", sep=';')
+        dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
     elif city == 'sao_luiz':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_MA_wcota.csv", sep=';') 
+        dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
     #dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
     
     starting_day = {}
@@ -230,7 +230,7 @@ obs: 80% ARBITRÁRIO
 
 
 
-def get_input_data():
+def get_input_data(IC_analysis = 4, city='fortaleza'):
 	"""
 	Provides the inputs for the simulation
 	:return: tuples for the demograph_parameters, covid_parameters 
@@ -483,7 +483,8 @@ def get_input_data():
 								'r0_fit',                           # range of r0
 								'sub_report',                       # sub_report factor
 								'contact_matrix',					# contact matrix
-								'Normalization_constant'			# normalization constant for contact matrix
+								'Normalization_constant',			# normalization constant for contact matrix
+								'city'
 								])
 	
 	N = 12_000_000 #211_755_692 # 211 millions, 2020 forecast, Source: IBGE's app
@@ -500,7 +501,7 @@ def get_input_data():
 		 E0, I0, R0, M0, N = E0_fit, I0_fit, R0_fit, M0_fit, population_fit
         
     #Caso queira usar parametros personalizados, escreva cidade em parameter_for_rt_fit_analisys('sao_paulo')
-	E0, I0, R0, M0, N = parameter_for_rt_fit_analisys('fortaleza')
+	E0, I0, R0, M0, N = parameter_for_rt_fit_analisys(city)
 	
 	
 	Ei0 = E0 * pI
@@ -574,7 +575,8 @@ def get_input_data():
 		r0_fit = r0_fit,                        # range of r0 fitted
 		sub_report = sub_report,                 # sub_report factor
 		contact_matrix = contact_matrix,
-		Normalization_constant = Normalization_constant
+		Normalization_constant = Normalization_constant,
+		city = city
 	)
 
 	parametros = {'incubation_period = 1/alpha': [incubation_period],
@@ -606,7 +608,8 @@ def get_input_data():
               'startdate': [startdate],
               'state_name': [state_name],
               'r0_fit': [r0_fit],
-              'sub_report' : [sub_report]}
+              'sub_report' : [sub_report],
+			  'city': [model_parameters.city]}
 
 	output_parameters = pd.DataFrame(parametros).T
 	print(output_parameters)
