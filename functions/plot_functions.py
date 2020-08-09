@@ -17,13 +17,13 @@ from matplotlib.ticker import FuncFormatter
 def city_cases_dataset(city):
 
     if city == 'fortaleza':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_CE_wcota.csv", sep=';')
+        dfcity = pd.read_csv(r"data/casos_CE_wcota.csv", sep=';')
     elif city == 'sao_paulo':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_SP_wcota.csv", sep=';')
+        dfcity = pd.read_csv(r"data/casos_SP_wcota.csv", sep=';')
     elif city == 'maceio':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_AL_wcota.csv", sep=';')
+        dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
     elif city == 'sao_luiz':
-        dfcity = pd.read_csv(r"C:\Users\Vito\Downloads\casos_MA_wcota.csv", sep=';') 
+        dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
         
         #dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
     

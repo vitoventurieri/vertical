@@ -4,6 +4,14 @@ from datetime import datetime
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
+def get_rt_by_city(city):
+
+    cities = {'fortaleza': 'Fortaleza',
+              'sao_paulo': 'SaoPaulo',
+              'maceio': 'Maceio',
+              'sao_luiz': 'SaoLuis'}
+    
+    return pd.read_csv(f"data/Re_{cities[city]}.csv")
 
 def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
     """
@@ -28,7 +36,8 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
     
     if mp.IC_analysis == 4:
         
-        fonte_rt = pd.read_csv(r"C:\Users\Vito\Downloads\WPy64-3760\vertical-master-MATHEUS_v2\Re_Fortaleza.csv", sep=',')
+        fonte_rt = pd.read_csv(r"data/Re_Fortaleza.csv", sep=',')
+        # fonte_rt = get_rt_by_city(mp.city)
         
         runs = len(cp.alpha)
         print('Rodando ' + str(runs) + ' casos')
