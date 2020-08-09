@@ -24,6 +24,7 @@ def city_cases_dataset(city):
         dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
     elif city == 'sao_luiz':
         dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';') 
+    #display(df_cidade)
         
         #dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020 
     
