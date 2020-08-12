@@ -55,8 +55,8 @@ class Conditions:
         # Obitos
         # M_0 = 3_000
         if fit_analysis != 1:
-            self.Mi0 = self.Ri0 * covid_parameters.mortality_rate_elderly * 0
-            self.Mj0 = self.Rj0 * covid_parameters.mortality_rate_young * 0
+            self.Mi0 = self.Ri0 * covid_parameters.mortality_rate_elderly
+            self.Mj0 = self.Rj0 * covid_parameters.mortality_rate_young
         else:
             self.Mi0 = self.M0 * self.elderly_proportion
             self.Mj0 = self.Rj0 * (1 - self.elderly_proportion)
@@ -86,7 +86,7 @@ def make_lognormal_params_95_ci(lb, ub):
     return mean, std
 
 
-def parameter_for_rt_fit_analisys(city, incubation_period, expected_mortality, expected_initial_rt):
+def parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_period, expected_mortality, expected_initial_rt):
     """
 
     :param incubation_period: 2 days
@@ -128,10 +128,10 @@ def parameter_for_rt_fit_analisys(city, incubation_period, expected_mortality, e
 
     # starting_day = 20
 
+    round_infectious_period = np.ceil(est_infectious_period)
 
-
-    I0_fit = (df_cidade.loc[incubation_period, 'deaths'] - df_cidade.loc[0, 'deaths']) / expected_mortality
-    E0_fit = I0_fit * expected_initial_rt
+    I0_fit = (df_cidade.loc[round_infectious_period, 'deaths'] - df_cidade.loc[0, 'deaths'])*(est_infectious_period/round_infectious_period) / expected_mortality
+    E0_fit = (I0_fit * expected_initial_rt * est_incubation_period )/ est_infectious_period
     R0_fit = df_cidade.loc[0, 'deaths'] / expected_mortality
     M0_fit = df_cidade.loc[0, 'deaths']
     population_fit = int(pop_cidade)
@@ -360,7 +360,7 @@ def get_input_data(IC_analysis, city):
             # CONFIDENCE INTERVAL AND SENSITIVITY ANALYSIS
     # 95% Confidence interval bounds or range for sensitivity analysis
     # Basic Reproduction Number # ErreZero
-    basic_reproduction_number = (2.7, 2.7)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9
+    basic_reproduction_number = (2.2, 2.7)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9
     if fit_analysis == 1:
         basic_reproduction_number = r0_fit
 
@@ -393,11 +393,11 @@ def get_input_data(IC_analysis, city):
 
         # 95% Confidence interval bounds for Covid parameters
         # Incubation Period (in days)
-        incubation_period = (3.3, 3.3)  # (2.1, 7) # (4.1, 7.0)
+        incubation_period = (4.1 - 3.0, 7.1 - 0.8)  # (4.1, 7.0)
 
         # Infectivity Period (in days)   # tempo_de_infecciosidade
         # infectivity_period = (7.0, 12.0) #    3 days or 7 days
-        infectivity_period = (3.5, 3.5)  # 3 days or 7 days
+        infectivity_period = (2.92, 3.22)  # 3 days or 7 days
         # Woelfel et al 22 (eCDC: 7-12 days @ 19/4/20, 
         # https://www.ecdc.europa.eu/en/covid-19/questions-answers)
         infection_to_death_period = (16.9, 17.1)
@@ -572,11 +572,13 @@ def get_input_data(IC_analysis, city):
     # R0 = 3000  # 407#472_000 #
 
     expected_mortality = covid_parameters.mortality_rate_elderly * pI + (1-pI) * covid_parameters.mortality_rate_young
-    expected_initial_rt = 2  # botar pra fora??
-    est_incubation = 2
+    expected_initial_rt = np.mean(basic_reproduction_number)  # botar pra fora??
+    est_infectious_period = np.mean(infectivity_period)
+    est_incubation_period = np.mean(incubation_period)
+
 
     # Caso queira usar parametros personalizados, escreva cidade em parameter_for_rt_fit_analisys('sao_paulo')
-    E0, I0, R0, M0, N = parameter_for_rt_fit_analisys(city, est_incubation, expected_mortality, expected_initial_rt)
+    E0, I0, R0, M0, N = parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_period, expected_mortality, expected_initial_rt)
 
     ### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
     ### Os parametros padrao podem ser mudados, como cama/UTI por cidade
