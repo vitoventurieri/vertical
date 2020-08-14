@@ -14,8 +14,10 @@ import pandas as pd
 import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
 
-COVID_19_BY_CITY_URL = 'https://raw.githubusercontent.com/wcota/'\
-                       'covid19br/master/cases-brazil-cities-time.csv'
+#COVID_19_BY_CITY_URL = 'https://raw.githubusercontent.com/wcota/'\
+#                       'covid19br/master/cases-brazil-cities-time.csv'
+
+COVID_19_BY_CITY_URL = "data/casos_CE_wcota.csv"
 
 def city_cases_dataset(city):
 
@@ -35,7 +37,7 @@ def city_cases_dataset(city):
 
 
 def get_city_previous_days(city):
-    previous = (pd.read_csv(COVID_19_BY_CITY_URL)
+    previous = (pd.read_csv(COVID_19_BY_CITY_URL,sep=';')
                 .query("city == '" + city + "'"))
 
     previous = previous.reset_index(drop=True)
@@ -150,6 +152,7 @@ def plot_total(Yi,Yj,name_variable,
     pos_format(title_fig, main_label_y,    main_label_x,
            fsLabelTitle, leg_loc, fsPlotLegend)
     plt.savefig(os.path.join(plot_dir, name_variable + "_diff_isol" + filetype))
+    plt.close()
 
 # PLOT POR IDADE - IDOSOS E JOVENS
 def plot_byage(Yi,Yj,name_variable,
@@ -198,6 +201,7 @@ def plot_byage(Yi,Yj,name_variable,
     #plt.show()
     plt.savefig(os.path.join(plot_dir, 
                          name_variable + "ij" + complemento + filetype))
+    plt.close()
 
 
 def plots(results, covid_parameters, model_parameters, plot_dir, place):
@@ -277,7 +281,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir, place):
     
     print('Plotando resultados')
     
-    
+    dists = np.zeros(len(mp.contact_reduction_elderly))
 
 
     # 1: without; 2: vertical; 3: horizontal isolation 
@@ -344,21 +348,20 @@ def plots(results, covid_parameters, model_parameters, plot_dir, place):
 
 # SQUARE DISTANCE ANALYSIS
 
-        print(Mi)
         MiMj = np.quantile(Mi+Mj,0.5,axis=0)
-        dfcity_query = get_city_previous_days(place).loc[20:, 'deaths'].values
+        dfcity_query = get_city_previous_days(place)
+        dfcity_query = dfcity_query.loc[dfcity_query.deaths >= 50,'deaths'].values
         MiMj = MiMj[:dfcity_query.shape[0],]
-        #print(MiMj)
-        #print(MiMj.shape)
-        #print(dfcity_query)
-        #print(dfcity_query.shape)
 
-        plt.plot(MiMj)
-        plt.plot(dfcity_query)
-        plt.show()
 
-        dist = np.linalg.norm(MiMj-dfcity_query)
-        print(dist)
+        plt.plot(np.arange(MiMj.shape[0]),MiMj, label='Mortes Modelo')
+        plt.plot(np.arange(MiMj.shape[0]),dfcity_query, label='Mortes Confirmadas')
+        #plt.show()
+
+        dists[i] = np.linalg.norm(MiMj-dfcity_query)
+
+
+
 # SENSITIVITY ANALYSIS r0         
         if IC_analysis == 3:
             plt.figure(i, figsize = tamfig)
@@ -388,6 +391,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir, place):
             
             plt.savefig(os.path.join(plot_dir,
                          "I_" + filename + 'VariosR0' + filetype))
+            plt.close()
         
         else: # SINGLE RUN OR CONFIDENCE INTERVAL
 # INFECTADOS TOTAL - DIFERENTES ISOLAMENTOS
@@ -470,7 +474,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir, place):
                    fsLabelTitle,leg_loc,fsPlotLegend)           
             
             plt.savefig(os.path.join(plot_dir, "HUey_" + filename  + filetype))
-        
+            plt.close()
         
                 # OBITOS - IDOSOS E JOVENS
             plt.figure(6+i, figsize = tamfig)
@@ -489,7 +493,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir, place):
             
             # ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
             plt.savefig(os.path.join(plot_dir, "Mey_" + filename  + filetype))
-        
+            plt.close()
                 
 
             
@@ -584,6 +588,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir, place):
         
                 plt.savefig(os.path.join(plot_dir,
                              "Fit_" + state_name + "_M" + filetype))
+                plt.close()
 
 # INFECTADOS - IDOSOS E JOVENS
                 plt.figure(24, figsize = tamfig)
@@ -610,8 +615,12 @@ def plots(results, covid_parameters, model_parameters, plot_dir, place):
                 
                 plt.savefig(os.path.join(plot_dir,
                              "Fit_" + state_name + "_I" + filetype))
+                plt.close()
 
 
     if ((IC_analysis == 4) and (not startdate == [])):
         for ifig in range(11):
             plt.close(ifig)
+
+
+    return dists

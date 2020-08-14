@@ -7,8 +7,9 @@ from .utils import *
 #from datetime import datetime as dt
 
 IBGE_CODE_PATH = 'data\ibge_city_state.csv'
-COVID_19_BY_CITY_URL = 'https://raw.githubusercontent.com/wcota/'\
-                       'covid19br/master/cases-brazil-cities-time.csv'
+#COVID_19_BY_CITY_URL = 'https://raw.githubusercontent.com/wcota/'\
+#                       'covid19br/master/cases-brazil-cities-time.csv'
+COVID_19_BY_CITY_URL = "data/casos_CE_wcota.csv"
 
 class Conditions:
     
@@ -83,9 +84,9 @@ def make_lognormal_params_95_ci(lb, ub):
     return mean, std
 
 
-def parameter_for_rt_fit_analisys(city):
+def parameter_for_rt_fit_analisys(city,removed_init):
         
-    df_wcota = pd.read_csv(COVID_19_BY_CITY_URL, sep=',') #source #dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020
+    df_wcota = pd.read_csv(COVID_19_BY_CITY_URL, sep=';') #source #dataset source : https://github.com/wcota/covid19br/blob/master/README.md -  W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”, SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020
     df_ibge = pd.read_csv(r'data\populacao_ibge.csv', sep=';' , encoding = "ISO-8859-1") #source #http://tabnet.datasus.gov.br/cgi/tabcgi.exe?ibge/cnv/poptbr.def
     
     codigo_da_cidade_ibge = city #355030
@@ -113,12 +114,11 @@ def parameter_for_rt_fit_analisys(city):
     starting_day = 20
     expected_mortality = 0.0065
     expected_initial_rt = 2
-    removed_init = 0.26
 
     population_fit = int(pop_cidade)
     I0_fit = (df_cidade.loc[3,'deaths'] - df_cidade.loc[0,'deaths']) /expected_mortality
     E0_fit = I0_fit*expected_initial_rt
-    R0_fit = df_cidade.loc[0,'deaths']*(1/expected_mortality - 1) + population_fit*removed_init
+    R0_fit = df_cidade.loc[0,'deaths']/expected_mortality + population_fit*removed_init
     M0_fit = df_cidade.loc[0,'deaths']    
     S0_fit = population_fit*(1 - removed_init)
 
@@ -292,7 +292,7 @@ def parameter_for_rt_fit_analisys(city):
 
 
 
-def get_input_data(IC_analysis, city):
+def get_input_data(IC_analysis, city, removed_init):
     """
     Provides the inputs for the simulation
     :return: tuples for the demograph_parameters, covid_parameters 
@@ -563,7 +563,7 @@ def get_input_data(IC_analysis, city):
          E0, I0, R0, M0, N = E0_fit, I0_fit, R0_fit, M0_fit, population_fit
         
     #Caso queira usar parametros personalizados, escreva cidade em parameter_for_rt_fit_analisys('sao_paulo')
-    E0, I0, R0, M0, N = parameter_for_rt_fit_analisys(city)
+    E0, I0, R0, M0, N = parameter_for_rt_fit_analisys(city, removed_init)
     
     ### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
     ### Os parametros padrao podem ser mudados, como cama/UTI por cidade
