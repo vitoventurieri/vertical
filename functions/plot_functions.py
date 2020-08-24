@@ -14,30 +14,78 @@ import pandas as pd
 import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
 
+from .data_functions import define_city
 
-def city_cases_dataset(city):
+
+city = define_city().cidade
+
+
+def parameter_for_rt_fit_analisys(city):
     """
 
+    :param incubation_period: 2 days
+    :param expected_initial_rt: 2  # estimated basic reproduction number
+    :param expected_mortality:  0.0065  # Verity mortality rate
     :param city:
     :return:
     """
-    if city == 'fortaleza':
-        dfcity = pd.read_csv(r"data/casos_CE_wcota.csv", sep=';')
-    elif city == 'sao_paulo':
-        dfcity = pd.read_csv(r"data/casos_SP_wcota.csv", sep=';')
-    elif city == 'maceio':
-        dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
-    elif city == 'sao_luiz':
-        dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';')
-        # display(df_cidade)
-    else:
-        raise("Not fitted rt for city: ", city)
-
+    df_wcota = pd.read_csv('data\cases-brazil-cities-time.csv', sep=',')
     # dataset source : https://github.com/wcota/covid19br/blob/master/README.md
     # W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”,
     # SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020
+    #
+    df_ibge = pd.read_csv(r'data\populacao_ibge.csv', sep=';', encoding="ISO-8859-1")
+    # source #http://tabnet.datasus.gov.br/cgi/tabcgi.exe?ibge/cnv/poptbr.def
 
-    return dfcity
+    codigo_da_cidade_ibge = city  # 355030
+
+    def fix_city_name(row):
+        row = row[7:]
+        return row
+
+    def fix_city_code(row):
+        row = str(row)[:6]
+        if row == 'Total':
+            row = 000000
+        row = int(row)
+        return row
+
+    # fix strings on datasets
+    df_ibge['city_name_fixed'] = df_ibge['Município'].map(fix_city_name)
+    df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
+    df_wcota['ibge_code_trimmed'] = df_wcota['ibgeID'].map(fix_city_code)
+
+    # select datasets in the city with rows only with > x deaths
+    df_cidade = df_wcota.loc[
+        (df_wcota.ibge_code_trimmed == codigo_da_cidade_ibge) & (df_wcota.deaths >= 50)].reset_index()
+
+
+    return df_cidade
+
+
+#def city_cases_dataset(city):
+#    """
+#
+#    :param city:
+#    :return:
+#    """
+#    if city == 'fortaleza':
+#        dfcity = pd.read_csv(r"data/casos_CE_wcota.csv", sep=';')
+#    elif city == 'sao_paulo':
+#        dfcity = pd.read_csv(r"data/casos_SP_wcota.csv", sep=';')
+#    elif city == 'maceio':
+#        dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
+#    elif city == 'sao_luiz':
+#        dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';')
+#        # display(df_cidade)
+#    else:
+#        raise("Not fitted rt for city: ", city)
+#
+#    # dataset source : https://github.com/wcota/covid19br/blob/master/README.md
+#    # W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”,
+#    # SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020
+#
+#    return dfcity
 
 
 def number_formatter(number, pos=None):
@@ -215,12 +263,18 @@ def plot_byage(Yi, Yj, name_variable,
     else:  # CONFIDENCE INTERVAL
         plot_median(Yi, cor[2 * i], ls[i % 2], 'Elderly' + isolation_name[i], t_space)
         plot_ci(Yi, cor[2 * i], t_space)
+        
         plot_median(Yj, cor[1 + 2 * i], ls[(i + 1) % 2], 'Young' + isolation_name[i], t_space)
         plot_ci(Yj, cor[1 + 2 * i], t_space)
+        
+        plot_median(Yj + Yi, cor[3 + 2 * i], ls[(i + 1) % 2], 'Young + elderly' + isolation_name[i], t_space)
+        plot_ci(Yj + Yi, cor[3 + 2 * i], t_space)
+
         complemento = '_diff_isol'
 
-        dfcity_query = city_cases_dataset('fortaleza')
-        plt.plot(dfcity_query.loc[20:, 'deaths'].values)
+        dfcity_query = parameter_for_rt_fit_analisys(city)
+        plt.plot(dfcity_query.loc[:, 'deaths'].values)
+
 
     pos_format(title_fig, main_label_y, main_label_x)
     plt.savefig(os.path.join(plot_dir,
@@ -274,7 +328,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
     """
 
     mp = model_parameters
-    N = mp.population
+    N0 = mp.population
 
     # capacidade_leitos = model_parameters.bed_ward
     # capacidade_UTIs = model_parameters.bed_icu
@@ -503,13 +557,16 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
             # OBITOS - IDOSOS E JOVENS
             plot_byage(Mi, Mj, 'M',  # Yi,Yj,variable_name_Y
-                       'Deacesed by age group' + isolation_name[i],  # figure title
+                       'Deceased by age group' + isolation_name[i],  # figure title
                        6 + i,  # figure number
                        'Deceased people',  # label_y
                        main_label_x,
                        IC_analysis, t_space,
                        ls, cor, isolation_name, i,
                        plot_dir, filetype)
+
+            
+
 
             # ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
             plt.savefig(os.path.join(plot_dir, "Mey_" + filename + filetype))
@@ -562,12 +619,13 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                 E0 = mp.init_exposed_elderly + mp.init_exposed_young
                 I0 = mp.init_infected_elderly + mp.init_infected_young
                 R0 = mp.init_removed_elderly + mp.init_removed_young
-                S0 = N - E0 - I0 - R0
+                S0 = N0 - E0 - I0 - R0
 
                 # OBITOS - IDOSOS E JOVENS
                 plt.figure(23)
 
                 plot_median(Mi + Mj, cor[0], ls[0], 'Model', data_sim)
+
 
                 plt.plot(dfMS['data'], dfMS['obitosAcumulado'],
                          ls[1], color=cor[1], label='Reported Data')
