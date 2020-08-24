@@ -1,10 +1,6 @@
 import numpy as np
 import pandas as pd
-# from datetime import datetime
 from scipy.integrate import odeint
-
-
-# import matplotlib.pyplot as plt
 
 
 def get_rt_by_city(city):
@@ -87,7 +83,6 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
         else:
             tNumberEnd = tNumber
 
-        #        ii = 1
 
         DF_list = list()  # list of data frames
         for ii in range(runs):  # sweeps the data frames list
@@ -129,23 +124,13 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
                         effectiver = fonte_rt.iloc[(contador + 13), -1]  # np.random.random()/2 + 1
                         argslist[2] = (cp.gamma[ii] * effectiver * mp.population) / (Si[-1] + Sj[-1])
                         args = tuple(argslist)
-                    # elif a == 91:
-                    # effectiver = 1.2#np.random.random()/2 + 1
-                    # argslist[2] = (cp.gamma[ii]*effectiver*mp.population)/(Si[-1]+Sj[-1])
-                    # args = tuple(argslist)
+
                     else:
                         pass
-                    # print(tNumberEnd)
-                    # print(tNumber)
+
 
                     df = append_df(df, ret, t, niveis_isolamento[i])
-                    # df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej,
-                    #                              'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
-                    #                              'Hi': Hi, 'Hj': Hj, 'dHi': dHi, 'dHj': dHj, 'Ui': Ui, 'Uj': Uj,
-                    #                              'dUi': dUi, 'dUj': dUj, 'Mi': Mi, 'Mj': Mj,
-                    #                              'pHi': pHi, 'pHj': pHj, 'pUi': pUi, 'pUj': pUj, 'pMi': pMi,
-                    #                              'pMj': pMj}, index=t)
-                    #                .assign(isolamento=niveis_isolamento[i]))
+
             DF_list.append(df)
     elif mp.IC_analysis == 2:
         ii = 1
@@ -160,10 +145,6 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
             # Append the solutions
             df = append_df(df, ret, t, niveis_isolamento[i])
 
-            # Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj, \
-            #   pHi, pHj, pUi, pUj, pMi, pMj = ret.T
-            # plt.plot(t, pHi + pHj, Hi + Hj)
-            # plt.show()
 
         DF_list = df
 
@@ -253,7 +234,7 @@ def args_assignment(cp, mp, i, ii):
     pH, pU
 
     """
-    N = mp.population
+    N0 = mp.population
     pI = mp.population_rate_elderly
     Normalization_constant = mp.Normalization_constant[0]
     # Because if the constant be scaled after changing the contact matrix again,
@@ -263,11 +244,27 @@ def args_assignment(cp, mp, i, ii):
         beta = cp.beta
         gamma = cp.gamma
         delta = cp.delta
+        taxa_mortalidade_i = cp.mortality_rate_elderly
+        taxa_mortalidade_j = cp.mortality_rate_young
+
+        # tax_int_i = cp.internation_rate_ward_elderly / cp.mortality_rate_elderly
+        # tax_int_j = cp.internation_rate_ward_young / cp.mortality_rate_young
+        #
+        # tax_uti_i = cp.internation_rate_icu_elderly
+        # tax_uti_j = cp.internation_rate_icu_young
     else:  # CONFIDENCE INTERVAL OR SENSITIVITY ANALYSIS
         alpha = cp.alpha[ii]
+        taxa_mortalidade_i = cp.mortality_rate_elderly[ii]
+        taxa_mortalidade_j = cp.mortality_rate_young[ii]
         beta = cp.beta[ii]
         gamma = cp.gamma[ii]
         delta = cp.delta[ii]
+
+        # tax_int_i = cp.internation_rate_ward_elderly / cp.mortality_rate_young[ii]
+        # tax_int_j = cp.internation_rate_ward_young[ii]
+        #
+        # tax_uti_i = cp.internation_rate_icu_elderly[ii]
+        # tax_uti_j = cp.internation_rate_icu_young[ii]
 
     contact_matrix = mp.contact_matrix[i]
     taxa_mortalidade_i = cp.mortality_rate_elderly
@@ -282,14 +279,14 @@ def args_assignment(cp, mp, i, ii):
 
     tax_int_i = cp.internation_rate_ward_elderly
     tax_int_j = cp.internation_rate_ward_young
-
+    #
     tax_uti_i = cp.internation_rate_icu_elderly
     tax_uti_j = cp.internation_rate_icu_young
 
     capacidade_UTIs = mp.bed_icu
     capacidade_Ward = mp.bed_ward
 
-    args = (N, alpha, beta, gamma, delta,
+    args = (N0, alpha, beta, gamma, delta,
             los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
             taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
             infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward, Normalization_constant,
@@ -297,7 +294,7 @@ def args_assignment(cp, mp, i, ii):
     return args
 
 
-def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
+def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
                  los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
                  taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
                  infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward,
@@ -310,7 +307,7 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
     H: Hospitalized, U: ICU, M: Deacesed
     suffixes i: elderly (idoso, 60+); j: young (jovem, 0-59 years)
     :param t: time to compute the derivative
-    :param N: population
+    :param N0: population
     :param alpha: incubation rate
     :param beta: contamination rate
     :param gamma: infectivity rate
@@ -337,7 +334,7 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
     # Vetor variaveis incognitas
     Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj, pHi, pHj, pUi, pUj, pMi, pMj = SEIRHUM
 
-    Iij = np.array([[Ij / ((1 - pI) * N)], [Ii / (pI * N)]])
+    Iij = np.array([[Ij / ((1 - pI) * N0)], [Ii / (pI * N0)]])
     Sij = np.array([[Sj], [Si]])
     dSijdt = -(beta / Normalization_constant) * np.dot(contact_matrix, Iij) * Sij
     dSjdt = dSijdt[0]

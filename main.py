@@ -1,33 +1,36 @@
-from functions.data_functions import get_input_data
+from functions.data_functions import get_input_data, define_city, fix_city_code, fix_city_name
 from functions.model_functions import run_SEIR_ODE_model
 from functions.plot_functions import auxiliar_names, plots
 from functions.report_functions import generate_report
 from functions.utils import *
-
 import os
+import pandas as pd
+
 
 if __name__ == '__main__':
 
-    # cities_ibge = {'Fortaleza': 230440,
-    #                'São Paulo': 355030,
-    #                'Maceió': 270430,
-    #                'São Luís': 2111300,
-    #                "Manaus": 130260,
-    #                "Rio de Janeiro": 330455,
-    #                "Florianópolis": 420540}
-    #
-    # city_code = cities_ibge["Florianópolis"]
 
-    covid_parameters, model_parameters, output_parameters = get_input_data(IC_analysis=4, city=130260)
+    city = define_city().cidade
+
+    df_ibge = pd.read_csv(r'data\populacao_ibge.csv', sep=';', encoding="ISO-8859-1")
+    df_ibge['city_name_fixed'] = df_ibge['Município'].map(fix_city_name)
+    df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
+
+    nome_cidade = str(df_ibge['city_name_fixed'].loc[df_ibge.city_code_fixed == city].values)
+
+    IC_analysis = define_city().icanalisis
+    
+
+    covid_parameters, model_parameters, output_parameters = get_input_data(IC_analysis=IC_analysis, city=city)
 
     results = run_SEIR_ODE_model(covid_parameters, model_parameters)
 
     filename = auxiliar_names(covid_parameters, model_parameters)
-    plot_dir = os.path.join(get_output_dir(), f"{filename}")
+    plot_dir = os.path.join(get_output_dir(), f"{filename + nome_cidade}")
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
 
-    output_parameters.to_excel(os.path.join(plot_dir, 'parameters_' + filename + '.xlsx'))
+    output_parameters.to_excel(os.path.join(plot_dir, 'parameters_' + filename +'.xlsx'))
 
     plots(results, covid_parameters, model_parameters, plot_dir)
 
