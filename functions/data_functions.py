@@ -4,16 +4,6 @@ import numpy.random as npr
 import pandas as pd
 import sys
 
-    # cities_ibge = {'Fortaleza': 230440,
-    #                'São Paulo': 355030,
-    #                'Maceió': 270430,
-    #                'São Luís': 211130,
-    #                "Manaus": 130260,
-    #                "Rio de Janeiro": 330455,
-    #                "Florianópolis": 420540}
-    #
-    # city_code = cities_ibge["Florianópolis"]
-    
 #Santos/SP    354850
 #GoiÃ¢nia/GO    520870
 #Porto Velho/RO    110020
@@ -42,13 +32,179 @@ import sys
 #Rio de Janeiro/RJ    330455
 #SÃ£o Paulo/SP    355030
 
-    
-
 class define_city:
+    """
+    Defines city for analisys, analisys type and number of runs;
+    Gets number of wards and ICU beds from CNES dataset extracted from http://cnes.datasus.gov.br/pages/downloads/arquivosBaseDados.jsp - BASE_DE_DADOS_CNES_202002.ZIP
+
+    Imported data:
+    Ward quantity
+    ICU quantity
+
+    """
     def __init__(self):
-        self.cidade = 150140
+        self.cidade = 330455
         self.icanalisis = 1
         self.runs = 1
+
+        df_cnes = pd.read_csv(r'..\vertical-master-12_ago\data\cnes_simplificado_02-2020.csv', sep=';')  # source
+
+        leitos = {"BUCO MAXILO FACIAL": 1,
+                  "CARDIOLOGIA": 2,
+                  "CIRURGIA GERAL": 3,
+                  "ENDOCRINOLOGIA": 4,
+                  "GASTROENTEROLOGIA": 5,
+                  "GINECOLOGIA": 6,
+                  "CIRURGICO/DIAGNOSTICO/TERAPEUTICO": 7,
+                  "NEFROLOGIAUROLOGIA": 8,
+                  "NEUROCIRURGIA": 9,
+                  "OBSTETRICIA CIRURGICA": 10,
+                  "OFTALMOLOGIA": 11,
+                  "ONCOLOGIA": 12,
+                  "ORTOPEDIATRAUMATOLOGIA": 13,
+                  "OTORRINOLARINGOLOGIA": 14,
+                  "PLASTICA": 15,
+                  "TORACICA": 16,
+                  "AIDS": 31,
+                  "CARDIOLOGIA": 32,
+                  "CLINICA GERAL": 33,
+                  "CRONICOS": 34,
+                  "DERMATOLOGIA": 35,
+                  "GERIATRIA": 36,
+                  "HANSENOLOGIA": 37,
+                  "HEMATOLOGIA": 38,
+                  "NEFROUROLOGIA": 40,
+                  "NEONATOLOGIA": 41,
+                  "NEUROLOGIA": 42,
+                  "OBSTETRICIA CLINICA": 43,
+                  "ONCOLOGIA": 44,
+                  "PEDIATRIA CLINICA": 45,
+                  "PNEUMOLOGIA": 46,
+                  "PSIQUIATRIA": 47,
+                  "REABILITACAO": 48,
+                  "PNEUMOLOGIA SANITARIA": 49,
+                  "UNIDADE INTERMEDIARIA": 64,
+                  "UNIDADE INTERMEDIARIA NEONATAL": 65,
+                  "UNIDADE ISOLAMENTO": 66,
+                  "TRANSPLANTE": 67,
+                  "PEDIATRIA CIRURGICA": 68,
+                  "AIDS": 69,
+                  "FIBROSE CISTICA": 70,
+                  "INTERCORRENCIA POS-TRANSPLANTE": 71,
+                  "GERIATRIA": 72,
+                  "SAUDE MENTAL": 73,
+                  "UTI ADULTO - TIPO I": 74,
+                  "UTI ADULTO - TIPO II": 75,
+                  "UTI ADULTO - TIPO III": 76,
+                  "UTI PEDIATRICA - TIPO I": 77,
+                  "UTI PEDIATRICA - TIPO II": 78,
+                  "UTI PEDIATRICA - TIPO III": 79,
+                  "UTI NEONATAL - TIPO I": 80,
+                  "UTI NEONATAL - TIPO II": 81,
+                  "UTI NEONATAL - TIPO III": 82,
+                  "UTI DE QUEIMADOS": 83,
+                  "ACOLHIMENTO NOTURNO": 84,
+                  "UTI CORONARIANA TIPO II - UCO TIPO II": 85,
+                  "UTI CORONARIANA TIPO III - UCO TIPO III": 86,
+                  "SAUDE MENTAL": 87,
+                  "QUEIMADO ADULTO": 88,
+                  "QUEIMADO PEDIATRICO": 89,
+                  "QUEIMADO ADULTO": 90,
+                  "QUEIMADO PEDIATRICO": 91,
+                  "UNIDADE DE CUIDADOS INTERMEDIARIOS NEONATAL CONVENCIONAL": 92,
+                  "UNIDADE DE CUIDADOS INTERMEDIARIOS NEONATAL CANGURU": 93,
+                  "UNIDADE DE CUIDADOS INTERMEDIARIOS PEDIATRICO": 94,
+                  "UNIDADE DE CUIDADOS INTERMEDIARIOS ADULTO": 95
+                  }
+
+        wards = {"BUCO MAXILO FACIAL": 1,
+                 "CARDIOLOGIA": 2,
+                 "CIRURGIA GERAL": 3,
+                 "ENDOCRINOLOGIA": 4,
+                 "GASTROENTEROLOGIA": 5,
+                 "GINECOLOGIA": 6,
+                 "CIRURGICO/DIAGNOSTICO/TERAPEUTICO": 7,
+                 "NEFROLOGIAUROLOGIA": 8,
+                 "NEUROCIRURGIA": 9,
+                 "OBSTETRICIA CIRURGICA": 10,
+                 "OFTALMOLOGIA": 11,
+                 "ONCOLOGIA": 12,
+                 "ORTOPEDIATRAUMATOLOGIA": 13,
+                 "OTORRINOLARINGOLOGIA": 14,
+                 "PLASTICA": 15,
+                 "TORACICA": 16,
+                 "AIDS": 31,
+                 "CARDIOLOGIA": 32,
+                 "CLINICA GERAL": 33,
+                 "CRONICOS": 34,
+                 "DERMATOLOGIA": 35,
+                 "GERIATRIA": 36,
+                 "HANSENOLOGIA": 37,
+                 "HEMATOLOGIA": 38,
+                 "NEFROUROLOGIA": 40,
+                 "NEONATOLOGIA": 41,
+                 "NEUROLOGIA": 42,
+                 "OBSTETRICIA CLINICA": 43,
+                 "ONCOLOGIA": 44,
+                 "PEDIATRIA CLINICA": 45,
+                 "PNEUMOLOGIA": 46,
+                 "PSIQUIATRIA": 47,
+                 "REABILITACAO": 48,
+                 "PNEUMOLOGIA SANITARIA": 49,
+                 "UNIDADE ISOLAMENTO": 66,
+                 "TRANSPLANTE": 67,
+                 "PEDIATRIA CIRURGICA": 68,
+                 "AIDS": 69,
+                 "FIBROSE CISTICA": 70,
+                 "INTERCORRENCIA POS-TRANSPLANTE": 71,
+                 "GERIATRIA": 72,
+                 "SAUDE MENTAL": 73,
+                 "ACOLHIMENTO NOTURNO": 84,
+                 "SAUDE MENTAL": 87,
+                 "QUEIMADO ADULTO": 88,
+                 "QUEIMADO PEDIATRICO": 89,
+                 "QUEIMADO ADULTO": 90,
+                 "QUEIMADO PEDIATRICO": 91
+
+                 }
+
+        icus = {
+            "UNIDADE INTERMEDIARIA": 64,
+            "UNIDADE INTERMEDIARIA NEONATAL": 65,
+            "UTI ADULTO - TIPO I": 74,
+            "UTI ADULTO - TIPO II": 75,
+            "UTI ADULTO - TIPO III": 76,
+            "UTI PEDIATRICA - TIPO I": 77,
+            "UTI PEDIATRICA - TIPO II": 78,
+            "UTI PEDIATRICA - TIPO III": 79,
+            "UTI NEONATAL - TIPO I": 80,
+            "UTI NEONATAL - TIPO II": 81,
+            "UTI NEONATAL - TIPO III": 82,
+            "UTI DE QUEIMADOS": 83,
+            "UTI CORONARIANA TIPO II - UCO TIPO II": 85,
+            "UTI CORONARIANA TIPO III - UCO TIPO III": 86,
+            "UNIDADE DE CUIDADOS INTERMEDIARIOS NEONATAL CONVENCIONAL": 92,
+            "UNIDADE DE CUIDADOS INTERMEDIARIOS NEONATAL CANGURU": 93,
+            "UNIDADE DE CUIDADOS INTERMEDIARIOS PEDIATRICO": 94,
+            "UNIDADE DE CUIDADOS INTERMEDIARIOS ADULTO": 95
+        }
+
+        df_wards = df_cnes.loc[df_cnes.Tipo_de_leito_traducao.isin(wards), :].groupby(
+            df_cnes.CO_MUNICIPIO_GESTOR).sum().sort_values('QT_EXIST')
+        df_icus = df_cnes.loc[df_cnes.Tipo_de_leito_traducao.isin(icus), :].groupby(
+            df_cnes.CO_MUNICIPIO_GESTOR).sum().sort_values('QT_EXIST')
+        df_leitos = df_wards.join(df_icus, lsuffix='_ward', rsuffix='_icus').fillna(0)
+
+        self.bed_ward = df_leitos.at[self.cidade, 'QT_EXIST_ward']
+        self.bed_icu = df_leitos.at[self.cidade, 'QT_EXIST_icus']
+
+        df_ibge = pd.read_csv(r'data\populacao_ibge.csv', sep=';', encoding="ISO-8859-1")
+        df_ibge['city_name_fixed'] = df_ibge['Município'].map(fix_city_name)
+        df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
+
+        self.city_name= str(np.asscalar(df_ibge['city_name_fixed'].loc[df_ibge.city_code_fixed == self.cidade].values))
+        #self.bed_ward = df_leitos.at[self.cidade, 'QT_EXIST_ward']
+
 
 class Conditions:
 
@@ -60,8 +216,6 @@ class Conditions:
                  population,
                  fit_analysis,
                  covid_parameters,
-                 bed_ward=298_855,
-                 bed_icu=32_380,
                  elderly_proportion=.1425) -> None:
 
         self.I0 = I0
@@ -69,8 +223,6 @@ class Conditions:
         self.R0 = R0
         self.M0 = M0
         self.population = population
-        self.bed_icu = bed_icu
-        self.bed_ward = bed_ward
         self.elderly_proportion = elderly_proportion
 
         self.Ei0 = self.E0 * self.elderly_proportion
@@ -82,11 +234,11 @@ class Conditions:
         self.Rj0 = self.R0 * (1 - self.elderly_proportion)
 
         # Leitos normais demandados
-        self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly
-        self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young
+        self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly.mean()
+        self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young.mean()
         # Leitos UTIs demandados
-        self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly
-        self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young
+        self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly.mean()
+        self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young.mean()
         # Excesso de demanda para leitos
         self.dHi0 = 0
         self.dHj0 = 0
@@ -155,8 +307,6 @@ def parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_pe
 
     codigo_da_cidade_ibge = city  # 355030
 
-
-
     # fix strings on datasets
     df_ibge['city_name_fixed'] = df_ibge['Município'].map(fix_city_name)
     df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
@@ -165,9 +315,9 @@ def parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_pe
     # select datasets in the city with rows only with > x deaths
     df_cidade = df_wcota.loc[
         (df_wcota.ibge_code_trimmed == codigo_da_cidade_ibge) & (df_wcota.deaths >= 50)].reset_index()
+
     pop_cidade = df_ibge['População_estimada'].loc[df_ibge.city_code_fixed == codigo_da_cidade_ibge].values
 
-    #redutor_cidade = 0.8
 
     round_infectious_period = np.ceil(est_infectious_period)
 
@@ -175,7 +325,7 @@ def parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_pe
     E0_fit = (I0_fit * expected_initial_rt * est_incubation_period )/ est_infectious_period
     R0_fit = (df_cidade.loc[0, 'deaths'] / expected_mortality)
     M0_fit = df_cidade.loc[0, 'deaths']
-    population_fit = int(pop_cidade) #*redutor_cidade
+    population_fit = int(pop_cidade)
 
     return E0_fit, I0_fit, R0_fit, M0_fit, population_fit
 
@@ -233,7 +383,7 @@ def get_input_data(IC_analysis, city):
     # Basic Reproduction Number # ErreZero
 
 
-    basic_reproduction_number = (2.2, 2.2)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9
+    basic_reproduction_number = (1.4, 2.9)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9
 
 
     # if fit_analysis == 1:
@@ -279,16 +429,33 @@ def get_input_data(IC_analysis, city):
 
         infection_to_death_period = (16.9, 17.1)
 
-        mortality_rate_elderly_intervals = (0.03495, 0.03495) # (0.03495*0.59, 0.03495*2.02) #try to capture verity error
-        mortality_rate_young_intervals= (0.00127, 0.00127) #(0.00127*0.59, 0.00127*2.02)
+
+        mortality_rate_elderly_intervals =  (0.03495*0.59, 0.03495*2.02) #try to capture verity error CIs (0.03495, 0.03495)
+        mortality_rate_young_intervals= (0.00127*0.59, 0.00127*2.02) # (0.00127, 0.00127)
+
+
+        ward_rate_elderly_intervals =  (0.1026*0.59, 0.1026*2.02) #try to capture verity error CIs (0.03495, 0.03495)
+        ward_rate_young_intervals= (0.0209*0.59, 0.0209*2.02) # (0.00127, 0.00127)
+
+        icu_rate_elderly_intervals =  (0.0395*0.59, 0.0395*2.02) #try to capture verity error CIs (0.03495, 0.03495)
+        icu_rate_young_intervals= (0.0052*0.59, 0.0052*2.02) # (0.00127, 0.00127)
 
         # Computes mean and std for a lognormal distribution
         mortality_rate_elderly_params = make_lognormal_params_95_ci(*mortality_rate_elderly_intervals)
         mortality_rate_young_params = make_lognormal_params_95_ci(*mortality_rate_young_intervals)
+
         alpha_inv_params = make_lognormal_params_95_ci(*incubation_period)
         gamma_inv_params = make_lognormal_params_95_ci(*infectivity_period)
         delta_inv_params = make_lognormal_params_95_ci(*infection_to_death_period)
+
         R0__params = make_lognormal_params_95_ci(*basic_reproduction_number)
+
+        ward_rate_elderly_params = make_lognormal_params_95_ci(*ward_rate_elderly_intervals)
+        ward_rate_young_params = make_lognormal_params_95_ci(*ward_rate_young_intervals)
+
+        icu_rate_elderly_params = make_lognormal_params_95_ci(*icu_rate_elderly_intervals)
+        icu_rate_young_params = make_lognormal_params_95_ci(*icu_rate_young_intervals)
+
 
         # samples for a lognormal distribution (Monte Carlo Method)
         # alpha
@@ -301,6 +468,14 @@ def get_input_data(IC_analysis, city):
         infection_to_death_rate = 1 / npr.lognormal(*map(np.log, delta_inv_params), runs)
         mortality_rate_elderly_params = npr.lognormal(*map(np.log, mortality_rate_elderly_params), runs)
         mortality_rate_young_params = npr.lognormal(*map(np.log, mortality_rate_young_params), runs)
+
+        ward_rate_elderly_params = npr.lognormal(*map(np.log, ward_rate_elderly_params), runs)
+        ward_rate_young_params = npr.lognormal(*map(np.log, ward_rate_young_params), runs)
+
+        icu_rate_elderly_params = npr.lognormal(*map(np.log, icu_rate_elderly_params), runs)
+        icu_rate_young_params = npr.lognormal(*map(np.log, icu_rate_young_params), runs)
+
+
 
 
     elif IC_analysis == 2:  # SINGLE RUN
@@ -323,6 +498,12 @@ def get_input_data(IC_analysis, city):
 
         mortality_rate_elderly_params = 0.03495
         mortality_rate_young_params = 0.00127
+
+        ward_rate_elderly_params=0.1026,  # regular for old ones: 60+ years
+        ward_rate_young_params=0.0209,  # regular for young ones: 0-59 years
+        icu_rate_elderly_params=0.0395,  # UTI for old ones: 60+ years
+        icu_rate_young_params=0.0052  # UTI for young ones: 0-59 years
+
     elif IC_analysis == 3:
         # PARAMETERS ARE ARRAYS
         # Calculate array for r0 to a sensitivity analysis
@@ -338,6 +519,11 @@ def get_input_data(IC_analysis, city):
 
         mortality_rate_elderly_params = 0.03495
         mortality_rate_young_params = 0.00127
+
+        ward_rate_elderly_params=0.1026,  # regular for old ones: 60+ years
+        ward_rate_young_params=0.0209,  # regular for young ones: 0-59 years
+        icu_rate_elderly_params=0.0395,  # UTI for old ones: 60+ years
+        icu_rate_young_params=0.0052  # UTI for young ones: 0-59 years
 
     else:  # r0 Sensitivity analysis
         # PARAMETERS ARE ARRAYS
@@ -369,6 +555,11 @@ def get_input_data(IC_analysis, city):
 
         mortality_rate_elderly_params = 0.03495
         mortality_rate_young_params = 0.00127
+
+        ward_rate_elderly_params=0.1026,  # regular for old ones: 60+ years
+        ward_rate_young_params=0.0209,  # regular for young ones: 0-59 years
+        icu_rate_elderly_params=0.0395,  # UTI for old ones: 60+ years
+        icu_rate_young_params=0.0052  # UTI for young ones: 0-59 years
 
     covid_parameters = namedtuple('Covid_Parameters',
                                   ['alpha',  # incubation rate
@@ -414,10 +605,14 @@ def get_input_data(IC_analysis, city):
         # Source for hospitalization verity et al;
         # Proportion those need ICU:
         # Severe Outcomes Among Patients with Coronavirus Disease 2019 CDC
-        internation_rate_ward_elderly=0.1026,  # regular for old ones: 60+ years
-        internation_rate_ward_young=0.0209,  # regular for young ones: 0-59 years
-        internation_rate_icu_elderly=0.0395,  # UTI for old ones: 60+ years
-        internation_rate_icu_young=0.0052  # UTI for young ones: 0-59 years
+        internation_rate_ward_elderly=ward_rate_elderly_params,  # regular for old ones: 60+ years
+        internation_rate_ward_young=ward_rate_young_params,  # regular for young ones: 0-59 years
+        internation_rate_icu_elderly=icu_rate_elderly_params,  # UTI for old ones: 60+ years
+        internation_rate_icu_young=icu_rate_young_params  # UTI for young ones: 0-59 years
+        # internation_rate_ward_elderly=0.1026,  # regular for old ones: 60+ years
+        # internation_rate_ward_young=0.0209,  # regular for young ones: 0-59 years
+        # internation_rate_icu_elderly=0.0395,  # UTI for old ones: 60+ years
+        # internation_rate_icu_young=0.0052  # UTI for young ones: 0-59 years
     )
 
     model_parameters = namedtuple('Model_Parameters',
@@ -479,6 +674,7 @@ def get_input_data(IC_analysis, city):
     ### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
     ### Os parametros padrao podem ser mudados, como cama/UTI por cidade
     conditions = Conditions(I0, E0, R0, M0, N0, fit_analysis, covid_parameters)
+    city_params = define_city()
 
     # Mantive aqui para questões de não estragar o restante, mas o normal seria usar o objeto mesmo
     # para o resto dos problemas.
@@ -517,8 +713,8 @@ def get_input_data(IC_analysis, city):
         # Proportion of persons aged 60+ in Brazil, Source: IBGE's app
         # Brazilian bed places , Source: CNES, 05/05/2020
         # http://cnes2.datasus.gov.br/Mod_Ind_Tipo_Leito.asp?VEstado=00
-        bed_ward=conditions.bed_ward,  # bed ward
-        bed_icu=conditions.bed_icu,  # bed ICUs
+        bed_ward=city_params.bed_ward,  # bed ward
+        bed_icu=city_params.bed_icu,  # bed ICUs
         IC_analysis=IC_analysis,  # flag for run type
         # 1: confidence interval, 2: single run, 3: r0 sensitivity analysis
         dfMS=dfMS,  # dataframe_Min_Saude_data
@@ -531,7 +727,9 @@ def get_input_data(IC_analysis, city):
         city=city
     )
 
-    parametros = {'incubation_period = 1/alpha': [incubation_period],
+    parametros = {'City name': [city_params.city_name],
+                  'City code IBGE': [model_parameters.city],
+                  'incubation_period = 1/alpha': [incubation_period],
                   'basic_reproduction_number = beta/gamma': [basic_reproduction_number],
                   'infectivity_period = 1/gamma': [infectivity_period],
                   'runs': [runs],
@@ -561,10 +759,10 @@ def get_input_data(IC_analysis, city):
                   'startdate': [startdate],
                   'state_name': [state_name],
                   'r0_fit': [r0_fit],
-                  'sub_report': [sub_report],
-                  'city': [model_parameters.city]}
+                  'sub_report': [sub_report]}
 
     output_parameters = pd.DataFrame(parametros).T
+    print(output_parameters)
     print(output_parameters)
     print('')
 

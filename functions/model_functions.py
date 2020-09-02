@@ -260,15 +260,15 @@ def args_assignment(cp, mp, i, ii):
         gamma = cp.gamma[ii]
         delta = cp.delta[ii]
 
-        # tax_int_i = cp.internation_rate_ward_elderly / cp.mortality_rate_young[ii]
-        # tax_int_j = cp.internation_rate_ward_young[ii]
-        #
-        # tax_uti_i = cp.internation_rate_icu_elderly[ii]
-        # tax_uti_j = cp.internation_rate_icu_young[ii]
+        tax_int_i = cp.internation_rate_ward_elderly[ii]
+        tax_int_j = cp.internation_rate_ward_young[ii]
+
+        tax_uti_i = cp.internation_rate_icu_elderly[ii]
+        tax_uti_j = cp.internation_rate_icu_young[ii]
 
     contact_matrix = mp.contact_matrix[i]
-    taxa_mortalidade_i = cp.mortality_rate_elderly
-    taxa_mortalidade_j = cp.mortality_rate_young
+    # taxa_mortalidade_i = cp.mortality_rate_elderly
+    # taxa_mortalidade_j = cp.mortality_rate_young
     pH = cp.pH
     pU = cp.pU
     los_leito = cp.los_ward
@@ -277,11 +277,11 @@ def args_assignment(cp, mp, i, ii):
     infection_to_hospitalization = cp.infection_to_hospitalization
     infection_to_icu = cp.infection_to_icu
 
-    tax_int_i = cp.internation_rate_ward_elderly
-    tax_int_j = cp.internation_rate_ward_young
+    # tax_int_i = cp.internation_rate_ward_elderly
+    # tax_int_j = cp.internation_rate_ward_young
     #
-    tax_uti_i = cp.internation_rate_icu_elderly
-    tax_uti_j = cp.internation_rate_icu_young
+    # tax_uti_i = cp.internation_rate_icu_elderly
+    # tax_uti_j = cp.internation_rate_icu_young
 
     capacidade_UTIs = mp.bed_icu
     capacidade_Ward = mp.bed_ward
