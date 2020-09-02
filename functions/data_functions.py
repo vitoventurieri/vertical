@@ -763,7 +763,6 @@ def get_input_data(IC_analysis, city):
 
     output_parameters = pd.DataFrame(parametros).T
     print(output_parameters)
-    print(output_parameters)
     print('')
 
     return covid_parameters, model_parameters, output_parameters
