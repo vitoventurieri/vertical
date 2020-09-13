@@ -707,7 +707,7 @@ def get_input_data(IC_analysis, city):
     #E0, I0, R0, M0, N0 = 50, 25, 0, 0, 6000000
 
     E0, I0, R0, M0, N0 = parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_period, expected_mortality, expected_initial_rt)
-    N0 =5_500_000
+    #N0 =5_500_000
 
 
     ### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
