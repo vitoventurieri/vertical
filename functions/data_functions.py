@@ -43,9 +43,9 @@ class define_city:
 
     """
     def __init__(self):
-        self.cidade = 330455
+        self.cidade = 230440
         self.icanalisis = 1
-        self.runs = 1
+        self.runs = 30
 
         df_cnes = pd.read_csv(r'..\vertical-master-12_ago\data\cnes_simplificado_02-2020.csv', sep=';')  # source
 
@@ -115,7 +115,7 @@ class define_city:
                   "UNIDADE DE CUIDADOS INTERMEDIARIOS NEONATAL CANGURU": 93,
                   "UNIDADE DE CUIDADOS INTERMEDIARIOS PEDIATRICO": 94,
                   "UNIDADE DE CUIDADOS INTERMEDIARIOS ADULTO": 95
-                  }
+                  } # not used, dict is here for reference
 
         wards = {"BUCO MAXILO FACIAL": 1,
                  "CARDIOLOGIA": 2,
@@ -203,7 +203,6 @@ class define_city:
         df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
 
         self.city_name= str(np.asscalar(df_ibge['city_name_fixed'].loc[df_ibge.city_code_fixed == self.cidade].values))
-        #self.bed_ward = df_leitos.at[self.cidade, 'QT_EXIST_ward']
 
 
 class Conditions:
@@ -232,13 +231,20 @@ class Conditions:
         self.Ej0 = self.E0 * (1 - self.elderly_proportion)
         self.Ij0 = self.I0 * (1 - self.elderly_proportion)
         self.Rj0 = self.R0 * (1 - self.elderly_proportion)
+        if define_city().icanalisis == 2:
+            self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly
+            self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young
+            # Leitos UTIs demandados
+            self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly
+            self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young
+        else:
+            # Leitos normais demandados
+            self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly.mean()
+            self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young.mean()
+            # Leitos UTIs demandados
+            self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly.mean()
+            self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young.mean()
 
-        # Leitos normais demandados
-        self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly.mean()
-        self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young.mean()
-        # Leitos UTIs demandados
-        self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly.mean()
-        self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young.mean()
         # Excesso de demanda para leitos
         self.dHi0 = 0
         self.dHj0 = 0
@@ -320,12 +326,20 @@ def parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_pe
 
 
     round_infectious_period = np.ceil(est_infectious_period)
+    deaths_delay_post_infection =  2 #infection_to_death_period.mean()
+    deaths_delay_minus_infectious_period = deaths_delay_post_infection - round_infectious_period
 
-    I0_fit = (df_cidade.loc[round_infectious_period, 'deaths'] - df_cidade.loc[0, 'deaths'])*(est_infectious_period/round_infectious_period) / expected_mortality
-    E0_fit = (I0_fit * expected_initial_rt * est_incubation_period )/ est_infectious_period
+    #infection_to_death_period.mean() / (est_incubation_period + est_infectious_period)
+
+    I0_fit = (df_cidade.loc[round_infectious_period, 'deaths'] - df_cidade.loc[0, 'deaths']) * (est_infectious_period / round_infectious_period) / expected_mortality
+
+    #I0_fit = (df_cidade.loc[deaths_delay_post_infection, 'deaths'] - df_cidade.loc[deaths_delay_minus_infectious_period, 'deaths'])*(est_infectious_period/round_infectious_period) / expected_mortality
+    E0_fit = (I0_fit * expected_initial_rt * est_incubation_period ) / est_infectious_period
     R0_fit = (df_cidade.loc[0, 'deaths'] / expected_mortality)
     M0_fit = df_cidade.loc[0, 'deaths']
     population_fit = int(pop_cidade)
+
+
 
     return E0_fit, I0_fit, R0_fit, M0_fit, population_fit
 
@@ -383,7 +397,7 @@ def get_input_data(IC_analysis, city):
     # Basic Reproduction Number # ErreZero
 
 
-    basic_reproduction_number = (1.4, 2.9)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9
+    basic_reproduction_number = (1.4, 2.7)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9
 
 
     # if fit_analysis == 1:
@@ -415,30 +429,53 @@ def get_input_data(IC_analysis, city):
         Temp, _ = np.linalg.eig(M_matrix)
         Normalization_constant[k] = max(Temp.real)
 
-    if IC_analysis == 1:  # CONFIDENCE INTERVAL for a lognormal distribution
+    if IC_analysis == 1 or 4:  # CONFIDENCE INTERVAL for a lognormal distribution
 
         # PARAMETERS ARE ARRAYS
 
         # 95% Confidence interval bounds for Covid parameters
         # Incubation Period (in days)
-        incubation_period = (2.99 , 2.99)#(3.9 , 9.6) #(4.1 - 3.0, 7.1 - 0.8)  # (4.1, 7.0) source li et al - nature
+        incubation_period = (4.79 , 6.79)#(3.9 , 9.6) #(4.1 - 3.0, 7.1 - 0.8)  # (4.1, 7.0) source li et al - nature
 
         # Infectivity Period (in days)
 
-        infectivity_period = (3.01, 3.01)  # 3 days or 7 days - source nature
+        infectivity_period = (0.01, 0.01)  # 3 days or 7 days - source nature
 
         infection_to_death_period = (16.9, 17.1)
 
+        proportion_elderly = .1425
+        proportion_young = (1 - proportion_elderly)
 
-        mortality_rate_elderly_intervals =  (0.03495*0.59, 0.03495*2.02) #try to capture verity error CIs (0.03495, 0.03495)
-        mortality_rate_young_intervals= (0.00127*0.59, 0.00127*2.02) # (0.00127, 0.00127)
+        IFR = (0.002, 0.006) # source iceland study https://www.nejm.org/doi/full/10.1056/NEJMoa2026116; best fit with maranhão study https://www.medrxiv.org/content/10.1101/2020.08.28.20180463v1.full.pdf+html
 
+        # source sivep-gripe: INFLUD-31-08-2020.csv https://opendatasus.saude.gov.br/dataset/bd-srag-2020 - Find calculations on notebooks mortality_calculations_from_SRAG_dataset
+        proportion_elderly_total_deaths = 0.5125
+        proportion_young_total_deaths = (1 - proportion_elderly_total_deaths)
 
-        ward_rate_elderly_intervals =  (0.1026*0.59, 0.1026*2.02) #try to capture verity error CIs (0.03495, 0.03495)
-        ward_rate_young_intervals= (0.0209*0.59, 0.0209*2.02) # (0.00127, 0.00127)
+        mortality_rate_elderly_intervals =  (IFR[0]*(proportion_elderly_total_deaths/proportion_elderly), IFR[1]*(proportion_elderly_total_deaths/proportion_elderly))#(0.03495*0.59, 0.03495*0.59)  # (0.03495*0.59, 0.03495*2.02)#try to capture verity error CIs (0.03495, 0.03495)
+        mortality_rate_young_intervals= (IFR[0]*(proportion_young_total_deaths/proportion_young), IFR[1]*(proportion_young_total_deaths/proportion_young))#(0.00127*0.59, 0.00127*0.59) #(0.00127*0.59, 0.00127*2.02)  # (0.00127, 0.00127)
 
-        icu_rate_elderly_intervals =  (0.0395*0.59, 0.0395*2.02) #try to capture verity error CIs (0.03495, 0.03495)
-        icu_rate_young_intervals= (0.0052*0.59, 0.0052*2.02) # (0.00127, 0.00127)
+        proportion_elderly_icu_need_over_deaths_in_elderly = 0.896583
+        proportion_young_icu_need_over_deaths_in_young = 1.729259
+
+        icu_rate_elderly_intervals = np.array(mortality_rate_elderly_intervals) * proportion_elderly_icu_need_over_deaths_in_elderly #(0.0395*0.59, 0.0395*2.02) #try to capture verity error CIs (0.03495, 0.03495)
+        icu_rate_young_intervals= np.array(mortality_rate_young_intervals) *proportion_young_icu_need_over_deaths_in_young #(0.0052*0.59, 0.0052*2.02) # (0.00127, 0.00127)
+
+        proportion_elderly_ward_need_over_deaths_in_elderly = 1.209922
+        proportion_young_ward_need_over_deaths_in_young = 3.911702
+
+        ward_rate_elderly_intervals =  np.array(mortality_rate_elderly_intervals) * proportion_elderly_ward_need_over_deaths_in_elderly #1.209922, icu_rate_elderly_intervals[1]*1.209922)#(0.1026*0.59, 0.1026*2.02) #try to capture verity error CIs (0.03495, 0.03495)
+        ward_rate_young_intervals= np.array(mortality_rate_young_intervals) * proportion_young_ward_need_over_deaths_in_young #(0.0209*0.59, 0.0209*2.02) # (0.00127, 0.00127)
+
+        # mortality_rate_elderly_intervals =  (0.03495*0.59, 0.03495*0.59) #try to capture verity error CIs (0.03495, 0.03495)
+        # mortality_rate_young_intervals= (0.00127*0.59, 0.00127*0.59) # (0.00127, 0.00127)
+        #
+        #
+        # ward_rate_elderly_intervals =  (0.1026*0.59, 0.1026*0.59) #try to capture verity error CIs (0.03495, 0.03495)
+        # ward_rate_young_intervals= (0.0209*0.59, 0.0209*0.59) # (0.00127, 0.00127)
+        #
+        # icu_rate_elderly_intervals =  (0.0395*0.59, 0.0395*0.59) #try to capture verity error CIs (0.03495, 0.03495)
+        # icu_rate_young_intervals= (0.0052*0.59, 0.0052*0.59) # (0.00127, 0.00127)
 
         # Computes mean and std for a lognormal distribution
         mortality_rate_elderly_params = make_lognormal_params_95_ci(*mortality_rate_elderly_intervals)
@@ -499,9 +536,9 @@ def get_input_data(IC_analysis, city):
         mortality_rate_elderly_params = 0.03495
         mortality_rate_young_params = 0.00127
 
-        ward_rate_elderly_params=0.1026,  # regular for old ones: 60+ years
-        ward_rate_young_params=0.0209,  # regular for young ones: 0-59 years
-        icu_rate_elderly_params=0.0395,  # UTI for old ones: 60+ years
+        ward_rate_elderly_params=0.1026  # regular for old ones: 60+ years
+        ward_rate_young_params=0.0209  # regular for young ones: 0-59 years
+        icu_rate_elderly_params=0.0395  # UTI for old ones: 60+ years
         icu_rate_young_params=0.0052  # UTI for young ones: 0-59 years
 
     elif IC_analysis == 3:
@@ -667,9 +704,9 @@ def get_input_data(IC_analysis, city):
     est_infectious_period = np.mean(infectivity_period)
     est_incubation_period = np.mean(incubation_period)
 
-    #E0, I0, R0, M0, N = (write here initial conditions
-    # Caso queira usar parametros personalizados, escreva cidade em parameter_for_rt_fit_analisys('sao_paulo')
     E0, I0, R0, M0, N0 = parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_period, expected_mortality, expected_initial_rt)
+    #N0 =5_500_000
+
 
     ### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
     ### Os parametros padrao podem ser mudados, como cama/UTI por cidade
