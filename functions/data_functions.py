@@ -446,9 +446,9 @@ def get_input_data(IC_analysis, city):
         proportion_elderly = .1425
         proportion_young = (1 - proportion_elderly)
 
-        IFR = (0.002, 0.006) # source estudo maranhao
+        IFR = (0.002, 0.006) # source iceland study https://www.nejm.org/doi/full/10.1056/NEJMoa2026116; best fit with maranhão study https://www.medrxiv.org/content/10.1101/2020.08.28.20180463v1.full.pdf+html
 
-        # source sivep-gripe: INFLUD-31-08-2020.csv https://opendatasus.saude.gov.br/dataset/bd-srag-2020 - Find calculations on notebooks calculo_mortalidade_uti
+        # source sivep-gripe: INFLUD-31-08-2020.csv https://opendatasus.saude.gov.br/dataset/bd-srag-2020 - Find calculations on notebooks mortality_calculations_from_SRAG_dataset
         proportion_elderly_total_deaths = 0.5125
         proportion_young_total_deaths = (1 - proportion_elderly_total_deaths)
 
@@ -704,8 +704,6 @@ def get_input_data(IC_analysis, city):
     est_infectious_period = np.mean(infectivity_period)
     est_incubation_period = np.mean(incubation_period)
 
-    #E0, I0, R0, M0, N0 = 50, 25, 0, 0, 6000000
-
     E0, I0, R0, M0, N0 = parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_period, expected_mortality, expected_initial_rt)
     #N0 =5_500_000
 
@@ -803,8 +801,5 @@ def get_input_data(IC_analysis, city):
     output_parameters = pd.DataFrame(parametros).T
     print(output_parameters)
     print('')
-    # print('taxa_mortalidade_i' )
-    # print(mortality_rate_elderly_params)
-    # print('taxa_uti')
-    # print(icu_rate_elderly_params)
+
     return covid_parameters, model_parameters, output_parameters
