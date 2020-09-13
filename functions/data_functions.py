@@ -45,7 +45,7 @@ class define_city:
     def __init__(self):
         self.cidade = 230440
         self.icanalisis = 1
-        self.runs = 30
+        self.runs = 15
 
         df_cnes = pd.read_csv(r'..\vertical-master-12_ago\data\cnes_simplificado_02-2020.csv', sep=';')  # source
 
@@ -397,7 +397,7 @@ def get_input_data(IC_analysis, city):
     # Basic Reproduction Number # ErreZero
 
 
-    basic_reproduction_number = (1.4, 2.7)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9
+    basic_reproduction_number = (1.4, 3.9)  # (2.4, 3.3)     # 1.4 / 2.2 / 3.9 https://www.nejm.org/doi/full/10.1056/nejmoa2001316
 
 
     # if fit_analysis == 1:
@@ -435,7 +435,7 @@ def get_input_data(IC_analysis, city):
 
         # 95% Confidence interval bounds for Covid parameters
         # Incubation Period (in days)
-        incubation_period = (4.79 , 6.79)#(3.9 , 9.6) #(4.1 - 3.0, 7.1 - 0.8)  # (4.1, 7.0) source li et al - nature
+        incubation_period = (4.37 , 6.02) #source  https://www.sciencedirect.com/science/article/pii/S2213398420301895?via%3Dihub ###li et al - nature (3.9 , 9.6) #(4.1 - 3.0, 7.1 - 0.8)  # (4.1, 7.0)
 
         # Infectivity Period (in days)
 
@@ -446,9 +446,9 @@ def get_input_data(IC_analysis, city):
         proportion_elderly = .1425
         proportion_young = (1 - proportion_elderly)
 
-        IFR = (0.002, 0.006) # source iceland study https://www.nejm.org/doi/full/10.1056/NEJMoa2026116; best fit with maranhão study https://www.medrxiv.org/content/10.1101/2020.08.28.20180463v1.full.pdf+html
+        IFR = (0.0024, 0.0024) # source estudo maranhao
 
-        # source sivep-gripe: INFLUD-31-08-2020.csv https://opendatasus.saude.gov.br/dataset/bd-srag-2020 - Find calculations on notebooks mortality_calculations_from_SRAG_dataset
+        # source sivep-gripe: INFLUD-31-08-2020.csv https://opendatasus.saude.gov.br/dataset/bd-srag-2020 - Find calculations on notebooks calculo_mortalidade_uti
         proportion_elderly_total_deaths = 0.5125
         proportion_young_total_deaths = (1 - proportion_elderly_total_deaths)
 
@@ -464,7 +464,7 @@ def get_input_data(IC_analysis, city):
         proportion_elderly_ward_need_over_deaths_in_elderly = 1.209922
         proportion_young_ward_need_over_deaths_in_young = 3.911702
 
-        ward_rate_elderly_intervals =  np.array(mortality_rate_elderly_intervals) * proportion_elderly_ward_need_over_deaths_in_elderly #1.209922, icu_rate_elderly_intervals[1]*1.209922)#(0.1026*0.59, 0.1026*2.02) #try to capture verity error CIs (0.03495, 0.03495)
+        ward_rate_elderly_intervals = np.array(mortality_rate_elderly_intervals) * proportion_elderly_ward_need_over_deaths_in_elderly #1.209922, icu_rate_elderly_intervals[1]*1.209922)#(0.1026*0.59, 0.1026*2.02) #try to capture verity error CIs (0.03495, 0.03495)
         ward_rate_young_intervals= np.array(mortality_rate_young_intervals) * proportion_young_ward_need_over_deaths_in_young #(0.0209*0.59, 0.0209*2.02) # (0.00127, 0.00127)
 
         # mortality_rate_elderly_intervals =  (0.03495*0.59, 0.03495*0.59) #try to capture verity error CIs (0.03495, 0.03495)
@@ -704,6 +704,8 @@ def get_input_data(IC_analysis, city):
     est_infectious_period = np.mean(infectivity_period)
     est_incubation_period = np.mean(incubation_period)
 
+    #E0, I0, R0, M0, N0 = 50, 25, 0, 0, 6000000
+
     E0, I0, R0, M0, N0 = parameter_for_rt_fit_analisys(city, est_incubation_period, est_infectious_period, expected_mortality, expected_initial_rt)
     #N0 =5_500_000
 
@@ -801,5 +803,8 @@ def get_input_data(IC_analysis, city):
     output_parameters = pd.DataFrame(parametros).T
     print(output_parameters)
     print('')
-
+    # print('taxa_mortalidade_i' )
+    # print(mortality_rate_elderly_params)
+    # print('taxa_uti')
+    # print(icu_rate_elderly_params)
     return covid_parameters, model_parameters, output_parameters
