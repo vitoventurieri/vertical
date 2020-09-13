@@ -66,8 +66,8 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 
     if mp.IC_analysis == 4:
 
-        fonte_rt = pd.read_csv(r"data/Re_Fortaleza.csv", sep=',')
-        # fonte_rt = get_rt_by_city(mp.city)
+        fonte_rt = pd.read_csv(r"data/Re_SaoPaulo.csv", sep=',')
+        # fonte_rt = SaoLuis(mp.city)
 
         runs = len(cp.alpha)
         print('Rodando ' + str(runs) + ' casos')
@@ -120,14 +120,19 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
                     t = t[1:]
 
                     contador = contador + 1
-                    if a < 70:
-                        effectiver = fonte_rt.iloc[(contador + 13), -1]  # np.random.random()/2 + 1
+                    if a < 50:
+                        effectiver =  fonte_rt.iloc[(contador + 43), -3]  # np.random.random()/2 + 1
+                        print(effectiver)
                         argslist[2] = (cp.gamma[ii] * effectiver * mp.population) / (Si[-1] + Sj[-1])
                         args = tuple(argslist)
 
+                    elif a == 50:
+                        argslist[2] = (cp.gamma[ii] * 1.17 * mp.population) / (Si[-1] + Sj[-1])
+                    #     args = tuple(argslist)
+                    #
                     else:
-                        pass
-
+                    #     print(argslist[2])
+                         pass
 
                     df = append_df(df, ret, t, niveis_isolamento[i])
 
@@ -216,7 +221,6 @@ def initial_conditions(mp):
                 pHi0, pHj0, pUi0, pUj0, pMi0, pMj0
     return SEIRHUM_0
 
-
 def args_assignment(cp, mp, i, ii):
     """
     Assembly of the derivative parameters
@@ -247,11 +251,11 @@ def args_assignment(cp, mp, i, ii):
         taxa_mortalidade_i = cp.mortality_rate_elderly
         taxa_mortalidade_j = cp.mortality_rate_young
 
-        # tax_int_i = cp.internation_rate_ward_elderly / cp.mortality_rate_elderly
-        # tax_int_j = cp.internation_rate_ward_young / cp.mortality_rate_young
-        #
-        # tax_uti_i = cp.internation_rate_icu_elderly
-        # tax_uti_j = cp.internation_rate_icu_young
+        tax_int_i = cp.internation_rate_ward_elderly
+        tax_int_j = cp.internation_rate_ward_young
+
+        tax_uti_i = cp.internation_rate_icu_elderly
+        tax_uti_j = cp.internation_rate_icu_young
     else:  # CONFIDENCE INTERVAL OR SENSITIVITY ANALYSIS
         alpha = cp.alpha[ii]
         taxa_mortalidade_i = cp.mortality_rate_elderly[ii]
@@ -271,11 +275,18 @@ def args_assignment(cp, mp, i, ii):
     # taxa_mortalidade_j = cp.mortality_rate_young
     pH = cp.pH
     pU = cp.pU
+
     los_leito = cp.los_ward
     los_uti = cp.los_icu
 
     infection_to_hospitalization = cp.infection_to_hospitalization
     infection_to_icu = cp.infection_to_icu
+
+    proportion_of_ward_mortality_over_total_mortality_elderly = 0.407565
+    proportion_of_ward_mortality_over_total_mortality_young = 0.357161
+
+    proportion_of_icu_mortality_over_total_mortality_elderly = 0.592435
+    proportion_of_icu_mortality_over_total_mortality_young = 0.642839
 
     # tax_int_i = cp.internation_rate_ward_elderly
     # tax_int_j = cp.internation_rate_ward_young
@@ -290,15 +301,14 @@ def args_assignment(cp, mp, i, ii):
             los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
             taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
             infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward, Normalization_constant,
-            pH, pU)
+            pH, pU, proportion_of_ward_mortality_over_total_mortality_elderly, proportion_of_ward_mortality_over_total_mortality_young, proportion_of_icu_mortality_over_total_mortality_elderly, proportion_of_icu_mortality_over_total_mortality_young)
     return args
-
 
 def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
                  los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
                  taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
                  infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward,
-                 Normalization_constant, pH, pU):
+                 Normalization_constant, pH, pU, proportion_of_ward_mortality_over_total_mortality_elderly, proportion_of_ward_mortality_over_total_mortality_young, proportion_of_icu_mortality_over_total_mortality_elderly, proportion_of_icu_mortality_over_total_mortality_young):
     """
     Compute the derivatives of all the compartments
 
@@ -350,8 +360,8 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     dpHj = -tax_int_j * dSjdt - pHj / infection_to_hospitalization
     dpUi = -tax_uti_i * dSidt - pUi / infection_to_icu
     dpUj = -tax_uti_j * dSjdt - pUj / infection_to_icu
-    dpMi = -taxa_mortalidade_i * dSidt - pMi * delta
-    dpMj = -taxa_mortalidade_j * dSjdt - pMj * delta
+    dpMi = 1 #-taxa_mortalidade_i * dSidt - pMi * delta
+    dpMj = 1 #-taxa_mortalidade_j * dSjdt - pMj * delta
 
     coisa = 1 / 500
     coisa2 = -coisa * (Hi + Hj - capacidade_Ward)
@@ -373,8 +383,15 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     ddUjdt = (pUj / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
 
     # Obitos
-    dMidt = pMi * delta + ddHidt * pH + ddUidt * pU
-    dMjdt = pMj * delta + ddHjdt * pH + ddUjdt * pU
+
+    dMidt = (Ui / los_uti) * (taxa_mortalidade_i*proportion_of_icu_mortality_over_total_mortality_elderly/tax_uti_i) + (Hi / los_uti) * (taxa_mortalidade_i*proportion_of_ward_mortality_over_total_mortality_elderly/tax_int_i) + ddHidt * pH + ddUidt * pU
+    dMjdt = (Uj / los_uti) * (taxa_mortalidade_j*proportion_of_icu_mortality_over_total_mortality_young/tax_uti_j) + (Hj / los_uti) * (taxa_mortalidade_j*proportion_of_ward_mortality_over_total_mortality_young/tax_int_j) + ddHjdt * pH + ddUjdt * pU
+
+    #dMidt = (Ui / los_uti) * (taxa_mortalidade_i/tax_uti_i) + ddHidt * pH + ddUidt * pU
+    #dMjdt = (Uj / los_uti) * (taxa_mortalidade_j/tax_uti_j) + ddHjdt * pH + ddUjdt * pU
+
+    # dMidt = pMi * delta + ddHidt * pH + ddUidt * pU
+    # dMjdt = pMj * delta + ddHjdt * pH + ddUjdt * pU
 
     return (dSidt, dSjdt, dEidt, dEjdt, dIidt, dIjdt, dRidt, dRjdt,
             dHidt, dHjdt, ddHidt, ddHjdt, dUidt, dUjdt, ddUidt, ddUjdt, dMidt, dMjdt,
