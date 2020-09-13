@@ -59,6 +59,9 @@ def parameter_for_rt_fit_analisys(city):
     df_cidade = df_wcota.loc[
         (df_wcota.ibge_code_trimmed == codigo_da_cidade_ibge) & (df_wcota.deaths >= 50)].reset_index()
 
+    #df_uscases = pd.read_csv(r'C:\Users\Vito\Downloads\us-counties.csv', sep=',', low_memory=False) #source https://data.humdata.org/dataset/nyt-covid-19-data?
+    #df_cidade = df_uscases.loc[(df_uscases.county == "Cook") & (df_uscases.state == "Illinois") & (df_uscases.deaths >= 50), ['date', 'deaths']].reset_index()
+
 
     return df_cidade
 
@@ -273,6 +276,10 @@ def plot_byage(Yi, Yj, name_variable,
         complemento = '_diff_isol'
 
         dfcity_query = parameter_for_rt_fit_analisys(city)
+
+        exibition_date = dfcity_query.loc[1, 'date']
+
+        print('1º dia da simulação: ' + str(exibition_date))
         plt.plot(dfcity_query.loc[:, 'deaths'].values)
 
 
@@ -327,17 +334,14 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
     
     """
 
-    mp = model_parameters
-    N0 = mp.population
-
     # capacidade_leitos = model_parameters.bed_ward
     # capacidade_UTIs = model_parameters.bed_icu
-    IC_analysis = mp.IC_analysis
+    IC_analysis = model_parameters.IC_analysis
 
-    t_max = mp.t_max
+    t_max = model_parameters.t_max
     t_space = np.arange(0, t_max)
 
-    isolation_name = mp.isolation_level  # ["without_isolation", "elderly_isolation"]
+    isolation_name = model_parameters.isolation_level  # ["without_isolation", "elderly_isolation"]
 
     # VARIÁVEIS PADRÃO DOS PLOTS
     # plot
@@ -452,7 +456,6 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                 Mi[ii, ] = results[ii].query(query_condition)['Mi']
                 Mj[ii, ] = results[ii].query(query_condition)['Mj']
 
-        # SENSITIVITY ANALYSIS r0
         if IC_analysis == 3:
 
             r0 = covid_parameters.beta / covid_parameters.gamma
@@ -599,27 +602,27 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
             #        plt.savefig(os.path.join(plot_dir, "HU_" + filename + ".png"))
 
             # FIT
-            startdate = mp.startdate
+            startdate = model_parameters.startdate
             if (IC_analysis == 4) and (not startdate == []) and (i == 0):
 
                 for ifig in range(11):
                     plt.close(ifig)
 
-                dfMS = mp.dfMS
-                state_name = mp.state_name
+                dfMS = model_parameters.dfMS
+                state_name = model_parameters.state_name
                 data_sim = pd.to_datetime(t_space, unit='D',
                                           origin=pd.Timestamp(startdate))
                 # data_sim = pd.date_range(start=startdate, periods=t_max, freq='D')
 
-                r0 = mp.r0_fit
-                sub_report = mp.sub_report
+                r0 = model_parameters.r0_fit
+                sub_report = model_parameters.sub_report
 
                 x_ticks = 14  # de quantos em quantos dias aparece tick no plot
 
-                E0 = mp.init_exposed_elderly + mp.init_exposed_young
-                I0 = mp.init_infected_elderly + mp.init_infected_young
-                R0 = mp.init_removed_elderly + mp.init_removed_young
-                S0 = N0 - E0 - I0 - R0
+                E0 = model_parameters.init_exposed_elderly + model_parameters.init_exposed_young
+                I0 = model_parameters.init_infected_elderly + model_parameters.init_infected_young
+                R0 = model_parameters.init_removed_elderly + model_parameters.init_removed_young
+                S0 = model_parameters.population - E0 - I0 - R0
 
                 # OBITOS - IDOSOS E JOVENS
                 plt.figure(23)
