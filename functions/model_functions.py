@@ -1,10 +1,6 @@
 import numpy as np
 import pandas as pd
-# from datetime import datetime
 from scipy.integrate import odeint
-
-
-# import matplotlib.pyplot as plt
 
 
 def get_rt_by_city(city):
@@ -70,8 +66,8 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
 
     if mp.IC_analysis == 4:
 
-        fonte_rt = pd.read_csv(r"data/Re_Fortaleza.csv", sep=',')
-        # fonte_rt = get_rt_by_city(mp.city)
+        fonte_rt = pd.read_csv(r"data/Re_SaoPaulo.csv", sep=',')
+        # fonte_rt = SaoLuis(mp.city)
 
         runs = len(cp.alpha)
         print('Rodando ' + str(runs) + ' casos')
@@ -87,7 +83,6 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
         else:
             tNumberEnd = tNumber
 
-        #        ii = 1
 
         DF_list = list()  # list of data frames
         for ii in range(runs):  # sweeps the data frames list
@@ -125,27 +120,22 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
                     t = t[1:]
 
                     contador = contador + 1
-                    if a < 70:
-                        effectiver = fonte_rt.iloc[(contador + 13), -1]  # np.random.random()/2 + 1
+                    if a < 50:
+                        effectiver =  fonte_rt.iloc[(contador + 43), -3]  # np.random.random()/2 + 1
+                        print(effectiver)
                         argslist[2] = (cp.gamma[ii] * effectiver * mp.population) / (Si[-1] + Sj[-1])
                         args = tuple(argslist)
-                    # elif a == 91:
-                    # effectiver = 1.2#np.random.random()/2 + 1
-                    # argslist[2] = (cp.gamma[ii]*effectiver*mp.population)/(Si[-1]+Sj[-1])
-                    # args = tuple(argslist)
+
+                    elif a == 50:
+                        argslist[2] = (cp.gamma[ii] * 1.17 * mp.population) / (Si[-1] + Sj[-1])
+                    #     args = tuple(argslist)
+                    #
                     else:
-                        pass
-                    # print(tNumberEnd)
-                    # print(tNumber)
+                    #     print(argslist[2])
+                         pass
 
                     df = append_df(df, ret, t, niveis_isolamento[i])
-                    # df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej,
-                    #                              'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
-                    #                              'Hi': Hi, 'Hj': Hj, 'dHi': dHi, 'dHj': dHj, 'Ui': Ui, 'Uj': Uj,
-                    #                              'dUi': dUi, 'dUj': dUj, 'Mi': Mi, 'Mj': Mj,
-                    #                              'pHi': pHi, 'pHj': pHj, 'pUi': pUi, 'pUj': pUj, 'pMi': pMi,
-                    #                              'pMj': pMj}, index=t)
-                    #                .assign(isolamento=niveis_isolamento[i]))
+
             DF_list.append(df)
     elif mp.IC_analysis == 2:
         ii = 1
@@ -160,10 +150,6 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
             # Append the solutions
             df = append_df(df, ret, t, niveis_isolamento[i])
 
-            # Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj, \
-            #   pHi, pHj, pUi, pUj, pMi, pMj = ret.T
-            # plt.plot(t, pHi + pHj, Hi + Hj)
-            # plt.show()
 
         DF_list = df
 
@@ -235,7 +221,6 @@ def initial_conditions(mp):
                 pHi0, pHj0, pUi0, pUj0, pMi0, pMj0
     return SEIRHUM_0
 
-
 def args_assignment(cp, mp, i, ii):
     """
     Assembly of the derivative parameters
@@ -253,7 +238,7 @@ def args_assignment(cp, mp, i, ii):
     pH, pU
 
     """
-    N = mp.population
+    N0 = mp.population
     pI = mp.population_rate_elderly
     Normalization_constant = mp.Normalization_constant[0]
     # Because if the constant be scaled after changing the contact matrix again,
@@ -263,45 +248,67 @@ def args_assignment(cp, mp, i, ii):
         beta = cp.beta
         gamma = cp.gamma
         delta = cp.delta
+        taxa_mortalidade_i = cp.mortality_rate_elderly
+        taxa_mortalidade_j = cp.mortality_rate_young
+
+        tax_int_i = cp.internation_rate_ward_elderly
+        tax_int_j = cp.internation_rate_ward_young
+
+        tax_uti_i = cp.internation_rate_icu_elderly
+        tax_uti_j = cp.internation_rate_icu_young
     else:  # CONFIDENCE INTERVAL OR SENSITIVITY ANALYSIS
         alpha = cp.alpha[ii]
+        taxa_mortalidade_i = cp.mortality_rate_elderly[ii]
+        taxa_mortalidade_j = cp.mortality_rate_young[ii]
         beta = cp.beta[ii]
         gamma = cp.gamma[ii]
         delta = cp.delta[ii]
 
+        tax_int_i = cp.internation_rate_ward_elderly[ii]
+        tax_int_j = cp.internation_rate_ward_young[ii]
+
+        tax_uti_i = cp.internation_rate_icu_elderly[ii]
+        tax_uti_j = cp.internation_rate_icu_young[ii]
+
     contact_matrix = mp.contact_matrix[i]
-    taxa_mortalidade_i = cp.mortality_rate_elderly
-    taxa_mortalidade_j = cp.mortality_rate_young
+    # taxa_mortalidade_i = cp.mortality_rate_elderly
+    # taxa_mortalidade_j = cp.mortality_rate_young
     pH = cp.pH
     pU = cp.pU
+
     los_leito = cp.los_ward
     los_uti = cp.los_icu
 
     infection_to_hospitalization = cp.infection_to_hospitalization
     infection_to_icu = cp.infection_to_icu
 
-    tax_int_i = cp.internation_rate_ward_elderly
-    tax_int_j = cp.internation_rate_ward_young
+    proportion_of_ward_mortality_over_total_mortality_elderly = 0.407565
+    proportion_of_ward_mortality_over_total_mortality_young = 0.357161
 
-    tax_uti_i = cp.internation_rate_icu_elderly
-    tax_uti_j = cp.internation_rate_icu_young
+    proportion_of_icu_mortality_over_total_mortality_elderly = 0.592435
+    proportion_of_icu_mortality_over_total_mortality_young = 0.642839
+
+    # tax_int_i = cp.internation_rate_ward_elderly
+    # tax_int_j = cp.internation_rate_ward_young
+    #
+    # tax_uti_i = cp.internation_rate_icu_elderly
+    # tax_uti_j = cp.internation_rate_icu_young
 
     capacidade_UTIs = mp.bed_icu
     capacidade_Ward = mp.bed_ward
 
-    args = (N, alpha, beta, gamma, delta,
+    args = (N0, alpha, beta, gamma, delta,
             los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
             taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
             infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward, Normalization_constant,
-            pH, pU)
+            pH, pU, proportion_of_ward_mortality_over_total_mortality_elderly, proportion_of_ward_mortality_over_total_mortality_young, proportion_of_icu_mortality_over_total_mortality_elderly, proportion_of_icu_mortality_over_total_mortality_young)
     return args
 
-
-def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
+def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
                  los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
                  taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
                  infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward,
-                 Normalization_constant, pH, pU):
+                 Normalization_constant, pH, pU, proportion_of_ward_mortality_over_total_mortality_elderly, proportion_of_ward_mortality_over_total_mortality_young, proportion_of_icu_mortality_over_total_mortality_elderly, proportion_of_icu_mortality_over_total_mortality_young):
     """
     Compute the derivatives of all the compartments
 
@@ -310,7 +317,7 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
     H: Hospitalized, U: ICU, M: Deacesed
     suffixes i: elderly (idoso, 60+); j: young (jovem, 0-59 years)
     :param t: time to compute the derivative
-    :param N: population
+    :param N0: population
     :param alpha: incubation rate
     :param beta: contamination rate
     :param gamma: infectivity rate
@@ -337,7 +344,7 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
     # Vetor variaveis incognitas
     Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj, pHi, pHj, pUi, pUj, pMi, pMj = SEIRHUM
 
-    Iij = np.array([[Ij / ((1 - pI) * N)], [Ii / (pI * N)]])
+    Iij = np.array([[Ij / ((1 - pI) * N0)], [Ii / (pI * N0)]])
     Sij = np.array([[Sj], [Si]])
     dSijdt = -(beta / Normalization_constant) * np.dot(contact_matrix, Iij) * Sij
     dSjdt = dSijdt[0]
@@ -353,8 +360,8 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
     dpHj = -tax_int_j * dSjdt - pHj / infection_to_hospitalization
     dpUi = -tax_uti_i * dSidt - pUi / infection_to_icu
     dpUj = -tax_uti_j * dSjdt - pUj / infection_to_icu
-    dpMi = -taxa_mortalidade_i * dSidt - pMi * delta
-    dpMj = -taxa_mortalidade_j * dSjdt - pMj * delta
+    dpMi = 1 #-taxa_mortalidade_i * dSidt - pMi * delta
+    dpMj = 1 #-taxa_mortalidade_j * dSjdt - pMj * delta
 
     coisa = 1 / 500
     coisa2 = -coisa * (Hi + Hj - capacidade_Ward)
@@ -376,8 +383,15 @@ def derivSEIRHUM(SEIRHUM, t, N, alpha, beta, gamma, delta,
     ddUjdt = (pUj / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
 
     # Obitos
-    dMidt = pMi * delta + ddHidt * pH + ddUidt * pU
-    dMjdt = pMj * delta + ddHjdt * pH + ddUjdt * pU
+
+    dMidt = (Ui / los_uti) * (taxa_mortalidade_i*proportion_of_icu_mortality_over_total_mortality_elderly/tax_uti_i) + (Hi / los_uti) * (taxa_mortalidade_i*proportion_of_ward_mortality_over_total_mortality_elderly/tax_int_i) + ddHidt * pH + ddUidt * pU
+    dMjdt = (Uj / los_uti) * (taxa_mortalidade_j*proportion_of_icu_mortality_over_total_mortality_young/tax_uti_j) + (Hj / los_uti) * (taxa_mortalidade_j*proportion_of_ward_mortality_over_total_mortality_young/tax_int_j) + ddHjdt * pH + ddUjdt * pU
+
+    #dMidt = (Ui / los_uti) * (taxa_mortalidade_i/tax_uti_i) + ddHidt * pH + ddUidt * pU
+    #dMjdt = (Uj / los_uti) * (taxa_mortalidade_j/tax_uti_j) + ddHjdt * pH + ddUjdt * pU
+
+    # dMidt = pMi * delta + ddHidt * pH + ddUidt * pU
+    # dMjdt = pMj * delta + ddHjdt * pH + ddUjdt * pU
 
     return (dSidt, dSjdt, dEidt, dEjdt, dIidt, dIjdt, dRidt, dRjdt,
             dHidt, dHjdt, ddHidt, ddHjdt, dUidt, dUjdt, ddUidt, ddUjdt, dMidt, dMjdt,
