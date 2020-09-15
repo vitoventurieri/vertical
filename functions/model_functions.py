@@ -232,7 +232,7 @@ def args_assignment(cp, mp, i, ii):
     :return: tuple args with the variables: (check derivSEIRHUM for variables definitions)
 
     N, alpha, beta, gamma, delta,
-    los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
+    los_WARD, los_ICU, tax_int_i, tax_int_j, tax_ICU_i, tax_ICU_j,
     taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
     infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward, Normalization_constant,
     pH, pU
@@ -254,8 +254,8 @@ def args_assignment(cp, mp, i, ii):
         tax_int_i = cp.internation_rate_ward_elderly
         tax_int_j = cp.internation_rate_ward_young
 
-        tax_uti_i = cp.internation_rate_icu_elderly
-        tax_uti_j = cp.internation_rate_icu_young
+        tax_ICU_i = cp.internation_rate_icu_elderly
+        tax_ICU_j = cp.internation_rate_icu_young
     else:  # CONFIDENCE INTERVAL OR SENSITIVITY ANALYSIS
         alpha = cp.alpha[ii]
         taxa_mortalidade_i = cp.mortality_rate_elderly[ii]
@@ -267,8 +267,8 @@ def args_assignment(cp, mp, i, ii):
         tax_int_i = cp.internation_rate_ward_elderly[ii]
         tax_int_j = cp.internation_rate_ward_young[ii]
 
-        tax_uti_i = cp.internation_rate_icu_elderly[ii]
-        tax_uti_j = cp.internation_rate_icu_young[ii]
+        tax_ICU_i = cp.internation_rate_icu_elderly[ii]
+        tax_ICU_j = cp.internation_rate_icu_young[ii]
 
     contact_matrix = mp.contact_matrix[i]
     # taxa_mortalidade_i = cp.mortality_rate_elderly
@@ -276,8 +276,8 @@ def args_assignment(cp, mp, i, ii):
     pH = cp.pH
     pU = cp.pU
 
-    los_leito = cp.los_ward
-    los_uti = cp.los_icu
+    los_WARD = cp.los_ward
+    los_ICU = cp.los_icu
 
     infection_to_hospitalization = cp.infection_to_hospitalization
     infection_to_icu = cp.infection_to_icu
@@ -291,21 +291,21 @@ def args_assignment(cp, mp, i, ii):
     # tax_int_i = cp.internation_rate_ward_elderly
     # tax_int_j = cp.internation_rate_ward_young
     #
-    # tax_uti_i = cp.internation_rate_icu_elderly
-    # tax_uti_j = cp.internation_rate_icu_young
+    # tax_ICU_i = cp.internation_rate_icu_elderly
+    # tax_ICU_j = cp.internation_rate_icu_young
 
     capacidade_UTIs = mp.bed_icu
     capacidade_Ward = mp.bed_ward
 
     args = (N0, alpha, beta, gamma, delta,
-            los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
+            los_WARD, los_ICU, tax_int_i, tax_int_j, tax_ICU_i, tax_ICU_j,
             taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
             infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward, Normalization_constant,
             pH, pU, proportion_of_ward_mortality_over_total_mortality_elderly, proportion_of_ward_mortality_over_total_mortality_young, proportion_of_icu_mortality_over_total_mortality_elderly, proportion_of_icu_mortality_over_total_mortality_young)
     return args
 
 def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
-                 los_leito, los_uti, tax_int_i, tax_int_j, tax_uti_i, tax_uti_j,
+                 los_WARD, los_ICU, tax_int_i, tax_int_j, tax_ICU_i, tax_ICU_j,
                  taxa_mortalidade_i, taxa_mortalidade_j, contact_matrix, pI,
                  infection_to_hospitalization, infection_to_icu, capacidade_UTIs, capacidade_Ward,
                  Normalization_constant, pH, pU, proportion_of_ward_mortality_over_total_mortality_elderly, proportion_of_ward_mortality_over_total_mortality_young, proportion_of_icu_mortality_over_total_mortality_elderly, proportion_of_icu_mortality_over_total_mortality_young):
@@ -322,12 +322,12 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     :param beta: contamination rate
     :param gamma: infectivity rate
     :param delta:
-    :param los_leito: average Length Of Stay for wards
-    :param los_uti: average Length Of Stay in ICU beds
+    :param los_WARD: average Length Of Stay for wards
+    :param los_ICU: average Length Of Stay in ICU beds
     :param tax_int_i: hospitalization rate for elderly in ward beds
     :param tax_int_j: hospitalization rate for young in ward beds
-    :param tax_uti_i: hospitalization rate for elderly in ICU beds
-    :param tax_uti_j: hospitalization rate for young in ICU beds
+    :param tax_ICU_i: hospitalization rate for elderly in ICU beds
+    :param tax_ICU_j: hospitalization rate for young in ICU beds
     :param taxa_mortalidade_i: mortality rate for elderly
     :param taxa_mortalidade_j: mortality rate for young
     :param contact_matrix:
@@ -358,8 +358,8 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
 
     dpHi = -tax_int_i * dSidt - pHi / infection_to_hospitalization
     dpHj = -tax_int_j * dSjdt - pHj / infection_to_hospitalization
-    dpUi = -tax_uti_i * dSidt - pUi / infection_to_icu
-    dpUj = -tax_uti_j * dSjdt - pUj / infection_to_icu
+    dpUi = -tax_ICU_i * dSidt - pUi / infection_to_icu
+    dpUj = -tax_ICU_j * dSjdt - pUj / infection_to_icu
     dpMi = 1 #-taxa_mortalidade_i * dSidt - pMi * delta
     dpMj = 1 #-taxa_mortalidade_j * dSjdt - pMj * delta
 
@@ -369,11 +369,11 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     coisa3 = -coisa * (Ui + Uj - capacidade_UTIs)
 
     # Leitos demandados
-    dHidt = (pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hi / los_leito
-    dHjdt = (pHj / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hj / los_leito
+    dHidt = (pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hi / los_WARD
+    dHjdt = (pHj / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hj / los_WARD
 
-    dUidt = (pUi / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Ui / los_uti
-    dUjdt = (pUj / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Uj / los_uti
+    dUidt = (pUi / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Ui / los_ICU
+    dUjdt = (pUj / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Uj / los_ICU
 
     # Leitos demandados em excesso
     ddHidt = (pHi / infection_to_hospitalization) * (1 / (1 + np.exp(coisa2)))
@@ -384,11 +384,11 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
 
     # Obitos
 
-    dMidt = (Ui / los_uti) * (taxa_mortalidade_i*proportion_of_icu_mortality_over_total_mortality_elderly/tax_uti_i) + (Hi / los_uti) * (taxa_mortalidade_i*proportion_of_ward_mortality_over_total_mortality_elderly/tax_int_i) + ddHidt * pH + ddUidt * pU
-    dMjdt = (Uj / los_uti) * (taxa_mortalidade_j*proportion_of_icu_mortality_over_total_mortality_young/tax_uti_j) + (Hj / los_uti) * (taxa_mortalidade_j*proportion_of_ward_mortality_over_total_mortality_young/tax_int_j) + ddHjdt * pH + ddUjdt * pU
+    dMidt = (Ui / los_ICU) * (taxa_mortalidade_i * proportion_of_icu_mortality_over_total_mortality_elderly / tax_ICU_i) + (Hi / los_WARD) * (taxa_mortalidade_i * proportion_of_ward_mortality_over_total_mortality_elderly / tax_int_i) + ddHidt * pH + ddUidt * pU
+    dMjdt = (Uj / los_ICU) * (taxa_mortalidade_j * proportion_of_icu_mortality_over_total_mortality_young / tax_ICU_j) + (Hj / los_WARD) * (taxa_mortalidade_j * proportion_of_ward_mortality_over_total_mortality_young / tax_int_j) + ddHjdt * pH + ddUjdt * pU
 
-    #dMidt = (Ui / los_uti) * (taxa_mortalidade_i/tax_uti_i) + ddHidt * pH + ddUidt * pU
-    #dMjdt = (Uj / los_uti) * (taxa_mortalidade_j/tax_uti_j) + ddHjdt * pH + ddUjdt * pU
+    #dMidt = (Ui / los_uti) * (taxa_mortalidade_i/tax_ICU_i) + ddHidt * pH + ddUidt * pU
+    #dMjdt = (Uj / los_uti) * (taxa_mortalidade_j/tax_ICU_j) + ddHjdt * pH + ddUjdt * pU
 
     # dMidt = pMi * delta + ddHidt * pH + ddUidt * pU
     # dMjdt = pMj * delta + ddHjdt * pH + ddUjdt * pU
