@@ -89,12 +89,12 @@ class Conditions:
         self.dUi0 = 0
         self.dUj0 = 0
         # Obitos
-        if not fit_analysis: #0: #  TODO: Check if is there a not or no
+        if not fit_analysis: #0: #  TODO: Check if is there a not or no/ check if dis IF clause is necessary
             self.Mi0 = self.Ri0 * np.mean(covid_parameters.mortality_rate_elderly)
             self.Mj0 = self.Rj0 * np.mean(covid_parameters.mortality_rate_young)
         else:
-            self.Mi0 = self.M0 * self.elderly_proportion
-            self.Mj0 = self.Rj0 * (1 - self.elderly_proportion)
+            self.Mi0 = self.Ri0 * self.elderly_proportion * np.mean(covid_parameters.mortality_rate_elderly)
+            self.Mj0 = self.Rj0 * (1 - self.elderly_proportion)* np.mean(covid_parameters.mortality_rate_young)
         # Perhaps initial conditions will change to match deaths at the present date
 
 
