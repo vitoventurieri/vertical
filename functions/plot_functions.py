@@ -1,70 +1,18 @@
-# TO DO
+# TODO
 # 1) Revisar fit
 # 6) Incorporar plot para efeito de sobrecarga do sistema
 # 7) Incorporar cenário alternativo com isolamento horizontal,
 #     talvez travar o range de omega nos plots
-
-import matplotlib.pyplot as plt
-from .utils import *
-from datetime import datetime
+import os
 import numpy as np
-import matplotlib as mpl
-
 import pandas as pd
+from datetime import datetime
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
 
-from .data_functions import define_city
-
-
-city = define_city().cidade
-
-
-def parameter_for_rt_fit_analisys(city):
-    """
-
-    :param incubation_period: 2 days
-    :param expected_initial_rt: 2  # estimated basic reproduction number
-    :param expected_mortality:  0.0065  # Verity mortality rate
-    :param city:
-    :return:
-    """
-    df_wcota = pd.read_csv('data\cases-brazil-cities-time.csv', sep=',')
-    # dataset source : https://github.com/wcota/covid19br/blob/master/README.md
-    # W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”,
-    # SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020
-    #
-    df_ibge = pd.read_csv(r'data\populacao_ibge.csv', sep=';', encoding="ISO-8859-1")
-    # source #http://tabnet.datasus.gov.br/cgi/tabcgi.exe?ibge/cnv/poptbr.def
-
-    codigo_da_cidade_ibge = city  # 355030
-
-    def fix_city_name(row):
-        row = row[7:]
-        return row
-
-    def fix_city_code(row):
-        row = str(row)[:6]
-        if row == 'Total':
-            row = 000000
-        row = int(row)
-        return row
-
-    # fix strings on datasets
-    df_ibge['city_name_fixed'] = df_ibge['Município'].map(fix_city_name)
-    df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
-    df_wcota['ibge_code_trimmed'] = df_wcota['ibgeID'].map(fix_city_code)
-
-    # select datasets in the city with rows only with > x deaths
-    df_cidade = df_wcota.loc[
-        (df_wcota.ibge_code_trimmed == codigo_da_cidade_ibge) & (df_wcota.deaths >= 50)].reset_index()
-
-    #df_uscases = pd.read_csv('https://github.com/nytimes/covid-19-data/blob/master/us-counties.csv', sep=',', low_memory=False) #source https://data.humdata.org/dataset/nyt-covid-19-data?
-    #df_cidade = df_uscases.loc[(df_uscases.county == "Cook") & (df_uscases.state == "Illinois") & (df_uscases.deaths >= 50), ['date', 'deaths']].reset_index()
-
-
-    return df_cidade
-
+from .utils import *
 
 #def city_cases_dataset(city):
 #    """
@@ -275,13 +223,12 @@ def plot_byage(Yi, Yj, name_variable,
 
         complemento = '_diff_isol'
 
-        dfcity_query = parameter_for_rt_fit_analisys(city)
+        #dfcity_query = parameter_for_rt_fit_analisys(city_code)
 
-        exibition_date = dfcity_query.loc[1, 'date']
+        #exibition_date = dfcity_query.loc[1, 'date']
 
-        print('1º dia da simulação: ' + str(exibition_date))
-        plt.plot(dfcity_query.loc[:, 'deaths'].values)
-
+        #print('1º dia da simulação: ' + str(exibition_date))
+        #plt.plot(dfcity_query.loc[:, 'deaths'].values)
 
     pos_format(title_fig, main_label_y, main_label_x)
     plt.savefig(os.path.join(plot_dir,
@@ -568,11 +515,21 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                        ls, cor, isolation_name, i,
                        plot_dir, filetype)
 
+            if model_parameters.fit_analysis:
+                #city_code = model_parameters.city
+                #dfcity_query = parameter_for_rt_fit_analisys(city_code)
+                dfcity_query = model_parameters.df_cidade
+                exibition_date = dfcity_query.loc[1, 'date']
+                print('1º dia da simulação: ' + str(exibition_date))
+                plt.plot(dfcity_query.loc[:, 'deaths'].values)
             
 
 
             # ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
             plt.savefig(os.path.join(plot_dir, "Mey_" + filename + filetype))
+
+
+            
 
             #        plt.figure(3+i)
             #        plt.style.use('ggplot')
@@ -602,86 +559,86 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
             #        plt.savefig(os.path.join(plot_dir, "HU_" + filename + ".png"))
 
             # FIT
-            startdate = model_parameters.startdate
-            if (IC_analysis == 4) and (not startdate == []) and (i == 0):
+    #         startdate = model_parameters.startdate
+    #         if (IC_analysis == 4) and (not startdate == []) and (i == 0):
 
-                for ifig in range(11):
-                    plt.close(ifig)
+    #             for ifig in range(11):
+    #                 plt.close(ifig)
 
-                dfMS = model_parameters.dfMS
-                state_name = model_parameters.state_name
-                data_sim = pd.to_datetime(t_space, unit='D',
-                                          origin=pd.Timestamp(startdate))
-                # data_sim = pd.date_range(start=startdate, periods=t_max, freq='D')
+    #             dfMS = model_parameters.dfMS
+    #             state_name = model_parameters.state_name
+    #             data_sim = pd.to_datetime(t_space, unit='D',
+    #                                       origin=pd.Timestamp(startdate))
+    #             # data_sim = pd.date_range(start=startdate, periods=t_max, freq='D')
 
-                r0 = model_parameters.r0_fit
-                sub_report = model_parameters.sub_report
+    #             r0 = model_parameters.r0_fit
+    #             sub_report = model_parameters.sub_report
 
-                x_ticks = 14  # de quantos em quantos dias aparece tick no plot
+    #             x_ticks = 14  # de quantos em quantos dias aparece tick no plot
 
-                E0 = model_parameters.init_exposed_elderly + model_parameters.init_exposed_young
-                I0 = model_parameters.init_infected_elderly + model_parameters.init_infected_young
-                R0 = model_parameters.init_removed_elderly + model_parameters.init_removed_young
-                S0 = model_parameters.population - E0 - I0 - R0
+    #             E0 = model_parameters.init_exposed_elderly + model_parameters.init_exposed_young
+    #             I0 = model_parameters.init_infected_elderly + model_parameters.init_infected_young
+    #             R0 = model_parameters.init_removed_elderly + model_parameters.init_removed_young
+    #             S0 = model_parameters.population - E0 - I0 - R0
 
-                # OBITOS - IDOSOS E JOVENS
-                plt.figure(23)
+    #             # OBITOS - IDOSOS E JOVENS
+    #             plt.figure(23)
 
-                plot_median(Mi + Mj, cor[0], ls[0], 'Model', data_sim)
+    #             plot_median(Mi + Mj, cor[0], ls[0], 'Model', data_sim)
 
 
-                plt.plot(dfMS['data'], dfMS['obitosAcumulado'],
-                         ls[1], color=cor[1], label='Reported Data')
+    #             plt.plot(dfMS['data'], dfMS['obitosAcumulado'],
+    #                      ls[1], color=cor[1], label='Reported Data')
 
-                plot_ci(Mi + Mj, cor[0], data_sim)
+    #             plot_ci(Mi + Mj, cor[0], data_sim)
 
-                ax = plt.gca()
-                ax.xaxis.set_major_locator(mdates.DayLocator(interval=x_ticks))
-                ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
-                # ax.set_xlim(pd.Timestamp('15/03/2020'), pd.Timestamp('15/04/2020'))
+    #             ax = plt.gca()
+    #             ax.xaxis.set_major_locator(mdates.DayLocator(interval=x_ticks))
+    #             ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+    #             # ax.set_xlim(pd.Timestamp('15/03/2020'), pd.Timestamp('15/04/2020'))
 
-                plt.gcf().autofmt_xdate()  # Rotation
+    #             plt.gcf().autofmt_xdate()  # Rotation
 
-                # ax.set_ylim(0, 1_000)
+    #             # ax.set_ylim(0, 1_000)
 
-                title_fit = ('r0 = (' + ("%.1f" % r0[0])
-                             + ', ' + ("%.1f" % r0[1]) + ') @'
-                             + pd.to_datetime(startdate, format='%Y-%m-%d')
-                             .strftime('%d/%m/%Y')
-                             + ' - subreport = ' + ("%d" % sub_report)
-                             + ' - ' + state_name + '\n'
-                             + 'SEIR(0) = '
-                             + f"({S0:,.0f}; {E0:,.0f}; {I0:,.0f}; {R0:,.0f})")
+    #             title_fit = ('r0 = (' + ("%.1f" % r0[0])
+    #                          + ', ' + ("%.1f" % r0[1]) + ') @'
+    #                          + pd.to_datetime(startdate, format='%Y-%m-%d')
+    #                          .strftime('%d/%m/%Y')
+    #                          + ' - subreport = ' + ("%d" % sub_report)
+    #                          + ' - ' + state_name + '\n'
+    #                          + 'SEIR(0) = '
+    #                          + f"({S0:,.0f}; {E0:,.0f}; {I0:,.0f}; {R0:,.0f})")
 
-                pos_format(title_fit, 'Deceased people', 'Date')
+    #             pos_format(title_fit, 'Deceased people', 'Date')
 
-                plt.savefig(os.path.join(plot_dir,
-                                         "Fit_" + state_name + "_M" + filetype))
+    #             plt.savefig(os.path.join(plot_dir,
+    #                                      "Fit_" + state_name + "_M" + filetype))
 
-                # INFECTADOS - IDOSOS E JOVENS
-                plt.figure(24)
+    #             # INFECTADOS - IDOSOS E JOVENS
+    #             plt.figure(24)
 
-                plot_median(Ii + Ij, cor[0], ls[0], 'Model', data_sim)
+    #             plot_median(Ii + Ij, cor[0], ls[0], 'Model', data_sim)
 
-                plt.plot(dfMS['data'], dfMS['casosAcumulado'] * sub_report,
-                         ls[1], color=cor[1], label='Reported Data*sub_report')
+    #             plt.plot(dfMS['data'], dfMS['casosAcumulado'] * sub_report,
+    #                      ls[1], color=cor[1], label='Reported Data*sub_report')
 
-                plot_ci(Ii + Ij, cor[0], data_sim)
+    #             plot_ci(Ii + Ij, cor[0], data_sim)
 
-                ax = plt.gca()
-                ax.xaxis.set_major_locator(mdates.DayLocator(interval=x_ticks))
-                ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
-                # ax.set_xlim(pd.Timestamp('15/03/2020'),
-                #            pd.Timestamp('15/05/2020')) # 15/04/2020
+    #             ax = plt.gca()
+    #             ax.xaxis.set_major_locator(mdates.DayLocator(interval=x_ticks))
+    #             ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+    #             # ax.set_xlim(pd.Timestamp('15/03/2020'),
+    #             #            pd.Timestamp('15/05/2020')) # 15/04/2020
 
-                plt.gcf().autofmt_xdate()  # Rotation
+    #             plt.gcf().autofmt_xdate()  # Rotation
 
-                # ax.set_ylim(0, 100_000) # 10_000
-                pos_format(title_fit, 'Infected people', 'Date')
+    #             # ax.set_ylim(0, 100_000) # 10_000
+    #             pos_format(title_fit, 'Infected people', 'Date')
 
-                plt.savefig(os.path.join(plot_dir,
-                                         "Fit_" + state_name + "_I" + filetype))
+    #             plt.savefig(os.path.join(plot_dir,
+    #                                      "Fit_" + state_name + "_I" + filetype))
 
-    if (IC_analysis == 4) and (not startdate == []):
-        for ifig in range(11):
-            plt.close(ifig)
+    # if (IC_analysis == 4) and (not startdate == []):
+    #     for ifig in range(11):
+    #         plt.close(ifig)
