@@ -10,12 +10,12 @@ from functions.utils import get_output_dir
 
 if __name__ == '__main__':
 
-    analysis = 'Confidence Interval' #  'Single Run' # 'Sensitivity' # 'Rt' #
+    analysis = 'Confidence Interval' #'Rt' # 'Single Run' # 'Sensitivity' #
     fit_analysis = True  # False #
-    runs = 1
+    runs = 30
     days_to_run = 180
     initial_deaths_to_fit = 50
-    city_name = 'Fortaleza/CE'  # "São Paulo/SP" #
+    city_name = "Rio de Janeiro/RJ" #'Manaus/AM'# "Belém/PA" # 'Manaus/AM' #"São Paulo/SP" # 'Fortaleza/CE'  #
 
     estimation =  'Sivep'  # 'Verity' #
     
