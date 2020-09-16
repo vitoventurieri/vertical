@@ -32,6 +32,17 @@ def generate_results_percentiles(results, model_parameters):
 		pMi = np.zeros((len(results), model_parameters.t_max))
 		pMj = np.zeros((len(results), model_parameters.t_max))
 
+		WARD_survive_i = np.zeros((len(results), model_parameters.t_max))
+		WARD_survive_j = np.zeros((len(results), model_parameters.t_max))
+		WARD_death_i = np.zeros((len(results), model_parameters.t_max))
+		WARD_death_j = np.zeros((len(results), model_parameters.t_max))
+		ICU_survive_i = np.zeros((len(results), model_parameters.t_max))
+		ICU_survive_j = np.zeros((len(results), model_parameters.t_max))
+		ICU_death_i = np.zeros((len(results), model_parameters.t_max))
+		ICU_death_j = np.zeros((len(results), model_parameters.t_max))
+		WARD_discharged_ICU_survive_i = np.zeros((len(results), model_parameters.t_max))
+		WARD_discharged_ICU_survive_j = np.zeros((len(results), model_parameters.t_max))
+
 
 		for ii in range(len(results)):
 			query_condition = 'isolamento == @isolation_name_i'
@@ -63,8 +74,19 @@ def generate_results_percentiles(results, model_parameters):
 			pMi[ii,] = results[ii].query(query_condition)['pMi']
 			pMj[ii,] = results[ii].query(query_condition)['pMj']
 
-		compartiments_list = [Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj, dHi, dHj, dUi, dUj, pHi, pHj, pUi, pUj, pMi, pMj]
-		compartiments_strings_list = ['Si', 'Sj', 'Ei', 'Ej', 'Ii', 'Ij', 'Ri', 'Rj', 'Hi', 'Hj', 'Ui', 'Uj', 'Mi', 'Mj', 'dHi', 'dHj', 'dUi', 'dUj', 'pHi', 'pHj', 'pUi', 'pUj', 'pMi', 'pMj']
+			WARD_survive_i[ii,] = results[ii].query(query_condition)['WARD_survive_i']
+			WARD_survive_j[ii,] = results[ii].query(query_condition)['WARD_survive_j']
+			WARD_death_i[ii,] = results[ii].query(query_condition)['WARD_death_i']
+			WARD_death_j[ii,] = results[ii].query(query_condition)['WARD_death_j']
+			ICU_survive_i[ii,] = results[ii].query(query_condition)['ICU_survive_i']
+			ICU_survive_j[ii,] = results[ii].query(query_condition)['ICU_survive_j']
+			ICU_death_i[ii,] = results[ii].query(query_condition)['ICU_death_i']
+			ICU_death_j[ii,] = results[ii].query(query_condition)['ICU_death_j']
+			WARD_discharged_ICU_survive_i[ii,] = results[ii].query(query_condition)['WARD_discharged_ICU_survive_i']
+			WARD_discharged_ICU_survive_j[ii,] = results[ii].query(query_condition)['WARD_discharged_ICU_survive_j']
+
+		compartiments_list = [Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj, dHi, dHj, dUi, dUj, pHi, pHj, pUi, pUj, pMi, pMj, WARD_survive_i, WARD_survive_j, WARD_death_i, WARD_death_j, ICU_survive_i, ICU_survive_j, ICU_death_i, ICU_death_j, WARD_discharged_ICU_survive_i, WARD_discharged_ICU_survive_j]
+		compartiments_strings_list = ['Si', 'Sj', 'Ei', 'Ej', 'Ii', 'Ij', 'Ri', 'Rj', 'Hi', 'Hj', 'Ui', 'Uj', 'Mi', 'Mj', 'dHi', 'dHj', 'dUi', 'dUj', 'pHi', 'pHj', 'pUi', 'pUj', 'pMi', 'pMj', 'WARD_survive_i', 'WARD_survive_j', 'WARD_death_i', 'WARD_death_j', 'ICU_survive_i', 'ICU_survive_j', 'ICU_death_i', 'ICU_death_j', 'WARD_discharged_ICU_survive_i', 'WARD_discharged_ICU_survive_j']
 		compartiment_medians = {}
 		compartiment_lower_quantile = {}
 		compartiment_upper_quantile = {}
