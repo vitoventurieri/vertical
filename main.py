@@ -4,20 +4,20 @@ import pandas as pd
 from functions.data_functions import get_input_data
 from functions.model_functions import run_SEIR_ODE_model
 from functions.plot_functions import auxiliar_names, plots
-from functions.report_functions import generate_report
+from functions.report_functions import generate_report, generate_results_percentiles
 from functions.utils import get_output_dir
 
 
 if __name__ == '__main__':
 
-    analysis = 'Confidence Interval' # 'Single Run' # 'Sensitivity' # 'Rt' #
+    analysis = 'Confidence Interval' #'Rt' # 'Single Run' # 'Sensitivity' #
     fit_analysis = True  # False #
-    runs = 15
+    runs = 30
     days_to_run = 180
     initial_deaths_to_fit = 50
-    city_name = 'Fortaleza/CE'  # "São Paulo/SP" #
+    city_name = "Rio de Janeiro/RJ" #'Manaus/AM'# "Belém/PA" # 'Manaus/AM' #"São Paulo/SP" # 'Fortaleza/CE'  #
 
-    estimation = 'Sivep'  # 'Verity #
+    estimation =  'Sivep'  # 'Verity' #
     
     covid_parameters, model_parameters, output_parameters = get_input_data(analysis,
             fit_analysis, estimation, runs, days_to_run, initial_deaths_to_fit, city_name)
@@ -42,3 +42,15 @@ if __name__ == '__main__':
         report = generate_report(results, model_parameters)
         report.to_excel(os.path.join(plot_dir, 'report_' + filename + '.xlsx'), index=False)
         results.to_excel(os.path.join(plot_dir, 'results_' + filename + '.xlsx'), index=False)
+
+    elif model_parameters.IC_analysis == 'Confidence Interval' or 'Rt':
+
+        results_percentiles = generate_results_percentiles(results, model_parameters)
+
+        results_percentiles[0][0].to_excel(os.path.join(plot_dir, 'results_medians_no_isolation_' + filename + '.xlsx'), index=False)
+        results_percentiles[0][1].to_excel(os.path.join(plot_dir, 'results_percentile_05_no_isolation_' + filename + '.xlsx'), index=False)
+        results_percentiles[0][2].to_excel(os.path.join(plot_dir, 'results_percentile_95_no_isolation' + filename + '.xlsx'), index=False)
+
+        results_percentiles[1][0].to_excel(os.path.join(plot_dir, 'results_medians_vertical_' + filename + '.xlsx'), index=False)
+        results_percentiles[1][1].to_excel(os.path.join(plot_dir, 'results_percentile_05_vertical_' + filename + '.xlsx'), index=False)
+        results_percentiles[1][2].to_excel(os.path.join(plot_dir, 'results_percentile_95_vertical_' + filename + '.xlsx'), index=False)
