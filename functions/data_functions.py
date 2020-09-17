@@ -69,7 +69,7 @@ class Conditions:
         self.Ij0 = self.I0 * (1 - self.elderly_proportion)
         self.Rj0 = self.R0 * (1 - self.elderly_proportion)
 
-        if IC_analysis == 2:
+        if IC_analysis == 2:  # TODO check  # 'Single Run'
             self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly
             self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young
             # Leitos UTIs demandados
@@ -162,6 +162,22 @@ def import_ibge():
     df_ibge['city_name_fixed'] = df_ibge['Município'].map(fix_city_name)
     df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
     return df_ibge
+
+
+def get_rt_by_city(city_name):
+    """
+    Return a dataframe with r (basic reproduction number) over time t for a city
+
+    :param city: string
+    :return: dataframe with the selected city
+    """
+    cities = {'Fortaleza/CE': 'Fortaleza',
+              'São Paulo/SP': 'SaoPaulo',
+              'Maceió/AL': 'Maceio',
+              'São Luís/MA': 'SaoLuis'}
+
+    return pd.read_csv(os.path.join(get_root_dir(),
+                    'data',f"Re_{cities[city_name]}.csv"), sep=',')
 
 
 def import_cnes(city_code):
@@ -518,6 +534,47 @@ def verity_rates():
     return rate
 
 
+def mortality_proportion_per_bed_type_and_age_group():
+    
+    mortality_proportion_bed_group = {
+        "ward_elderly": 0.407565,
+        "ward_young": 0.357161,
+        "icu_elderly": 0.592435,
+        "icu_young": 0.642839
+    }
+
+    return mortality_proportion_bed_group
+
+def survive_proportion_per_bed_type_and_age_group():
+
+    survive_proportion_bed_group = {
+    "ward_elderly": 0.606622,
+    "ward_young": 0.892248,
+    "icu_elderly": 0.259130,
+    "icu_young": 0.566919
+    }
+    
+    return survive_proportion_bed_group  
+    
+    
+def los_per_bed_type_and_age_group():
+
+    los_bed_group = {
+    "ward_survive_elderly": 9.394910,
+    "ward_survive_young": 7.494861,
+    "ward_death_elderly": 9.201503,
+    "ward_death_young": 9.475104,
+    "icu_survive_elderly": 9.847628,
+    "icu_survive_young": 8.736200,
+    "icu_death_elderly": 9.868753,
+    "icu_death_young": 10.720939,
+    "icu_discharged_survive_elderly": 6.572384,
+    "icu_discharged_survive_young": 4.594393
+    } 
+    
+    return los_bed_group 
+
+
 def rates(estimation, proportion_elderly, runs):
     if estimation == 'Verity':
         return verity_rates()
@@ -546,17 +603,17 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     """
     #  Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
-    proportion_elderly =  0.1425
+    proportion_elderly = 0.1425
 
-    pH=0.6  # probability of death for someone that needs a ward bed and does not receive it
-    pU=0.9  # probability of death for someone that needs an ICU bed and does not receive it
+    pH = 0.6  # probability of death for someone that needs a ward bed and does not receive it
+    pU = 0.9  # probability of death for someone that needs an ICU bed and does not receive it
     
     # Length of Stay (in days), Source: Wuhan
-    los_ward=8.9  # regular  # los_leito
-    los_icu=8  # UTI
+    los_ward = 8.9  # regular  # los_leito
+    los_icu = 8  # UTI
     
-    infection_to_hospitalization=10  # days
-    infection_to_icu=10  # days
+    infection_to_hospitalization = 10  # days
+    infection_to_icu = 10  # days
 
     city_code = city_name_to_code(city_name)
     IC_analysis = analysis_type(analysis)
@@ -564,6 +621,10 @@ def get_input_data(analysis, fit_analysis, estimation,
     Normalization_constant, contact_matrix = contact_matrix_params(proportion_elderly)
 
     rate = rates(estimation, proportion_elderly, runs)
+
+    mortality_proportion_bed_group = mortality_proportion_per_bed_type_and_age_group()
+    survive_proportion_bed_group = survive_proportion_per_bed_type_and_age_group()
+    los_bed_group  = los_per_bed_type_and_age_group()
 
     bed_ward, bed_icu = import_cnes(city_code)
 
@@ -615,7 +676,11 @@ def get_input_data(analysis, fit_analysis, estimation,
     }
     infection_to_death_period = infection_to_death_period_dct[analysis]
 
-    if analysis == 'Confidence Interval' or 'Rt':  
+    df_rt_city = None
+    if analysis == 'Rt':
+        df_rt_city = get_rt_by_city(city_name)
+
+    if (analysis == 'Confidence Interval') or  (analysis == 'Rt'):  
         (incubation_rate, infectivity_rate,
         contamination_rate, infection_to_death_rate) = lognormal_samples(
                 incubation_period, infectivity_period, infection_to_death_period,
@@ -675,6 +740,25 @@ def get_input_data(analysis, fit_analysis, estimation,
             self.internation_rate_icu_elderly=rate['icu_elderly']  # 0.0395 # UTI for old ones: 60+ years
             # tax_uti_j
             self.internation_rate_icu_young=rate['icu_young']  # 0.0052 # UTI for young ones: 0-59 years
+            self.ward_mortality_proportion_elderly = mortality_proportion_bed_group["ward_elderly"]
+            self.ward_mortality_proportion_young = mortality_proportion_bed_group["ward_young"]
+            self.icu_mortality_proportion_elderly = mortality_proportion_bed_group["icu_elderly"]
+            self.icu_mortality_proportion_young = mortality_proportion_bed_group["icu_young"]
+            self.WARD_survive_proportion_i = survive_proportion_bed_group["ward_elderly"]
+            self.WARD_survive_proportion_j = survive_proportion_bed_group["ward_young"]
+            self.ICU_survive_proportion_i = survive_proportion_bed_group["icu_elderly"]
+            self.ICU_survive_proportion_j = survive_proportion_bed_group["icu_young"]
+
+            self.los_WARD_survive_i = los_bed_group["ward_survive_elderly"]
+            self.los_WARD_survive_j = los_bed_group["ward_survive_young"]
+            self.los_WARD_death_i = los_bed_group["ward_death_elderly"]
+            self.los_WARD_death_j = los_bed_group["ward_death_young"]
+            self.los_ICU_survive_i = los_bed_group["icu_survive_elderly"]
+            self.los_ICU_survive_j = los_bed_group["icu_survive_young"]
+            self.los_ICU_death_i = los_bed_group["icu_death_elderly"]
+            self.los_ICU_death_j = los_bed_group["icu_death_young"]
+            self.los_discharged_ICU_survive_i = los_bed_group["icu_discharged_survive_elderly"]
+            self.los_discharged_ICU_survive_j = los_bed_group["icu_discharged_survive_young"]
 
     covid_parameters = Covid_parameters()
 
@@ -687,7 +771,6 @@ def get_input_data(analysis, fit_analysis, estimation,
                                 est_incubation_period, est_infectious_period,
                                 expected_mortality, expected_initial_rt,
                                 initial_deaths_to_fit)
-    #N0 =5_500_000
 
     ### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
     ### Os parametros padrao podem ser mudados, como cama/UTI por cidade
@@ -733,12 +816,16 @@ def get_input_data(analysis, fit_analysis, estimation,
             self.bed_ward=bed_ward  # capacidade_leitos
             self.bed_icu=bed_icu  # capacidade_UTIs
             self.IC_analysis=IC_analysis  # flag for type of analysis
+            self.analysis=analysis
             # 1: confidence interval, 2: single run, 3: r0 sensitivity analysis
             self.contact_matrix=contact_matrix
             self.Normalization_constant=Normalization_constant # for contact matrix
             self.city=city_code
+            self.city_name=city_name
             self.fit_analysis=fit_analysis  # 0: without;  1: with
             self.df_cidade = df_cidade
+            self.df_rt_city = df_rt_city
+            self.initial_deaths_to_fit = initial_deaths_to_fit
 
     model_parameters = Model_parameters()
 
@@ -767,7 +854,8 @@ def get_input_data(analysis, fit_analysis, estimation,
                   'bed_ward': [model_parameters.bed_ward],
                   'bed_icu': [model_parameters.bed_icu],
                   'IC_analysis': [IC_analysis],
-                  'fit_analysis': [fit_analysis]
+                  'fit_analysis': [fit_analysis],
+                  'initial_deaths_to_fit': [initial_deaths_to_fit]
                   }
 
     output_parameters = pd.DataFrame(parametros).T
