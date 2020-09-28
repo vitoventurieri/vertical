@@ -440,12 +440,15 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                 dfcity_query = model_parameters.df_cidade
                 exibition_date = dfcity_query.loc[1, 'date']
                 print('1º dia da simulação: ' + str(exibition_date))
-                plt.plot(dfcity_query.loc[:, 'deaths'].values)
+                plt.plot(dfcity_query.loc[:, 'deaths'].values, color='goldenrod', label='Real observed deaths')
+                plt.legend(loc='upper left')
             
 
 
             # ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
             plt.savefig(os.path.join(plot_dir, "Mey_" + filename + filetype))
+
+    plt.close('all')
 
 
             

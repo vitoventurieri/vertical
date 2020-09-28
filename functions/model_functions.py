@@ -457,14 +457,14 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     dpMi = 0 #-taxa_mortalidade_i * dSidt - pMi * delta
     dpMj = 0 #-taxa_mortalidade_j * dSjdt - pMj * delta
 
-    coisa = 1 / 35
-    coisa2 = -coisa * (WARD_survive_i + WARD_survive_j
+    #coisa = 1 / 10
+    coisa2 = (-0.01) * (WARD_survive_i + WARD_survive_j
                        + WARD_death_i + WARD_death_j
                        + WARD_discharged_ICU_survive_i
                        + WARD_discharged_ICU_survive_j
                        - capacidade_Ward)
-    coisa = 1 / 15
-    coisa3 = -coisa * (ICU_survive_i + ICU_survive_j
+    #coisa = 1 / 15
+    coisa3 = (-0.06) * (ICU_survive_i + ICU_survive_j
                        + ICU_death_i + ICU_death_j
                        - capacidade_UTIs)
 
