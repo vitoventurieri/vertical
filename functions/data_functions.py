@@ -84,10 +84,10 @@ class Conditions:
             self.Uj0 = 0#self.Ij0 * covid_parameters.internation_rate_icu_young.mean()
 
         # Excesso de demanda para leitos
-        self.dHi0 = 0
-        self.dHj0 = 0
-        self.dUi0 = 0
-        self.dUj0 = 0
+        self.WARD_excess_i0 = 0
+        self.WARD_excess_j0 = 0
+        self.ICU_excess_i0 = 0
+        self.ICU_excess_j0 = 0
         # Obitos
         if not fit_analysis: #0: #  TODO: Check if is there a not or no/ check if dis IF clause is necessary
             self.Mi0 = self.Ri0 * np.mean(covid_parameters.mortality_rate_elderly)
@@ -794,15 +794,15 @@ def get_input_data(analysis, fit_analysis, estimation,
             self.init_removed_young=conditions.Rj0  # initial removed population young ones: 0-59 years
             self.init_hospitalized_ward_elderly=conditions.Hi0  # initial ward hospitalized old ones: 60+ years
             self.init_hospitalized_ward_young=conditions.Hj0  # initial ward hospitalized young ones: 0-59 years
-            self.init_hospitalized_ward_elderly_excess=conditions.dHi0
+            self.init_hospitalized_ward_elderly_excess=conditions.WARD_excess_i0
             # initial ward hospitalized demand excess old ones: 60+ years
-            self.init_hospitalized_ward_young_excess=conditions.dHj0
+            self.init_hospitalized_ward_young_excess=conditions.WARD_excess_j0
             # initial ward hospitalized demand excess young ones: 0-59 years
             self.init_hospitalized_icu_elderly=conditions.Ui0  # initial icu hospitalized old ones: 60+ years
             self.init_hospitalized_icu_young=conditions.Uj0  # initial icu hospitalized young ones: 0-59 years
-            self.init_hospitalized_icu_elderly_excess=conditions.dUi0
+            self.init_hospitalized_icu_elderly_excess=conditions.ICU_excess_i0
             # initial iCU hospitalized demand excess old ones: 60+ years
-            self.init_hospitalized_icu_young_excess=conditions.dUj0
+            self.init_hospitalized_icu_young_excess=conditions.ICU_excess_j0
             # initial iCU hospitalized demand excess young ones: 0-59 years
             self.init_deceased_elderly=conditions.Mi0  # initial deceased population old ones: 60+ years
             self.init_deceased_young=conditions.Mj0  # initial deceased population young ones: 0-59 years

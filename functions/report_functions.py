@@ -21,10 +21,10 @@ def generate_results_percentiles(results, model_parameters):
 		Mi = np.zeros((len(results), model_parameters.t_max))
 		Mj = np.zeros((len(results), model_parameters.t_max))
 
-		dHi = np.zeros((len(results), model_parameters.t_max))
-		dHj = np.zeros((len(results), model_parameters.t_max))
-		dUi = np.zeros((len(results), model_parameters.t_max))
-		dUj = np.zeros((len(results), model_parameters.t_max))
+		WARD_excess_i = np.zeros((len(results), model_parameters.t_max))
+		WARD_excess_j = np.zeros((len(results), model_parameters.t_max))
+		ICU_excess_i = np.zeros((len(results), model_parameters.t_max))
+		ICU_excess_j = np.zeros((len(results), model_parameters.t_max))
 		pHi = np.zeros((len(results), model_parameters.t_max))
 		pHj = np.zeros((len(results), model_parameters.t_max))
 		pUi = np.zeros((len(results), model_parameters.t_max))
@@ -63,10 +63,10 @@ def generate_results_percentiles(results, model_parameters):
 			Mj[ii,] = results[ii].query(query_condition)['Mj']
 			pHi[ii,] = results[ii].query(query_condition)['pHi']
 
-			dHi[ii,] = results[ii].query(query_condition)['dHi']
-			dHj[ii,] = results[ii].query(query_condition)['dHj']
-			dUi[ii,] = results[ii].query(query_condition)['dUi']
-			dUj[ii,] = results[ii].query(query_condition)['dUj']
+			WARD_excess_i[ii,] = results[ii].query(query_condition)['WARD_excess_i']
+			WARD_excess_j[ii,] = results[ii].query(query_condition)['WARD_excess_j']
+			ICU_excess_i[ii,] = results[ii].query(query_condition)['ICU_excess_i']
+			ICU_excess_j[ii,] = results[ii].query(query_condition)['ICU_excess_j']
 			pHi[ii,] = results[ii].query(query_condition)['pHi']
 			pHj[ii,] = results[ii].query(query_condition)['pHj']
 			pUi[ii,] = results[ii].query(query_condition)['pUi']
@@ -85,8 +85,8 @@ def generate_results_percentiles(results, model_parameters):
 			WARD_discharged_ICU_survive_i[ii,] = results[ii].query(query_condition)['WARD_discharged_ICU_survive_i']
 			WARD_discharged_ICU_survive_j[ii,] = results[ii].query(query_condition)['WARD_discharged_ICU_survive_j']
 
-		compartiments_list = [Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj, dHi, dHj, dUi, dUj, pHi, pHj, pUi, pUj, pMi, pMj, WARD_survive_i, WARD_survive_j, WARD_death_i, WARD_death_j, ICU_survive_i, ICU_survive_j, ICU_death_i, ICU_death_j, WARD_discharged_ICU_survive_i, WARD_discharged_ICU_survive_j]
-		compartiments_strings_list = ['Si', 'Sj', 'Ei', 'Ej', 'Ii', 'Ij', 'Ri', 'Rj', 'Hi', 'Hj', 'Ui', 'Uj', 'Mi', 'Mj', 'dHi', 'dHj', 'dUi', 'dUj', 'pHi', 'pHj', 'pUi', 'pUj', 'pMi', 'pMj', 'WARD_survive_i', 'WARD_survive_j', 'WARD_death_i', 'WARD_death_j', 'ICU_survive_i', 'ICU_survive_j', 'ICU_death_i', 'ICU_death_j', 'WARD_discharged_ICU_survive_i', 'WARD_discharged_ICU_survive_j']
+		compartiments_list = [Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj, Ui, Uj, Mi, Mj, WARD_excess_i, WARD_excess_j, ICU_excess_i, ICU_excess_j, pHi, pHj, pUi, pUj, pMi, pMj, WARD_survive_i, WARD_survive_j, WARD_death_i, WARD_death_j, ICU_survive_i, ICU_survive_j, ICU_death_i, ICU_death_j, WARD_discharged_ICU_survive_i, WARD_discharged_ICU_survive_j]
+		compartiments_strings_list = ['Si', 'Sj', 'Ei', 'Ej', 'Ii', 'Ij', 'Ri', 'Rj', 'Hi', 'Hj', 'Ui', 'Uj', 'Mi', 'Mj', 'WARD_excess_i', 'WARD_excess_j', 'ICU_excess_i', 'ICU_excess_j', 'pHi', 'pHj', 'pUi', 'pUj', 'pMi', 'pMj', 'WARD_survive_i', 'WARD_survive_j', 'WARD_death_i', 'WARD_death_j', 'ICU_survive_i', 'ICU_survive_j', 'ICU_death_i', 'ICU_death_j', 'WARD_discharged_ICU_survive_i', 'WARD_discharged_ICU_survive_j']
 		compartiment_medians = {}
 		compartiment_lower_quantile = {}
 		compartiment_upper_quantile = {}

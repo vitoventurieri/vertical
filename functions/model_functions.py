@@ -14,9 +14,8 @@ def append_df(df, ret, t, nivel_isolamento):
     :return: df appended
     """
 
-    # TODO: checar se são as derivadas: dWARD_survive_idt ou WARD_survive_i
     (Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj,
-     dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj,
+     WARD_excess_i, WARD_excess_j, Ui, Uj, ICU_excess_i, ICU_excess_j, Mi, Mj,
      pHi, pHj, pUi, pUj, pMi, pMj,
      WARD_survive_i, WARD_survive_j,
      WARD_death_i, WARD_death_j,
@@ -27,8 +26,8 @@ def append_df(df, ret, t, nivel_isolamento):
     df = df.append(pd.DataFrame({'Si': Si, 'Sj': Sj, 'Ei': Ei, 'Ej': Ej,
                                  'Ii': Ii, 'Ij': Ij, 'Ri': Ri, 'Rj': Rj,
                                  'Hi': Hi, 'Hj': Hj,
-                                 'dHi': dHi, 'dHj': dHj, 'Ui': Ui, 'Uj': Uj,
-                                 'dUi': dUi, 'dUj': dUj, 'Mi': Mi, 'Mj': Mj,
+                                 'WARD_excess_i': WARD_excess_i, 'WARD_excess_j': WARD_excess_j, 'Ui': Ui, 'Uj': Uj,
+                                 'ICU_excess_i': ICU_excess_i, 'ICU_excess_j': ICU_excess_j, 'Mi': Mi, 'Mj': Mj,
                                  'pHi': pHi, 'pHj': pHj, 'pUi': pUi, 'pUj': pUj,
                                  'pMi': pMi, 'pMj': pMj,
                                  'WARD_survive_i': WARD_survive_i, 'WARD_survive_j': WARD_survive_j,
@@ -101,16 +100,15 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
                 t = range(tNumber)
                 ret = odeint(derivSEIRHUM, SEIRHUM_0, t, args)
 
-                # TODO: checar se são as derivadas: dWARD_survive_idt ou WARD_survive_i
                 (Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj,
-                 dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj,
+                 WARD_excess_i, WARD_excess_j, Ui, Uj, ICU_excess_i, ICU_excess_j, Mi, Mj,
                  pHi, pHj, pUi, pUj, pMi, pMj,
-                 dWARD_survive_idt, dWARD_survive_jdt,
-                 dWARD_death_idt, dWARD_death_jdt,
-                 dICU_survive_idt, dICU_survive_jdt,
-                 dICU_death_idt, dICU_death_jdt,
-                 dWARD_discharged_ICU_survive_idt,
-                 dWARD_discharged_ICU_survive_jdt)  = ret.T
+                 WARD_survive_i, WARD_survive_j,
+                 WARD_death_i, WARD_death_j,
+                 ICU_survive_i, ICU_survive_j,
+                 ICU_death_i, ICU_death_j,
+                 WARD_discharged_ICU_survive_i,
+                 WARD_discharged_ICU_survive_j)  = ret.T
                 contador = 0
 
                 for a in range(aNumber):
@@ -119,29 +117,27 @@ def run_SEIR_ODE_model(covid_parameters, model_parameters) -> pd.DataFrame:
                     else:
                         t = range(tNumber + 1)
 
-                    # TODO: checar se são as derivadas: dWARD_survive_idt ou WARD_survive_i0
                     SEIRHUM_0 = tuple([x[-1] for x in [Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj,
-                                                       dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj,
+                                                       WARD_excess_i, WARD_excess_j, Ui, Uj, ICU_excess_i, ICU_excess_j, Mi, Mj,
                                                        pHi, pHj, pUi, pUj, pMi, pMj,
-                                                       dWARD_survive_idt, dWARD_survive_jdt,
-                                                       dWARD_death_idt, dWARD_death_jdt,
-                                                       dICU_survive_idt, dICU_survive_jdt,
-                                                       dICU_death_idt, dICU_death_jdt,
-                                                       dWARD_discharged_ICU_survive_idt,
-                                                       dWARD_discharged_ICU_survive_jdt] ])
-                    
-                    # TODO: checar se são as derivadas: dWARD_survive_idt ou WARD_survive_i
+                                                       WARD_survive_i, WARD_survive_j,
+                                                       WARD_death_i, WARD_death_j,
+                                                       ICU_survive_i, ICU_survive_j,
+                                                       ICU_death_i, ICU_death_j,
+                                                       WARD_discharged_ICU_survive_i,
+                                                       WARD_discharged_ICU_survive_j] ])
+
                     retTemp = odeint(derivSEIRHUM, SEIRHUM_0, t, args)
                     ret = retTemp[1:]
                     (Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj,
-                     dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj,
+                     WARD_excess_i, WARD_excess_j, Ui, Uj, ICU_excess_i, ICU_excess_j, Mi, Mj,
                      pHi, pHj, pUi, pUj, pMi, pMj,
-                     dWARD_survive_idt, dWARD_survive_jdt,
-                     dWARD_death_idt, dWARD_death_jdt,
-                     dICU_survive_idt, dICU_survive_jdt,
-                     dICU_death_idt, dICU_death_jdt,
-                     dWARD_discharged_ICU_survive_idt,
-                     dWARD_discharged_ICU_survive_jdt)  = ret.T
+                     WARD_survive_i, WARD_survive_j,
+                     WARD_death_i, WARD_death_j,
+                     ICU_survive_i, ICU_survive_j,
+                     ICU_death_i, ICU_death_j,
+                     WARD_discharged_ICU_survive_i,
+                     WARD_discharged_ICU_survive_j)  = ret.T
                     t = t[1:]
 
                     contador += 1
@@ -222,12 +218,12 @@ def initial_conditions(mp):
     Rj0 = mp.init_removed_young  # Ry0
     Hi0 = mp.init_hospitalized_ward_elderly  # He0
     Hj0 = mp.init_hospitalized_ward_young  # Hy0
-    dHi0 = mp.init_hospitalized_ward_elderly_excess
-    dHj0 = mp.init_hospitalized_ward_young_excess
+    WARD_excess_i0 = mp.init_hospitalized_ward_elderly_excess
+    WARD_excess_j0 = mp.init_hospitalized_ward_young_excess
     Ui0 = mp.init_hospitalized_icu_elderly  # Ue0
     Uj0 = mp.init_hospitalized_icu_young  # Uy0
-    dUi0 = mp.init_hospitalized_icu_elderly_excess
-    dUj0 = mp.init_hospitalized_icu_young_excess
+    ICU_excess_i0 = mp.init_hospitalized_icu_elderly_excess
+    ICU_excess_j0 = mp.init_hospitalized_icu_young_excess
     Mi0 = mp.init_deceased_elderly  # Me0
     Mj0 = mp.init_deceased_young  # My0
 
@@ -235,23 +231,21 @@ def initial_conditions(mp):
     Si0 = mp.population * mp.population_rate_elderly - Ii0 - Ri0 - Ei0  # Suscetiveis idosos
     Sj0 = mp.population * (1 - mp.population_rate_elderly) - Ij0 - Rj0 - Ej0  # Suscetiveis jovens
 
-    # TODO: checar se são as derivadas: dWARD_survive_idt ou WARD_survive_i0
     (pHi0, pHj0, pUi0, pUj0, pMi0, pMj0,
-     dWARD_survive_idt, dWARD_survive_jdt, dWARD_death_idt, dWARD_death_jdt,
-     dICU_survive_idt, dICU_survive_jdt, dICU_death_idt, dICU_death_jdt,
-     dWARD_discharged_ICU_survive_idt, dWARD_discharged_ICU_survive_jdt) = (
+     WARD_survive_i0, WARD_survive_j0, WARD_death_i0, WARD_death_j0,
+     ICU_survive_i0, ICU_survive_j0, ICU_death_i0, ICU_death_j0,
+     WARD_discharged_ICU_survive_i0, WARD_discharged_ICU_survive_j0) = (
         0 for _ in range(16))
-    
-    # TODO: checar se são as derivadas: dWARD_survive_idt ou WARD_survive_i0
+
     SEIRHUM_0 = (Si0, Sj0, Ei0, Ej0, Ii0, Ij0, Ri0, Rj0, Hi0, Hj0,
-                 dHi0, dHj0, Ui0, Uj0, dUi0, dUj0, Mi0, Mj0,
+                 WARD_excess_i0, WARD_excess_j0, Ui0, Uj0, ICU_excess_i0, ICU_excess_j0, Mi0, Mj0,
                  pHi0, pHj0, pUi0, pUj0, pMi0, pMj0,
-                 dWARD_survive_idt, dWARD_survive_jdt,
-                 dWARD_death_idt, dWARD_death_jdt,
-                 dICU_survive_idt, dICU_survive_jdt,
-                 dICU_death_idt, dICU_death_jdt,
-                 dWARD_discharged_ICU_survive_idt,
-                 dWARD_discharged_ICU_survive_jdt)
+                 WARD_survive_i0, WARD_survive_j0,
+                 WARD_death_i0, WARD_death_j0,
+                 ICU_survive_i0, ICU_survive_j0,
+                 ICU_death_i0, ICU_death_j0,
+                 WARD_discharged_ICU_survive_i0,
+                 WARD_discharged_ICU_survive_j0)
     return SEIRHUM_0
 
 def args_assignment(cp, mp, i, ii):
@@ -429,7 +423,7 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     # dWARD_discharged_ICU_survive_jdt
 
     (Si, Sj, Ei, Ej, Ii, Ij, Ri, Rj, Hi, Hj,
-     dHi, dHj, Ui, Uj, dUi, dUj, Mi, Mj,
+     WARD_excess_i, WARD_excess_j, Ui, Uj, ICU_excess_i, ICU_excess_j, Mi, Mj,
      pHi, pHj, pUi, pUj, pMi, pMj,
      WARD_survive_i, WARD_survive_j,
      WARD_death_i, WARD_death_j,
@@ -494,10 +488,13 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     dICU_death_jdt = (pUj / infection_to_icu) * (1 - ICU_survive_proportion_j) \
         * (1 - 1 / (1 + np.exp(coisa3))) - ICU_death_j / los_ICU_death_j
 
-    dWARD_discharged_ICU_survive_idt = (ICU_survive_i / los_ICU_survive_i) \
-        * (1 - 1 / (1 + np.exp(coisa2))) - WARD_discharged_ICU_survive_i / los_discharged_ICU_survive_i
-    dWARD_discharged_ICU_survive_jdt = (ICU_survive_j / los_ICU_survive_j) \
-        * (1 - 1 / (1 + np.exp(coisa2))) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
+    dWARD_discharged_ICU_survive_idt = (ICU_survive_i / los_ICU_survive_i) - WARD_discharged_ICU_survive_i / los_discharged_ICU_survive_i
+    dWARD_discharged_ICU_survive_jdt = (ICU_survive_j / los_ICU_survive_j) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
+
+    # dWARD_discharged_ICU_survive_idt = (ICU_survive_i / los_ICU_survive_i) \
+    #     * (1 - 1 / (1 + np.exp(coisa2))) - WARD_discharged_ICU_survive_i / los_discharged_ICU_survive_i
+    # dWARD_discharged_ICU_survive_jdt = (ICU_survive_j / los_ICU_survive_j) \
+    #     * (1 - 1 / (1 + np.exp(coisa2))) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
 
 #TODO: Linha 412
     dHidt = dWARD_survive_idt + dWARD_death_idt + dWARD_discharged_ICU_survive_idt #(pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hi / los_WARD
@@ -514,18 +511,18 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     # dUjdt = (pUj / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Uj / los_ICU
 
     # Leitos demandados em excesso
-    ddHidt = (pHi / infection_to_hospitalization) * (1 / (1 + np.exp(coisa2)))
-    ddHjdt = (pHj / infection_to_hospitalization) * (1 / (1 + np.exp(coisa2)))
+    dWARD_excess_idt = (pHi / infection_to_hospitalization) * (1 / (1 + np.exp(coisa2)))
+    dWARD_excess_jdt = (pHj / infection_to_hospitalization) * (1 / (1 + np.exp(coisa2)))
 
-    ddUidt = (pUi / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
-    ddUjdt = (pUj / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
+    dICU_excess_idt = (pUi / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
+    dICU_excess_jdt = (pUj / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
 
     # Obitos
 
     dMidt = (WARD_death_i / los_WARD_death_i) + (ICU_death_i / los_ICU_death_i) \
-        + ddHidt * pH + ddUidt * pU
+        + dWARD_excess_idt * pH + dICU_excess_idt * pU
     dMjdt = (WARD_death_j / los_WARD_death_j) + (ICU_death_j / los_ICU_death_j) \
-        + ddHjdt * pH + ddUjdt * pU
+        + dWARD_excess_jdt * pH + dICU_excess_jdt * pU
 
     # dMidt = (Ui / los_ICU) * (taxa_mortalidade_i * proportion_of_icu_mortality_over_total_mortality_elderly / tax_ICU_i) + (Hi / los_WARD) * (taxa_mortalidade_i * proportion_of_ward_mortality_over_total_mortality_elderly / tax_int_i) + ddHidt * pH + ddUidt * pU
     # dMjdt = (Uj / los_ICU) * (taxa_mortalidade_j * proportion_of_icu_mortality_over_total_mortality_young / tax_ICU_j) + (Hj / los_WARD) * (taxa_mortalidade_j * proportion_of_ward_mortality_over_total_mortality_young / tax_int_j) + ddHjdt * pH + ddUjdt * pU
@@ -537,7 +534,7 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     # dMjdt = pMj * delta + ddHjdt * pH + ddUjdt * pU
 
     return (dSidt, dSjdt, dEidt, dEjdt, dIidt, dIjdt, dRidt, dRjdt,
-            dHidt, dHjdt, ddHidt, ddHjdt, dUidt, dUjdt, ddUidt, ddUjdt, dMidt, dMjdt,
+            dHidt, dHjdt, dWARD_excess_idt, dWARD_excess_jdt, dUidt, dUjdt, dICU_excess_idt, dICU_excess_jdt, dMidt, dMjdt,
             dpHi, dpHj, dpUi, dpUj, dpMi, dpMj,
             dWARD_survive_idt, dWARD_survive_jdt,
             dWARD_death_idt, dWARD_death_jdt,
