@@ -452,70 +452,70 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     dpMj = 0 #-taxa_mortalidade_j * dSjdt - pMj * delta
 
     #coisa = 1 / 10
-    coisa2 = (-0.01) * (WARD_survive_i + WARD_survive_j
+    const_dot_balanceWard = (-0.01) * (WARD_survive_i + WARD_survive_j
                        + WARD_death_i + WARD_death_j
                        + WARD_discharged_ICU_survive_i
                        + WARD_discharged_ICU_survive_j
                        - capacidade_Ward)
     #coisa = 1 / 15
-    coisa3 = (-0.06) * (ICU_survive_i + ICU_survive_j
+    const_dot_balanceICU = (-0.06) * (ICU_survive_i + ICU_survive_j
                        + ICU_death_i + ICU_death_j
                        - capacidade_UTIs)
 
     # coisa = 1 / 500
-    # coisa2 = -coisa * (Hi + Hj - capacidade_Ward)
+    # const_dot_balanceWard = -coisa * (Hi + Hj - capacidade_Ward)
     # coisa = 1 / 50
-    # coisa3 = -coisa * (Ui + Uj - capacidade_UTIs)
+    # const_dot_balanceICU = -coisa * (Ui + Uj - capacidade_UTIs)
 
     # Leitos demandados
     dWARD_survive_idt =  (pHi / infection_to_hospitalization) * WARD_survive_proportion_i \
-        * (1 - 1 / (1 + np.exp(coisa2))) - WARD_survive_i / los_WARD_survive_i
+        * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - WARD_survive_i / los_WARD_survive_i
     dWARD_survive_jdt =  (pHj / infection_to_hospitalization) * WARD_survive_proportion_j \
-        * (1 - 1 / (1 + np.exp(coisa2))) - WARD_survive_j / los_WARD_survive_j
+        * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - WARD_survive_j / los_WARD_survive_j
 
     dWARD_death_idt =  (pHi / infection_to_hospitalization) * (1 - WARD_survive_proportion_i) \
-        * (1 - 1 / (1 + np.exp(coisa2))) - WARD_death_i / los_WARD_death_i
+        * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - WARD_death_i / los_WARD_death_i
     dWARD_death_jdt = (pHj / infection_to_hospitalization) * (1 - WARD_survive_proportion_j) \
-        * (1 - 1 / (1 + np.exp(coisa2))) - WARD_death_j / los_WARD_death_j
+        * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - WARD_death_j / los_WARD_death_j
 
     dICU_survive_idt = (pUi / infection_to_icu) * ICU_survive_proportion_i \
-        * (1 - 1 / (1 + np.exp(coisa3))) - ICU_survive_i / los_ICU_survive_i
+        * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - ICU_survive_i / los_ICU_survive_i
     dICU_survive_jdt =(pUj / infection_to_icu) * ICU_survive_proportion_j \
-        * (1 - 1 / (1 + np.exp(coisa3))) - ICU_survive_j / los_ICU_survive_j
+        * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - ICU_survive_j / los_ICU_survive_j
 
     dICU_death_idt = (pUi / infection_to_icu) * (1 - ICU_survive_proportion_i) \
-        * (1 - 1 / (1 + np.exp(coisa3))) - ICU_death_i / los_ICU_death_i
+        * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - ICU_death_i / los_ICU_death_i
     dICU_death_jdt = (pUj / infection_to_icu) * (1 - ICU_survive_proportion_j) \
-        * (1 - 1 / (1 + np.exp(coisa3))) - ICU_death_j / los_ICU_death_j
+        * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - ICU_death_j / los_ICU_death_j
 
     dWARD_discharged_ICU_survive_idt = (ICU_survive_i / los_ICU_survive_i) - WARD_discharged_ICU_survive_i / los_discharged_ICU_survive_i
     dWARD_discharged_ICU_survive_jdt = (ICU_survive_j / los_ICU_survive_j) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
 
     # dWARD_discharged_ICU_survive_idt = (ICU_survive_i / los_ICU_survive_i) \
-    #     * (1 - 1 / (1 + np.exp(coisa2))) - WARD_discharged_ICU_survive_i / los_discharged_ICU_survive_i
+    #     * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - WARD_discharged_ICU_survive_i / los_discharged_ICU_survive_i
     # dWARD_discharged_ICU_survive_jdt = (ICU_survive_j / los_ICU_survive_j) \
-    #     * (1 - 1 / (1 + np.exp(coisa2))) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
+    #     * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
 
 #TODO: Linha 412
-    dHidt = dWARD_survive_idt + dWARD_death_idt + dWARD_discharged_ICU_survive_idt #(pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hi / los_WARD
-    dHjdt = dWARD_survive_jdt + dWARD_death_jdt + dWARD_discharged_ICU_survive_jdt# dHjdt = (pHj / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hj / los_WARD
+    dHidt = dWARD_survive_idt + dWARD_death_idt + dWARD_discharged_ICU_survive_idt #(pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - Hi / los_WARD
+    dHjdt = dWARD_survive_jdt + dWARD_death_jdt + dWARD_discharged_ICU_survive_jdt# dHjdt = (pHj / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - Hj / los_WARD
     #
-    dUidt = dICU_survive_idt + dICU_death_idt  #(pUi / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Ui / los_ICU
+    dUidt = dICU_survive_idt + dICU_death_idt  #(pUi / infection_to_icu) * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - Ui / los_ICU
 #TODO: Linha 416 
-    dUjdt = dICU_survive_jdt + dICU_death_jdt # (pUj / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Uj / los_ICU
+    dUjdt = dICU_survive_jdt + dICU_death_jdt # (pUj / infection_to_icu) * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - Uj / los_ICU
 
-    # dHidt = (pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hi / los_WARD
-    # dHjdt = (pHj / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(coisa2))) - Hj / los_WARD
+    # dHidt = (pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - Hi / los_WARD
+    # dHjdt = (pHj / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - Hj / los_WARD
     #
-    # dUidt = (pUi / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Ui / los_ICU
-    # dUjdt = (pUj / infection_to_icu) * (1 - 1 / (1 + np.exp(coisa3))) - Uj / los_ICU
+    # dUidt = (pUi / infection_to_icu) * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - Ui / los_ICU
+    # dUjdt = (pUj / infection_to_icu) * (1 - 1 / (1 + np.exp(const_dot_balanceICU))) - Uj / los_ICU
 
     # Leitos demandados em excesso
-    dWARD_excess_idt = (pHi / infection_to_hospitalization) * (1 / (1 + np.exp(coisa2)))
-    dWARD_excess_jdt = (pHj / infection_to_hospitalization) * (1 / (1 + np.exp(coisa2)))
+    dWARD_excess_idt = (pHi / infection_to_hospitalization) * (1 / (1 + np.exp(const_dot_balanceWard)))
+    dWARD_excess_jdt = (pHj / infection_to_hospitalization) * (1 / (1 + np.exp(const_dot_balanceWard)))
 
-    dICU_excess_idt = (pUi / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
-    dICU_excess_jdt = (pUj / infection_to_icu) * (1 / (1 + np.exp(coisa3)))
+    dICU_excess_idt = (pUi / infection_to_icu) * (1 / (1 + np.exp(const_dot_balanceICU)))
+    dICU_excess_jdt = (pUj / infection_to_icu) * (1 / (1 + np.exp(const_dot_balanceICU)))
 
     # Obitos
 

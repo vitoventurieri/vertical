@@ -8,6 +8,7 @@ from .utils import get_root_dir
 
 def city_name_to_code(city_name):
     city = {
+        "Florianópolis/SC": 420540,
         "Santos/SP": 354850,
         "Goiânia/GO": 520870,
         "Porto Velho/RO": 110020,
@@ -336,8 +337,8 @@ def import_cnes(city_code):
         df_cnes.CO_MUNICIPIO_GESTOR).sum().sort_values('QT_EXIST')
     df_leitos = df_wards.join(df_icus, lsuffix='_ward', rsuffix='_icus').fillna(0)
 
-    bed_ward = df_leitos.at[city_code, 'QT_EXIST_ward']*0.5
-    bed_icu = df_leitos.at[city_code, 'QT_EXIST_icus']*0.5
+    bed_ward = df_leitos.at[city_code, 'QT_EXIST_ward']
+    bed_icu = df_leitos.at[city_code, 'QT_EXIST_icus']
     
     return bed_ward, bed_icu
 
@@ -612,8 +613,8 @@ def get_input_data(analysis, fit_analysis, estimation,
     los_ward = 8.9  # regular  # los_leito
     los_icu = 8  # UTI
     
-    infection_to_hospitalization = 10  # days
-    infection_to_icu = 10  # days
+    infection_to_hospitalization = 5  # days
+    infection_to_icu = 5  # days
 
     city_code = city_name_to_code(city_name)
     IC_analysis = analysis_type(analysis)
@@ -631,6 +632,7 @@ def get_input_data(analysis, fit_analysis, estimation,
     # Basic Reproduction Number # ErreZero
     basic_reproduction_number_dct = {
         'Confidence Interval': (1.4, 3.9),
+        #'Confidence Interval': (1.4, 3.9),
         'Single Run': 2.2,
         'Sensitivity': 2.2,
         # 2.2 is from Li Q, Guan X, Wu P et al. 
@@ -647,7 +649,8 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     # Incubation Period (in days)
     incubation_period_dct = {
-        'Confidence Interval': (4.37 , 6.02),
+        'Confidence Interval': (2.9, 2.9),
+        #'Confidence Interval': (4.37 , 6.02),
         'Single Run': 5.2,
         'Sensitivity': 5.2,
         'Rt': (4.37 , 6.02)
@@ -658,7 +661,8 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     # Infectivity Period (in days)      # tempo_de_infecciosidade
     infectivity_period_dct = {
-        'Confidence Interval': (0.01, 0.01),
+        'Confidence Interval': (2.9, 2.9),
+        #'Confidence Interval': (0.01, 0.01),
         'Single Run': 3,
         'Sensitivity': 3,
         'Rt': (0.01, 0.01)
