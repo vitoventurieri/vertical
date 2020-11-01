@@ -337,8 +337,8 @@ def import_cnes(city_code):
         df_cnes.CO_MUNICIPIO_GESTOR).sum().sort_values('QT_EXIST')
     df_leitos = df_wards.join(df_icus, lsuffix='_ward', rsuffix='_icus').fillna(0)
 
-    bed_ward = df_leitos.at[city_code, 'QT_EXIST_ward']
-    bed_icu = df_leitos.at[city_code, 'QT_EXIST_icus']
+    bed_ward = df_leitos.at[city_code, 'QT_EXIST_ward']*0.5
+    bed_icu = df_leitos.at[city_code, 'QT_EXIST_icus']*0.5
     
     return bed_ward, bed_icu
 
@@ -378,6 +378,8 @@ def parameter_for_rt_fit_analisys(city_code,
     R0_fit = (df_cidade.loc[0, 'deaths'] / expected_mortality)
     M0_fit = df_cidade.loc[0, 'deaths']
     population_fit = int(pop_cidade)
+
+    E0_fit, I0_fit, R0_fit, M0_fit = 300, 200, 0, 0
 
     return E0_fit, I0_fit, R0_fit, M0_fit, population_fit, df_cidade
 
@@ -440,7 +442,7 @@ def sivep_rates(proportion_elderly, runs):
     # https://opendatasus.saude.gov.br/dataset/bd-srag-2020
     # Find calculations on notebooks calculo_mortalidade_uti
     
-    IFR = (0.0024, 0.0024) # source https://www.medrxiv.org/content/10.1101/2020.05.13.20101253v3
+    IFR = (0.0034, 0.0034) # source silva et al https://www.medrxiv.org/content/10.1101/2020.05.13.20101253v3 DOI https://doi.org/10.1101/2020.08.28.20180463
 
     proportion_bed_need_over_deaths_group = {
         "ward_elderly": 1.209922,
@@ -835,7 +837,6 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     parametros = {'City name': [city_name],
                   'City code IBGE': [model_parameters.city],
-                  'Generation_interval_aprox':[incubation_period],
                   '1/alpha = (incubation_period in traditional SEIR)': [incubation_period],
                   'basic_reproduction_number = beta/gamma': [basic_reproduction_number],
                   '1/gamma = (infectivity_period in traditional SEIR)': [infectivity_period],
