@@ -5,6 +5,8 @@ import sys
 import os
 from .utils import get_root_dir
 
+np.random.seed(seed=1)
+
 
 def city_name_to_code(city_name):
     city = {
@@ -633,7 +635,7 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     # Basic Reproduction Number # ErreZero
     basic_reproduction_number_dct = {
-        'Confidence Interval': (1.4, 3.9),
+        'Confidence Interval': (1.4, 3.9),#(1.4, 3.9),
         #'Confidence Interval': (1.4, 3.9),
         'Single Run': 2.2,
         'Sensitivity': 2.2,
