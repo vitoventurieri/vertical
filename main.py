@@ -9,7 +9,7 @@ from functions.utils import get_plot_dir, export_excel
 
 if __name__ == '__main__':
 
-    city_list = ["Belém/PA", 'Fortaleza/CE', 'Manaus/AM', "Rio de Janeiro/RJ", "São Paulo/SP"]
+    city_list = ["Belém/PA","Goiânia/GO","Recife/PE","Curitiba/PR","Manaus/AM","Belo Horizonte/MG","Fortaleza/CE","Salvador/BA","Brasília/DF","Rio de Janeiro/RJ","São Paulo/SP"]#['São Luís/MA']
 
     for chosen_city in city_list:
 
@@ -19,10 +19,10 @@ if __name__ == '__main__':
         # Sensitivity: r0 varies with 0.1 intervals
         # Rt: adjust for basic reproduction number for a city over time
 
-        fit_analysis = True  # False #
-        runs = 2
+        fit_analysis = True # True  # False #
+        runs = 1000
         days_to_run = 180
-        initial_deaths_to_fit = 50
+        initial_deaths_to_fit = 1
         city_name = chosen_city #'Manaus/AM'#"Rio de Janeiro/RJ"  #"Belém/PA" #'Fortaleza/CE' # "São Paulo/SP" # "Belém/PA" #  #
 
         estimation =  'Sivep'  # 'Verity' #
