@@ -5,9 +5,12 @@ import sys
 import os
 from .utils import get_root_dir
 
+np.random.seed(seed=1)
+
 
 def city_name_to_code(city_name):
     city = {
+        "Florianópolis/SC": 420540,
         "Santos/SP": 354850,
         "Goiânia/GO": 520870,
         "Porto Velho/RO": 110020,
@@ -69,32 +72,32 @@ class Conditions:
         self.Ij0 = self.I0 * (1 - self.elderly_proportion)
         self.Rj0 = self.R0 * (1 - self.elderly_proportion)
 
-        if IC_analysis == 2:
-            self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly
-            self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young
+        if IC_analysis == 2:  # TODO check  # 'Single Run'
+            self.Hi0 = 0#self.Ii0 * covid_parameters.internation_rate_ward_elderly
+            self.Hj0 = 0#self.Ij0 * covid_parameters.internation_rate_ward_young
             # Leitos UTIs demandados
-            self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly
-            self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young
+            self.Ui0 = 0#self.Ii0 * covid_parameters.internation_rate_icu_elderly
+            self.Uj0 = 0#self.Ij0 * covid_parameters.internation_rate_icu_young
         else:
             # Leitos normais demandados
-            self.Hi0 = self.Ii0 * covid_parameters.internation_rate_ward_elderly.mean()
-            self.Hj0 = self.Ij0 * covid_parameters.internation_rate_ward_young.mean()
+            self.Hi0 = 0#self.Ii0 * covid_parameters.internation_rate_ward_elderly.mean()
+            self.Hj0 = 0#self.Ij0 * covid_parameters.internation_rate_ward_young.mean()
             # Leitos UTIs demandados
-            self.Ui0 = self.Ii0 * covid_parameters.internation_rate_icu_elderly.mean()
-            self.Uj0 = self.Ij0 * covid_parameters.internation_rate_icu_young.mean()
+            self.Ui0 = 0#self.Ii0 * covid_parameters.internation_rate_icu_elderly.mean()
+            self.Uj0 = 0#self.Ij0 * covid_parameters.internation_rate_icu_young.mean()
 
         # Excesso de demanda para leitos
-        self.dHi0 = 0
-        self.dHj0 = 0
-        self.dUi0 = 0
-        self.dUj0 = 0
+        self.WARD_excess_i0 = 0
+        self.WARD_excess_j0 = 0
+        self.ICU_excess_i0 = 0
+        self.ICU_excess_j0 = 0
         # Obitos
-        if not fit_analysis: #0: #  TODO: Check if is there a not or no
+        if not fit_analysis: #0: #  TODO: Check if is there a not or no/ check if dis IF clause is necessary
             self.Mi0 = self.Ri0 * np.mean(covid_parameters.mortality_rate_elderly)
             self.Mj0 = self.Rj0 * np.mean(covid_parameters.mortality_rate_young)
         else:
-            self.Mi0 = self.M0 * self.elderly_proportion
-            self.Mj0 = self.Rj0 * (1 - self.elderly_proportion)
+            self.Mi0 = self.Ri0 * self.elderly_proportion * np.mean(covid_parameters.mortality_rate_elderly)
+            self.Mj0 = self.Rj0 * (1 - self.elderly_proportion)* np.mean(covid_parameters.mortality_rate_young)
         # Perhaps initial conditions will change to match deaths at the present date
 
 
@@ -162,6 +165,22 @@ def import_ibge():
     df_ibge['city_name_fixed'] = df_ibge['Município'].map(fix_city_name)
     df_ibge['city_code_fixed'] = df_ibge['Município'].map(fix_city_code)
     return df_ibge
+
+
+def get_rt_by_city(city_name):
+    """
+    Return a dataframe with r (basic reproduction number) over time t for a city
+
+    :param city: string
+    :return: dataframe with the selected city
+    """
+    cities = {'Fortaleza/CE': 'Fortaleza',
+              'São Paulo/SP': 'SaoPaulo',
+              'Maceió/AL': 'Maceio',
+              'São Luís/MA': 'SaoLuis'}
+
+    return pd.read_csv(os.path.join(get_root_dir(),
+                    'data',f"Re_{cities[city_name]}.csv"), sep=',')
 
 
 def import_cnes(city_code):
@@ -320,8 +339,8 @@ def import_cnes(city_code):
         df_cnes.CO_MUNICIPIO_GESTOR).sum().sort_values('QT_EXIST')
     df_leitos = df_wards.join(df_icus, lsuffix='_ward', rsuffix='_icus').fillna(0)
 
-    bed_ward = df_leitos.at[city_code, 'QT_EXIST_ward']
-    bed_icu = df_leitos.at[city_code, 'QT_EXIST_icus']
+    bed_ward = df_leitos.at[city_code, 'QT_EXIST_ward']*0.5
+    bed_icu = df_leitos.at[city_code, 'QT_EXIST_icus']*0.5
     
     return bed_ward, bed_icu
 
@@ -351,7 +370,7 @@ def parameter_for_rt_fit_analisys(city_code,
 
     pop_cidade = df_ibge['População_estimada'].loc[df_ibge.city_code_fixed == codigo_da_cidade_ibge].values
 
-    round_infectious_period = np.ceil(est_infectious_period)
+    round_infectious_period = 3 #np.ceil(est_infectious_period)
     # deaths_delay_post_infection =  2 #infection_to_death_period.mean()
     # deaths_delay_minus_infectious_period = deaths_delay_post_infection - round_infectious_period
     #infection_to_death_period.mean() / (est_incubation_period + est_infectious_period)
@@ -361,6 +380,8 @@ def parameter_for_rt_fit_analisys(city_code,
     R0_fit = (df_cidade.loc[0, 'deaths'] / expected_mortality)
     M0_fit = df_cidade.loc[0, 'deaths']
     population_fit = int(pop_cidade)
+
+    E0_fit, I0_fit, R0_fit, M0_fit = 300, 200, 0, 0
 
     return E0_fit, I0_fit, R0_fit, M0_fit, population_fit, df_cidade
 
@@ -423,7 +444,7 @@ def sivep_rates(proportion_elderly, runs):
     # https://opendatasus.saude.gov.br/dataset/bd-srag-2020
     # Find calculations on notebooks calculo_mortalidade_uti
     
-    IFR = (0.0024, 0.0024) # source estudo maranhao
+    IFR = (0.0034, 0.0034) # source silva et al https://www.medrxiv.org/content/10.1101/2020.05.13.20101253v3 DOI https://doi.org/10.1101/2020.08.28.20180463
 
     proportion_bed_need_over_deaths_group = {
         "ward_elderly": 1.209922,
@@ -518,6 +539,47 @@ def verity_rates():
     return rate
 
 
+def mortality_proportion_per_bed_type_and_age_group():
+    
+    mortality_proportion_bed_group = {
+        "ward_elderly": 0.407565,
+        "ward_young": 0.357161,
+        "icu_elderly": 0.592435,
+        "icu_young": 0.642839
+    }
+
+    return mortality_proportion_bed_group
+
+def survive_proportion_per_bed_type_and_age_group():
+
+    survive_proportion_bed_group = {
+    "ward_elderly": 0.606622,
+    "ward_young": 0.892248,
+    "icu_elderly": 0.259130,
+    "icu_young": 0.566919
+    }
+    
+    return survive_proportion_bed_group  
+    
+    
+def los_per_bed_type_and_age_group():
+
+    los_bed_group = {
+    "ward_survive_elderly": 9.394910,
+    "ward_survive_young": 7.494861,
+    "ward_death_elderly": 9.201503,
+    "ward_death_young": 9.475104,
+    "icu_survive_elderly": 9.847628,
+    "icu_survive_young": 8.736200,
+    "icu_death_elderly": 9.868753,
+    "icu_death_young": 10.720939,
+    "icu_discharged_survive_elderly": 6.572384,
+    "icu_discharged_survive_young": 4.594393
+    } 
+    
+    return los_bed_group 
+
+
 def rates(estimation, proportion_elderly, runs):
     if estimation == 'Verity':
         return verity_rates()
@@ -546,17 +608,17 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     """
     #  Proportion of persons aged 60+ in Brazil, 2020 forecast, Source: IBGE's app
-    proportion_elderly =  0.1425
+    proportion_elderly = 0.1425
 
-    pH=0.6  # probability of death for someone that needs a ward bed and does not receive it
-    pU=0.9  # probability of death for someone that needs an ICU bed and does not receive it
+    pH = 0.6  # probability of death for someone that needs a ward bed and does not receive it
+    pU = 0.9  # probability of death for someone that needs an ICU bed and does not receive it
     
     # Length of Stay (in days), Source: Wuhan
-    los_ward=8.9  # regular  # los_leito
-    los_icu=8  # UTI
+    los_ward = 8.9  # regular  # los_leito
+    los_icu = 8  # UTI
     
-    infection_to_hospitalization=10  # days
-    infection_to_icu=10  # days
+    infection_to_hospitalization = 5  # days
+    infection_to_icu = 5  # days
 
     city_code = city_name_to_code(city_name)
     IC_analysis = analysis_type(analysis)
@@ -565,11 +627,16 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     rate = rates(estimation, proportion_elderly, runs)
 
+    mortality_proportion_bed_group = mortality_proportion_per_bed_type_and_age_group()
+    survive_proportion_bed_group = survive_proportion_per_bed_type_and_age_group()
+    los_bed_group  = los_per_bed_type_and_age_group()
+
     bed_ward, bed_icu = import_cnes(city_code)
 
     # Basic Reproduction Number # ErreZero
     basic_reproduction_number_dct = {
-        'Confidence Interval': (1.4, 3.9),
+        'Confidence Interval': (1.4, 3.9),#(1.4, 3.9),
+        #'Confidence Interval': (1.4, 3.9),
         'Single Run': 2.2,
         'Sensitivity': 2.2,
         # 2.2 is from Li Q, Guan X, Wu P et al. 
@@ -586,7 +653,8 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     # Incubation Period (in days)
     incubation_period_dct = {
-        'Confidence Interval': (4.37 , 6.02),
+        'Confidence Interval': (2.9, 2.9),
+        #'Confidence Interval': (4.37 , 6.02),
         'Single Run': 5.2,
         'Sensitivity': 5.2,
         'Rt': (4.37 , 6.02)
@@ -597,7 +665,8 @@ def get_input_data(analysis, fit_analysis, estimation,
 
     # Infectivity Period (in days)      # tempo_de_infecciosidade
     infectivity_period_dct = {
-        'Confidence Interval': (0.01, 0.01),
+        'Confidence Interval': (2.9, 2.9),
+        #'Confidence Interval': (0.01, 0.01),
         'Single Run': 3,
         'Sensitivity': 3,
         'Rt': (0.01, 0.01)
@@ -615,7 +684,11 @@ def get_input_data(analysis, fit_analysis, estimation,
     }
     infection_to_death_period = infection_to_death_period_dct[analysis]
 
-    if analysis == 'Confidence Interval' or 'Rt':  
+    df_rt_city = None
+    if analysis == 'Rt':
+        df_rt_city = get_rt_by_city(city_name)
+
+    if (analysis == 'Confidence Interval') or  (analysis == 'Rt'):  
         (incubation_rate, infectivity_rate,
         contamination_rate, infection_to_death_rate) = lognormal_samples(
                 incubation_period, infectivity_period, infection_to_death_period,
@@ -675,6 +748,25 @@ def get_input_data(analysis, fit_analysis, estimation,
             self.internation_rate_icu_elderly=rate['icu_elderly']  # 0.0395 # UTI for old ones: 60+ years
             # tax_uti_j
             self.internation_rate_icu_young=rate['icu_young']  # 0.0052 # UTI for young ones: 0-59 years
+            self.ward_mortality_proportion_elderly = mortality_proportion_bed_group["ward_elderly"]
+            self.ward_mortality_proportion_young = mortality_proportion_bed_group["ward_young"]
+            self.icu_mortality_proportion_elderly = mortality_proportion_bed_group["icu_elderly"]
+            self.icu_mortality_proportion_young = mortality_proportion_bed_group["icu_young"]
+            self.WARD_survive_proportion_i = survive_proportion_bed_group["ward_elderly"]
+            self.WARD_survive_proportion_j = survive_proportion_bed_group["ward_young"]
+            self.ICU_survive_proportion_i = survive_proportion_bed_group["icu_elderly"]
+            self.ICU_survive_proportion_j = survive_proportion_bed_group["icu_young"]
+
+            self.los_WARD_survive_i = los_bed_group["ward_survive_elderly"]
+            self.los_WARD_survive_j = los_bed_group["ward_survive_young"]
+            self.los_WARD_death_i = los_bed_group["ward_death_elderly"]
+            self.los_WARD_death_j = los_bed_group["ward_death_young"]
+            self.los_ICU_survive_i = los_bed_group["icu_survive_elderly"]
+            self.los_ICU_survive_j = los_bed_group["icu_survive_young"]
+            self.los_ICU_death_i = los_bed_group["icu_death_elderly"]
+            self.los_ICU_death_j = los_bed_group["icu_death_young"]
+            self.los_discharged_ICU_survive_i = los_bed_group["icu_discharged_survive_elderly"]
+            self.los_discharged_ICU_survive_j = los_bed_group["icu_discharged_survive_young"]
 
     covid_parameters = Covid_parameters()
 
@@ -687,7 +779,6 @@ def get_input_data(analysis, fit_analysis, estimation,
                                 est_incubation_period, est_infectious_period,
                                 expected_mortality, expected_initial_rt,
                                 initial_deaths_to_fit)
-    #N0 =5_500_000
 
     ### Criando objeto com status iniciais, juntando todas as infos que mudam o inicio
     ### Os parametros padrao podem ser mudados, como cama/UTI por cidade
@@ -711,15 +802,15 @@ def get_input_data(analysis, fit_analysis, estimation,
             self.init_removed_young=conditions.Rj0  # initial removed population young ones: 0-59 years
             self.init_hospitalized_ward_elderly=conditions.Hi0  # initial ward hospitalized old ones: 60+ years
             self.init_hospitalized_ward_young=conditions.Hj0  # initial ward hospitalized young ones: 0-59 years
-            self.init_hospitalized_ward_elderly_excess=conditions.dHi0
+            self.init_hospitalized_ward_elderly_excess=conditions.WARD_excess_i0
             # initial ward hospitalized demand excess old ones: 60+ years
-            self.init_hospitalized_ward_young_excess=conditions.dHj0
+            self.init_hospitalized_ward_young_excess=conditions.WARD_excess_j0
             # initial ward hospitalized demand excess young ones: 0-59 years
             self.init_hospitalized_icu_elderly=conditions.Ui0  # initial icu hospitalized old ones: 60+ years
             self.init_hospitalized_icu_young=conditions.Uj0  # initial icu hospitalized young ones: 0-59 years
-            self.init_hospitalized_icu_elderly_excess=conditions.dUi0
+            self.init_hospitalized_icu_elderly_excess=conditions.ICU_excess_i0
             # initial iCU hospitalized demand excess old ones: 60+ years
-            self.init_hospitalized_icu_young_excess=conditions.dUj0
+            self.init_hospitalized_icu_young_excess=conditions.ICU_excess_j0
             # initial iCU hospitalized demand excess young ones: 0-59 years
             self.init_deceased_elderly=conditions.Mi0  # initial deceased population old ones: 60+ years
             self.init_deceased_young=conditions.Mj0  # initial deceased population young ones: 0-59 years
@@ -733,20 +824,24 @@ def get_input_data(analysis, fit_analysis, estimation,
             self.bed_ward=bed_ward  # capacidade_leitos
             self.bed_icu=bed_icu  # capacidade_UTIs
             self.IC_analysis=IC_analysis  # flag for type of analysis
+            self.analysis=analysis
             # 1: confidence interval, 2: single run, 3: r0 sensitivity analysis
             self.contact_matrix=contact_matrix
             self.Normalization_constant=Normalization_constant # for contact matrix
             self.city=city_code
+            self.city_name=city_name
             self.fit_analysis=fit_analysis  # 0: without;  1: with
             self.df_cidade = df_cidade
+            self.df_rt_city = df_rt_city
+            self.initial_deaths_to_fit = initial_deaths_to_fit
 
     model_parameters = Model_parameters()
 
     parametros = {'City name': [city_name],
                   'City code IBGE': [model_parameters.city],
-                  'incubation_period = 1/alpha': [incubation_period],
+                  '1/alpha = (incubation_period in traditional SEIR)': [incubation_period],
                   'basic_reproduction_number = beta/gamma': [basic_reproduction_number],
-                  'infectivity_period = 1/gamma': [infectivity_period],
+                  '1/gamma = (infectivity_period in traditional SEIR)': [infectivity_period],
                   'runs': [runs],
                   'isolation_level': [model_parameters.isolation_level],
                   'init_exposed_elderly': [conditions.Ei0],
@@ -764,12 +859,13 @@ def get_input_data(analysis, fit_analysis, estimation,
                   't_max': [model_parameters.t_max],
                   'population': [N0],
                   'population_rate_elderly': [proportion_elderly],
-                  'bed_ward': [model_parameters.bed_ward],
-                  'bed_icu': [model_parameters.bed_icu],
+                  'bed_ward_number': [model_parameters.bed_ward],
+                  'bed_icu_number': [model_parameters.bed_icu],
                   'IC_analysis': [IC_analysis],
-                  'fit_analysis': [fit_analysis]
-                  }
-
+                  'fit_analysis': [fit_analysis],
+                  'initial_deaths_to_fit': [initial_deaths_to_fit],
+                  'Elderly IFR - infection fatality rate (%)': (rate['mortality_elderly'].mean()*100),
+                  'Young IFR - infection fatality rate (%)': (rate['mortality_young'].mean()*100)}
     output_parameters = pd.DataFrame(parametros).T
     print(output_parameters)
     print('')

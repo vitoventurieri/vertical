@@ -6,37 +6,13 @@
 import os
 import numpy as np
 import pandas as pd
-from datetime import datetime
+#from datetime import datetime
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+#import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
 
-from .utils import *
-
-#def city_cases_dataset(city):
-#    """
-#
-#    :param city:
-#    :return:
-#    """
-#    if city == 'fortaleza':
-#        dfcity = pd.read_csv(r"data/casos_CE_wcota.csv", sep=';')
-#    elif city == 'sao_paulo':
-#        dfcity = pd.read_csv(r"data/casos_SP_wcota.csv", sep=';')
-#    elif city == 'maceio':
-#        dfcity = pd.read_csv(r"data/casos_AL_wcota.csv", sep=';')
-#    elif city == 'sao_luiz':
-#        dfcity = pd.read_csv(r"data/casos_MA_wcota.csv", sep=';')
-#        # display(df_cidade)
-#    else:
-#        raise("Not fitted rt for city: ", city)
-#
-#    # dataset source : https://github.com/wcota/covid19br/blob/master/README.md
-#    # W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”,
-#    # SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020
-#
-#    return dfcity
+#from .utils import *
 
 
 def number_formatter(number, pos=None):
@@ -62,42 +38,6 @@ def format_float(float_number, precision=2):
     :return:
     """
     return str(round(float_number, precision)).replace(".", "")
-
-
-def auxiliar_names(covid_parameters, model_parameters):
-    """
-    Provides filename with timestamp and IC_analysis type
-    (2: Single Run, 1: Confidence Interval, 3: Sensitivity Analysis)
-    as string for files
-
-    :param covid_parameters:
-    :param model_parameters:
-    :return:
-    """
-
-    time = datetime.today()
-    time = time.strftime('%Y%m%d%H%M')
-
-    if model_parameters.IC_analysis == 2:  # SINGLE RUN
-
-        beta = covid_parameters.beta  # infectiviy_rate
-        gamma = covid_parameters.gamma  # contamination_rate
-
-        basic_reproduction_number = beta / gamma
-        r0 = basic_reproduction_number
-
-        filename = (time
-                    + '_single_run'
-                    + '_r' + ("%.1f" % r0)[0] + '_' + ("%.1f" % r0)[2]
-                    + '__g' + ("%.1f" % gamma)[0] + '_' + ("%.1f" % gamma)[2]
-                    )
-    elif model_parameters.IC_analysis == 1:  # CONFIDENCE INTERVAL
-        filename = (time + '_confidence_interval')
-    elif model_parameters.IC_analysis == 3:  # SENSITIVITY_ANALYSIS
-        filename = (time + '_sensitivity_analysis')
-    else:  # Rt analysis
-        filename = (time + '_Rt')
-    return filename
 
 
 def pos_format(title_fig, main_label_y, main_label_x):
@@ -199,7 +139,7 @@ def plot_byage(Yi, Yj, name_variable,
     ou um único valor (SINGLE RUN)
     """
     plt.figure(fig_number)
-    if IC_analysis == 2:  # SINGLE RUN
+    if IC_analysis == 2:  #  mp.analysis == 'Single Run'
         plt.plot(t_space,
                  Yi,
                  ls[i % 2],  # 0: dashed linestyle, 1: solid linestyle
@@ -348,15 +288,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
         # main_title = f'SEIR: $\omega_e={omega_i}$, $\omega_y={omega_j}$'
         main_title = 'SEIR:' + isolation_name_i
 
-        if IC_analysis == 2:  # SINGLE RUN
-            # Ii = results.query('omega_i == @omega_i & omega_j == @omega_j')['Ii']
-            # Ij = results.query('omega_i == @omega_i & omega_j == @omega_j')['Ij']
-            # Hi = results.query('omega_i == @omega_i & omega_j == @omega_j')['Hi']
-            # Hj = results.query('omega_i == @omega_i & omega_j == @omega_j')['Hj']
-            # Ui = results.query('omega_i == @omega_i & omega_j == @omega_j')['Ui']
-            # Uj = results.query('omega_i == @omega_i & omega_j == @omega_j')['Uj']
-            # Mi = results.query('omega_i == @omega_i & omega_j == @omega_j')['Mi']
-            # Mj = results.query('omega_i == @omega_i & omega_j == @omega_j')['Mj']
+        if IC_analysis == 2:  #  mp.analysis == 'Single Run'
 
             query_condition = 'isolamento == @isolation_name_i'
             Ii = results.query(query_condition)['Ii']
@@ -369,21 +301,8 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
             Mj = results.query(query_condition)['Mj']
 
         else:  # SENSITIVITY ANALYSIS OR CONFIDENCE INTERVAL
-
-            Si = np.zeros((len(results), t_max))
-            Sj = np.zeros((len(results), t_max))
-            Ei = np.zeros((len(results), t_max))
-            Ej = np.zeros((len(results), t_max))
-            Ii = np.zeros((len(results), t_max))
-            Ij = np.zeros((len(results), t_max))
-            Ri = np.zeros((len(results), t_max))
-            Rj = np.zeros((len(results), t_max))
-            Hi = np.zeros((len(results), t_max))
-            Hj = np.zeros((len(results), t_max))
-            Ui = np.zeros((len(results), t_max))
-            Uj = np.zeros((len(results), t_max))
-            Mi = np.zeros((len(results), t_max))
-            Mj = np.zeros((len(results), t_max))
+            Si,Sj,Ei,Ej,Ii,Ij,Ri,Rj,Hi,Hj,Ui,Uj,Mi,Mj = (
+                np.zeros((len(results), t_max)) for _ in range(14))
 
             for ii in range(len(results)):
                 query_condition = 'isolamento == @isolation_name_i'
@@ -403,7 +322,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                 Mi[ii, ] = results[ii].query(query_condition)['Mi']
                 Mj[ii, ] = results[ii].query(query_condition)['Mj']
 
-        if IC_analysis == 3:
+        if IC_analysis == 3:  #   mp.analysis == 'Sensitivity'
 
             r0 = covid_parameters.beta / covid_parameters.gamma
             r0min = r0[0]
@@ -521,12 +440,15 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
                 dfcity_query = model_parameters.df_cidade
                 exibition_date = dfcity_query.loc[1, 'date']
                 print('1º dia da simulação: ' + str(exibition_date))
-                plt.plot(dfcity_query.loc[:, 'deaths'].values)
+                plt.plot(dfcity_query.loc[:, 'deaths'].values, color='goldenrod', label='Real observed deaths')
+                plt.legend(loc='upper left')
             
 
 
             # ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
             plt.savefig(os.path.join(plot_dir, "Mey_" + filename + filetype))
+
+    plt.close('all')
 
 
             
@@ -638,7 +560,3 @@ def plots(results, covid_parameters, model_parameters, plot_dir):
 
     #             plt.savefig(os.path.join(plot_dir,
     #                                      "Fit_" + state_name + "_I" + filetype))
-
-    # if (IC_analysis == 4) and (not startdate == []):
-    #     for ifig in range(11):
-    #         plt.close(ifig)
