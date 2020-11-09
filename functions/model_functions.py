@@ -496,6 +496,26 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     # dWARD_discharged_ICU_survive_jdt = (ICU_survive_j / los_ICU_survive_j) \
     #     * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
 
+
+    ### Bed demand - NO constraints over Ward and ICUs
+
+    # dWARD_survive_idt = (pHi / infection_to_hospitalization) * WARD_survive_proportion_i  - WARD_survive_i / los_WARD_survive_i
+    # dWARD_survive_jdt = (pHj / infection_to_hospitalization) * WARD_survive_proportion_j  - WARD_survive_j / los_WARD_survive_j
+    #
+    # dWARD_death_idt = (pHi / infection_to_hospitalization) * (1 - WARD_survive_proportion_i)  - WARD_death_i / los_WARD_death_i
+    # dWARD_death_jdt = (pHj / infection_to_hospitalization) * (1 - WARD_survive_proportion_j)  - WARD_death_j / los_WARD_death_j
+    #
+    # dICU_survive_idt = (pUi / infection_to_icu) * ICU_survive_proportion_i - ICU_survive_i / los_ICU_survive_i
+    # dICU_survive_jdt = (pUj / infection_to_icu) * ICU_survive_proportion_j - ICU_survive_j / los_ICU_survive_j
+    #
+    # dICU_death_idt = (pUi / infection_to_icu) * (1 - ICU_survive_proportion_i) - ICU_death_i / los_ICU_death_i
+    # dICU_death_jdt = (pUj / infection_to_icu) * (1 - ICU_survive_proportion_j) - ICU_death_j / los_ICU_death_j
+    #
+    # dWARD_discharged_ICU_survive_idt = (ICU_survive_i / los_ICU_survive_i) - WARD_discharged_ICU_survive_i / los_discharged_ICU_survive_i
+    # dWARD_discharged_ICU_survive_jdt = (ICU_survive_j / los_ICU_survive_j) - WARD_discharged_ICU_survive_j / los_discharged_ICU_survive_j
+    
+
+
 #TODO: Linha 412
     dHidt = dWARD_survive_idt + dWARD_death_idt + dWARD_discharged_ICU_survive_idt #(pHi / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - Hi / los_WARD
     dHjdt = dWARD_survive_jdt + dWARD_death_jdt + dWARD_discharged_ICU_survive_jdt# dHjdt = (pHj / infection_to_hospitalization) * (1 - 1 / (1 + np.exp(const_dot_balanceWard))) - Hj / los_WARD
