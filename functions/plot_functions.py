@@ -581,14 +581,14 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
     # 1001 byage, total (M) deceased
 
     plt.figure(1000)
-    df_last_day.loc[:, df_last_day.columns.str.startswith('R')].boxplot(vert=False)
+    df_last_day.loc[:, df_last_day.columns.str.startswith('R')].boxplot(vert=False, showfliers=False)
     plt.suptitle(f'Removed people at day {t_max}')
     plt.title(main_title, fontsize=8)
     format_box_plot()
     plt.savefig(os.path.join(plot_dir, "BoxPlot_R" + filetype))
     
     plt.figure(1001)
-    df_last_day.loc[:, df_last_day.columns.str.startswith('M')].boxplot(vert=False)
+    df_last_day.loc[:, df_last_day.columns.str.startswith('M')].boxplot(vert=False, showfliers=False)
     plt.suptitle(f'Deacesed people at day {t_max}')
     plt.title(main_title, fontsize=8)
     format_box_plot()
