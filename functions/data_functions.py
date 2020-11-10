@@ -265,7 +265,7 @@ def import_cnes(city_code):
         Duplicate key 'QUEIMADO PEDIATRICO' in dictionarypylint(duplicate-key)
     """
     wards = {"BUCO MAXILO FACIAL": 1,
-             "CARDIOLOGIA": 2,  # TODO: Fix Duplicate Keys
+             "CARDIOLOGIA": 2,  # TODO: Fix Duplicate Keys 2, 32
              "CIRURGIA GERAL": 3,
              "ENDOCRINOLOGIA": 4,
              "GASTROENTEROLOGIA": 5,
@@ -275,24 +275,24 @@ def import_cnes(city_code):
              "NEUROCIRURGIA": 9,
              "OBSTETRICIA CIRURGICA": 10,
              "OFTALMOLOGIA": 11,
-             "ONCOLOGIA": 12,  # TODO: Fix Duplicate Keys
+             "ONCOLOGIA": 12,  # TODO: Fix Duplicate Keys 12, 44
              "ORTOPEDIATRAUMATOLOGIA": 13,
              "OTORRINOLARINGOLOGIA": 14,
              "PLASTICA": 15,
              "TORACICA": 16,
-             "AIDS": 31,  # TODO: Fix Duplicate Keys
-             "CARDIOLOGIA": 32, # TODO: Fix Duplicate Keys
+             "AIDS": 31,  # TODO: Fix Duplicate Keys 31, 69
+             "CARDIOLOGIA": 32, # TODO: Fix Duplicate Keys 2, 32
              "CLINICA GERAL": 33,
              "CRONICOS": 34,
              "DERMATOLOGIA": 35,
-             "GERIATRIA": 36,  # TODO: Fix Duplicate Keys
+             "GERIATRIA": 36,  # TODO: Fix Duplicate Keys 36, 72
              "HANSENOLOGIA": 37,
              "HEMATOLOGIA": 38,
              "NEFROUROLOGIA": 40,
              "NEONATOLOGIA": 41,
              "NEUROLOGIA": 42,
              "OBSTETRICIA CLINICA": 43,
-             "ONCOLOGIA": 44,  # TODO: Fix Duplicate Keys
+             "ONCOLOGIA": 44,  # TODO: Fix Duplicate Keys 12, 44
              "PEDIATRIA CLINICA": 45,
              "PNEUMOLOGIA": 46,
              "PSIQUIATRIA": 47,
@@ -301,16 +301,16 @@ def import_cnes(city_code):
              "UNIDADE ISOLAMENTO": 66,
              "TRANSPLANTE": 67,
              "PEDIATRIA CIRURGICA": 68,
-             "AIDS": 69,  # TODO: Fix Duplicate Keys
+             "AIDS": 69,  # TODO: Fix Duplicate Keys 31, 69
              "FIBROSE CISTICA": 70,
              "INTERCORRENCIA POS-TRANSPLANTE": 71,
-             "GERIATRIA": 72,  # TODO: Fix Duplicate Keys
-             "SAUDE MENTAL": 73,  # TODO: Fix Duplicate Keys
+             "GERIATRIA": 72,  # TODO: Fix Duplicate Keys 36, 72
+             "SAUDE MENTAL": 73,  # TODO: Fix Duplicate Keys 73, 87
              "ACOLHIMENTO NOTURNO": 84,
-             "SAUDE MENTAL": 87,  # TODO: Fix Duplicate Keys
-             "QUEIMADO ADULTO": 88,  # TODO: Fix Duplicate Keys
+             "SAUDE MENTAL": 87,  # TODO: Fix Duplicate Keys 73, 87
+             "QUEIMADO ADULTO": 88,  # TODO: Fix Duplicate Keys 88, 90
              "QUEIMADO PEDIATRICO": 89,
-             "QUEIMADO ADULTO": 90,  # TODO: Fix Duplicate Keys
+             "QUEIMADO ADULTO": 90,  # TODO: Fix Duplicate Keys 88, 90
              "QUEIMADO PEDIATRICO": 91
              }
     icus = {
@@ -789,7 +789,7 @@ def get_input_data(analysis, fit_analysis, estimation,
         def __init__(self):
             # Social contact reduction factor (without, vertical, horizontal) isolation
             # niveis_isolamento
-            self.isolation_level=[" Without isolation", " Elderly isolation"]
+            self.isolation_level=[" (without isolation)", " (elderly isolation)"]
             # Scenaries for health system colapse
             # self.lotation=(0.3, 0.5, 0.8, 1)  # 30, 50, 80, 100% capacity
             # self.contact_reduction_elderly = omega_i
@@ -834,6 +834,7 @@ def get_input_data(analysis, fit_analysis, estimation,
             self.df_cidade = df_cidade
             self.df_rt_city = df_rt_city
             self.initial_deaths_to_fit = initial_deaths_to_fit
+            self.runs = runs
 
     model_parameters = Model_parameters()
 
