@@ -135,20 +135,19 @@ def fix_city_code(row):
     return row
 
 
-def import_wcota():
-    """ Import data from wcota
-    # dataset source : https://github.com/wcota/covid19br/blob/master/README.md
-    # W. Cota, “Monitoring the number of COVID-19 cases and deaths in brazil at municipal and federative units level”,
-    # SciELOPreprints:362 (2020), 10.1590/scielopreprints.362 - license (CC BY-SA 4.0) acess 30/07/2020
+def import_MS_cases():
+    """ Import data from MS
+    # dataset source : https://covid.saude.gov.br/  ## https://covid.saude.gov.br/b056bbc5-07bf-4209-afc1-efb36354f158
+
 
     Returns:
-        df_wcota: dataframe
+        df_MS_CASES: dataframe
     """
-    df_wcota = pd.read_csv(os.path.join(get_root_dir(),
-                    'data', 'cases-brazil-cities-time.zip'), sep=',')
+    df_MS_CASES = pd.read_csv(os.path.join(get_root_dir(),
+                    'data', 'HIST_PAINEL_COVIDBR_04dez2020.csv'), sep=';', encoding = "ISO-8859-1")
     # fix strings on datasets
-    df_wcota['ibge_code_trimmed'] = df_wcota['ibgeID'].map(fix_city_code)
-    return df_wcota
+    df_MS_CASES['ibge_code_trimmed'] = df_MS_CASES['codmun']#.map(fix_city_code)
+    return df_MS_CASES
 
 def import_ibge():
     """ Import data from IBGE
@@ -359,14 +358,14 @@ def parameter_for_rt_fit_analisys(city_code,
     :param city:
     :return:
     """
-    df_wcota = import_wcota()
+    df_MS_CASES = import_MS_cases()
     df_ibge = import_ibge()
 
     codigo_da_cidade_ibge = city_code  # 355030
     # select datasets in the city with rows only with > x deaths
-    df_cidade = df_wcota.loc[
-        (df_wcota.ibge_code_trimmed == codigo_da_cidade_ibge) 
-        & (df_wcota.deaths >= initial_deaths)].reset_index()
+    df_cidade = df_MS_CASES.loc[
+        (df_MS_CASES.ibge_code_trimmed == codigo_da_cidade_ibge)
+        & (df_MS_CASES.obitosAcumulado >= initial_deaths)].reset_index()
 
     pop_cidade = df_ibge['População_estimada'].loc[df_ibge.city_code_fixed == codigo_da_cidade_ibge].values
 
@@ -374,11 +373,11 @@ def parameter_for_rt_fit_analisys(city_code,
     # deaths_delay_post_infection =  2 #infection_to_death_period.mean()
     # deaths_delay_minus_infectious_period = deaths_delay_post_infection - round_infectious_period
     #infection_to_death_period.mean() / (est_incubation_period + est_infectious_period)
-    I0_fit = (df_cidade.loc[round_infectious_period, 'deaths'] - df_cidade.loc[0, 'deaths']) * (est_infectious_period / round_infectious_period) / expected_mortality
-    #I0_fit = (df_cidade.loc[deaths_delay_post_infection, 'deaths'] - df_cidade.loc[deaths_delay_minus_infectious_period, 'deaths'])*(est_infectious_period/round_infectious_period) / expected_mortality
+    I0_fit = (df_cidade.loc[round_infectious_period, 'obitosAcumulado'] - df_cidade.loc[0, 'obitosAcumulado']) * (est_infectious_period / round_infectious_period) / expected_mortality
+    #I0_fit = (df_cidade.loc[deaths_delay_post_infection, 'obitosAcumulado'] - df_cidade.loc[deaths_delay_minus_infectious_period, 'obitosAcumulado'])*(est_infectious_period/round_infectious_period) / expected_mortality
     E0_fit = (I0_fit * expected_initial_rt * est_incubation_period ) / est_infectious_period
-    R0_fit = (df_cidade.loc[0, 'deaths'] / expected_mortality)
-    M0_fit = df_cidade.loc[0, 'deaths']
+    R0_fit = (df_cidade.loc[0, 'obitosAcumulado'] / expected_mortality)
+    M0_fit = df_cidade.loc[0, 'obitosAcumulado']
     population_fit = int(pop_cidade)
 
     E0_fit, I0_fit, R0_fit, M0_fit = 300, 200, 0, 0

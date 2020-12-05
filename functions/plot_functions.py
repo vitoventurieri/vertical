@@ -553,9 +553,9 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
 
             if model_parameters.fit_analysis:
                 dfcity_query = model_parameters.df_cidade
-                exibition_date = dfcity_query.loc[1, 'date']
+                exibition_date = dfcity_query.loc[1, 'data']
                 print('1º dia da simulação: ' + str(exibition_date))
-                plt.plot(dfcity_query.loc[:, 'deaths'].values, color='goldenrod', label='Observed')
+                plt.plot(dfcity_query.loc[:, 'obitosAcumulado'].values, color='goldenrod', label='Observed')
                 plt.legend(loc='upper left')
                         
             plt.savefig(os.path.join(plot_dir, "Mey" + filename + filetype))           
