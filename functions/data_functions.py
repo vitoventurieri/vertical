@@ -9,36 +9,33 @@ np.random.seed(seed=1)
 
 
 def city_name_to_code(city_name):
-    city = {
-        "Florianópolis/SC": 420540,
-        "Santos/SP": 354850,
-        "Goiânia/GO": 520870,
-        "Porto Velho/RO": 110020,
-        "Aracaju/SE": 280030,
-        "Cuiabá/MT": 510340,
-        "Duque de Caxias/RJ": 330170,
-        "São Gonçalo/RJ": 330490,
-        "Belo Horizonte/MG": 310620,
-        "Osasco/SP": 353440,
-        "São Bernardo do Campo/SP": 354870,
-        "Curitiba/PR": 410690,
-        "João Pessoa/PB": 250750,
-        "Teresina/PI": 221100,
-        "Maceió/AL": 270430,
-        "Jaboatão dos Guararapes/PE": 260790,
-        "Campinas/SP": 350950,
-        "Natal/RN": 240810,
-        "Guarulhos/SP": 351880,
-        "São Luís/MA": 211130,
-        "Brasília/DF": 530010,
-        "Salvador/BA": 292740,
-        "Manaus/AM": 130260,
-        "Belém/PA": 150140,
-        "Recife/PE": 261160,
-        "Fortaleza/CE": 230440,
-        "Rio de Janeiro/RJ": 330455,
-        "São Paulo/SP": 355030
-    }
+    city = { 'Porto Velho/RO': 110020,
+        'Manaus/AM': 130260,
+        'Rio Branco/AC': 120040,
+        'Campo Grande/MS ': 500270,
+        'Macapá/AP': 160030,
+        'Brasília/DF': 530010,
+        'Boa Vista/RR': 140010,
+        'Cuiabá/MT': 510340,
+        'Palmas/TO': 172100,
+        'São Paulo/SP': 355030,
+        'Teresina/PI': 221100,
+        'Rio de Janeiro/RJ': 330455,
+        'Belém/PA': 150140,
+        'Goiânia/GO': 520870,
+        'Salvador/BA': 292740,
+        'Florianópolis/SC': 420540,
+        'São Luís/MA': 211130,
+        'Maceió/AL': 270430,
+        'Porto Alegre/RS ': 431490,
+        'Curitiba/PR': 410690,
+        'Belo Horizonte/MG': 310620,
+        'Fortaleza/CE': 230440,
+        'Recife/PE': 261160,
+        'João Pessoa/PB': 250750,
+        'Aracaju/SE': 280030,
+        'Natal/RN': 240810,
+        'Vitória/ES': 320530}
     city_code = city[city_name]
     
     return city_code
@@ -469,8 +466,8 @@ def sivep_rates(proportion_elderly, runs):
     icu_rate_young_intervals= np.array(mortality_rate_young_intervals) * proportion_young_icu_need_over_deaths_in_young #(0.0052*0.59, 0.0052*2.02) # (0.00127, 0.00127)
     
     ward_rate_elderly_intervals = np.array(mortality_rate_elderly_intervals) * proportion_elderly_ward_need_over_deaths_in_elderly #1.209922, icu_rate_elderly_intervals[1]*1.209922)#(0.1026*0.59, 0.1026*2.02) #try to capture verity error CIs (0.03495, 0.03495)
-    ward_rate_young_intervals= np.array(mortality_rate_young_intervals) * proportion_young_ward_need_over_deaths_in_young #(0.0209*0.59, 0.0209*2.02) # (0.00127, 0.00127)  
-    
+    ward_rate_young_intervals= np.array(mortality_rate_young_intervals) * proportion_young_ward_need_over_deaths_in_young #(0.0209*0.59, 0.0209*2.02) # (0.00127, 0.00127)
+
     # mortality_rate_elderly_intervals =  (0.03495*0.59, 0.03495*0.59) #try to capture verity error CIs (0.03495, 0.03495)
     # mortality_rate_young_intervals= (0.00127*0.59, 0.00127*0.59) # (0.00127, 0.00127)
     #
