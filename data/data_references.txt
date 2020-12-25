@@ -1,0 +1,19 @@
+References for data:
+
+1.File: HIST_PAINEL_COVIDBR_04dez2020.zip
+
+Based on dataset from 04 December 2020 from: 
+
+Coronavírus Brasil. Downloaded from: https://covid.saude.gov.br/ 
+
+2)File:  cnes_simplificado_02-2020
+
+database join based on 02-2020 dataset from:
+
+BRASIL. Ministério da Saúde.  Banco de dados do Sistema Único de Saúde - DATASUS,Cadastro Nacional de Estabelecimentos de Atenção à Saúde - CNES - Consulta Leitos.  2020. ftp://ftp.datasus.gov.br/cnes/BASE_DE_DADOS_CNES_202002.ZIP
+
+3)File:  populacao_ibge.csv
+
+This file contains the population and city codes adapted from the 2019 population estimates from IBGE which is available at:
+
+BRASIL. IBGE, Instituto Brasileiro de Geografia e Estatística.  Estimativas de população enviadas ao TCU - tabelas de estimativas para 1ºde julho de 2019, atualizadas e enviadas ao TCU após a publica cão no DOU.  2020. https://www.ibge.gov.br/estatisticas/300sociais/populacao/9103-estimativas-de-populacao.html?edicao=25272&t=resultados
