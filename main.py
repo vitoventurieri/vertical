@@ -6,6 +6,7 @@ from functions.model_functions import run_SEIR_ODE_model
 from functions.plot_functions import plots
 from functions.utils import get_plot_dir, export_excel
 
+
 ### FOR ARTICLE RESULTS USE: analysis = 'Confidence Interval'
 # fit_analysis = False
 # runs = 1000
@@ -18,33 +19,33 @@ from functions.utils import get_plot_dir, export_excel
 
 if __name__ == '__main__':
 
-    city_list = ['São Paulo/SP']#['Porto Velho/RO',
-                # 'Manaus/AM',
-                # 'Rio Branco/AC',
-                # 'Campo Grande/MS ',
-                # 'Macapá/AP',
-                # 'Brasília/DF',
-                # 'Boa Vista/RR',
-                # 'Cuiabá/MT',
-                # 'Palmas/TO',
-                # 'São Paulo/SP',
-                # 'Teresina/PI',
-                # 'Rio de Janeiro/RJ',
-                # 'Belém/PA',
-                # 'Goiânia/GO',
-                # 'Salvador/BA',
-                # 'Florianópolis/SC',
-                # 'São Luís/MA',
-                # 'Maceió/AL',
-                # 'Porto Alegre/RS ',
-                # 'Curitiba/PR',
-                # 'Belo Horizonte/MG',
-                # 'Fortaleza/CE',
-                # 'Recife/PE',
-                # 'João Pessoa/PB',
-                # 'Aracaju/SE',
-                # 'Natal/RN',
-                # 'Vitória/ES']
+    city_list = ['Porto Velho/RO',
+                'Manaus/AM',
+                'Rio Branco/AC',
+                'Campo Grande/MS ',
+                'Macapá/AP',
+                'Brasília/DF',
+                'Boa Vista/RR',
+                'Cuiabá/MT',
+                'Palmas/TO',
+                'São Paulo/SP',
+                'Teresina/PI',
+                'Rio de Janeiro/RJ',
+                'Belém/PA',
+                'Goiânia/GO',
+                'Salvador/BA',
+                'Florianópolis/SC',
+                'São Luís/MA',
+                'Maceió/AL',
+                'Porto Alegre/RS ',
+                'Curitiba/PR',
+                'Belo Horizonte/MG',
+                'Fortaleza/CE',
+                'Recife/PE',
+                'João Pessoa/PB',
+                'Aracaju/SE',
+                'Natal/RN',
+                'Vitória/ES']
 
     for chosen_city in city_list:
 
