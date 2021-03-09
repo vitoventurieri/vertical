@@ -26,7 +26,7 @@ def paralelized_function(chosen_city):
     # Rt: adjust for basic reproduction number for a city over time
 
     fit_analysis = False  # True
-    runs = 3
+    runs = 1000
     days_to_run = 250 #250
     initial_deaths_to_fit = 1
     city_name = chosen_city
@@ -54,7 +54,7 @@ def paralelized_function_no_constraints(chosen_city):
     # Rt: adjust for basic reproduction number for a city over time
 
     fit_analysis = False  # True
-    runs = 3
+    runs = 1000
     days_to_run = 250 #250
     initial_deaths_to_fit = 1
     city_name = chosen_city
@@ -65,7 +65,7 @@ def paralelized_function_no_constraints(chosen_city):
                                                                            fit_analysis, estimation, runs, days_to_run,
                                                                            initial_deaths_to_fit, city_name)
 
-    results = run_SEIR_ODE_model(covid_parameters, model_parameters)
+    results = run_SEIR_ODE_model_no_constraints(covid_parameters, model_parameters)
 
     plot_dir = get_plot_dir_no_constraints(covid_parameters, model_parameters)
 
@@ -75,35 +75,35 @@ def paralelized_function_no_constraints(chosen_city):
 
 if __name__ == '__main__':
 
-    city_list = ['Porto Velho/RO',
-                    'Manaus/AM',
-                    'Rio Branco/AC',
-                    'Campo Grande/MS ',
-                    'Macapá/AP',
-                    'Brasília/DF',
-                    'Boa Vista/RR',
-                    'Cuiabá/MT',
-                    'Palmas/TO',
-                    'São Paulo/SP',
-                    'Teresina/PI',
-                    'Rio de Janeiro/RJ',
-                    'Belém/PA',
-                    'Goiânia/GO',
-                    'Salvador/BA',
-                    'Florianópolis/SC',
-                    'São Luís/MA',
-                    'Maceió/AL',
-                    'Porto Alegre/RS ',
-                    'Curitiba/PR',
-                    'Belo Horizonte/MG',
-                    'Fortaleza/CE',
-                    'Recife/PE',
-                    'João Pessoa/PB',
-                    'Aracaju/SE',
-                    'Natal/RN',
-                    'Vitória/ES']
+    # city_list = ['Porto Velho/RO',
+    #                 'Manaus/AM',
+    #                 'Rio Branco/AC',
+    #                 'Campo Grande/MS ',
+    #                 'Macapá/AP',
+    #                 'Brasília/DF',
+    #                 'Boa Vista/RR',
+    #                 'Cuiabá/MT',
+    #                 'Palmas/TO',
+    ##                 'São Paulo/SP',
+    #                 'Teresina/PI',
+    #                 'Rio de Janeiro/RJ',
+    #                 'Belém/PA',
+    #                 'Goiânia/GO',
+    #                 'Salvador/BA',
+    #                 'Florianópolis/SC',
+    #                 'São Luís/MA',
+    #                 'Maceió/AL',
+    #                 'Porto Alegre/RS ',
+    #                 'Curitiba/PR',
+    #                 'Belo Horizonte/MG',
+    #                 'Fortaleza/CE',
+    #                 'Recife/PE',
+    #                 'João Pessoa/PB',
+    #                 'Aracaju/SE',
+    #                 'Natal/RN',
+    #                 'Vitória/ES']
 
-    #city_list = ['Porto Velho/RO']
+    city_list = ['São Paulo/SP']
 
     proc_number = 4 #os.cpu_count()-
     print('Paralelized code, runing in ' + str(proc_number) + ' processors')
