@@ -502,69 +502,69 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
                             name_variable="U",
                             plot_type="byage")
 
-            # DIFERENTES ISOLAMENTOS (gráficos separados, fig_number varia)
-            # par: no isolation
-            # ímpar: vertical isolation
-            # 
-            # figures:
-            # 0 byage (I) no isolation
-            # 1 byage (I) vertical isolation
-            # 2 byage (H,U) no isolation
-            # 3 byage (H,U) vertical isolation
-            # 4 byage (M) no isolation
-            # 5 byage (M) vertical isolation
-
-            # INFECTADOS - IDOSOS E JOVENS           
-            plot_byage(Yi=Ii, Yj=Ij, name_variable='I',
-               title_fig='Infected by age group' + isolation_name_i,
-               fig_number=isolation_degree_idx,  # 0, 1
-               main_label_y=main_label_y,
-               isolation_degree_idx=isolation_degree_idx)
-
-            # LEITOS DEMANDADOS - IDOSOS E JOVENS
-            plt.figure(2 + isolation_degree_idx)  # 2,3
-
-            if ic_analysis == 2:  # Single run
-                plt.plot(t_space, Hi, ls[0], color=cor[0], label='Ward for Elderly')
-                plt.plot(t_space, Hj, ls[1], color=cor[1], label='Ward for Young')
-                plt.plot(t_space, Ui, ls[1], color=cor[2], label='ICU for Elderly')
-                plt.plot(t_space, Uj, ls[0], color=cor[3], label='ICU for Young')
-
-            else:  # Confidence interval
-                plot_median(Hi, cor[0], ls[0], 'Ward for Elderly', t_space)
-                plot_median(Hj, cor[1], ls[1], 'Ward for Young', t_space)
-                plot_median(Ui, cor[2], ls[1], 'ICU for Elderly', t_space)
-                plot_median(Uj, cor[3], ls[0], 'ICU for Young', t_space)
-
-                plot_ci(Hi, cor[0], t_space)
-                plot_ci(Hj, cor[1], t_space)
-                plot_ci(Ui, cor[2], t_space)
-                plot_ci(Uj, cor[3], t_space)
-            
-            ylabel = 'Demanda por letios'
-            pos_format(title_fig=ylabel+isolation_name_i,
-                        main_label_y=ylabel,
-                        main_label_x=main_label_x)
-            plt.savefig(os.path.join(plot_dir, "HUey" + filename + filetype))
-
-            # OBITOS - IDOSOS E JOVENS
-            plt.figure(4 + isolation_degree_idx)  # 4,5
-
-            # OBITOS - IDOSOS E JOVENS           
-            plot_byage(Yi=Mi, Yj=Mj, name_variable='M',
-               title_fig='Deceased by age group' + isolation_name_i,
-               fig_number=4 + isolation_degree_idx,  # 4,5
-               main_label_y='Deceased people',
-               isolation_degree_idx=isolation_degree_idx)
-
-            if model_parameters.fit_analysis:
-                dfcity_query = model_parameters.df_cidade
-                exibition_date = dfcity_query.loc[1, 'data']
-                print('1º dia da simulação: ' + str(exibition_date))
-                plt.plot(dfcity_query.loc[:, 'obitosAcumulado'].values, color='goldenrod', label='Observed')
-                plt.legend(loc='upper left')
-                        
-            plt.savefig(os.path.join(plot_dir, "Mey" + filename + filetype))           
+            # # DIFERENTES ISOLAMENTOS (gráficos separados, fig_number varia)
+            # # par: no isolation
+            # # ímpar: vertical isolation
+            # #
+            # # figures:
+            # # 0 byage (I) no isolation
+            # # 1 byage (I) vertical isolation
+            # # 2 byage (H,U) no isolation
+            # # 3 byage (H,U) vertical isolation
+            # # 4 byage (M) no isolation
+            # # 5 byage (M) vertical isolation
+            #
+            # # INFECTADOS - IDOSOS E JOVENS
+            # plot_byage(Yi=Ii, Yj=Ij, name_variable='I',
+            #    title_fig='Infected by age group' + isolation_name_i,
+            #    fig_number=isolation_degree_idx,  # 0, 1
+            #    main_label_y=main_label_y,
+            #    isolation_degree_idx=isolation_degree_idx)
+            #
+            # # LEITOS DEMANDADOS - IDOSOS E JOVENS
+            # plt.figure(2 + isolation_degree_idx)  # 2,3
+            #
+            # if ic_analysis == 2:  # Single run
+            #     plt.plot(t_space, Hi, ls[0], color=cor[0], label='Ward for Elderly')
+            #     plt.plot(t_space, Hj, ls[1], color=cor[1], label='Ward for Young')
+            #     plt.plot(t_space, Ui, ls[1], color=cor[2], label='ICU for Elderly')
+            #     plt.plot(t_space, Uj, ls[0], color=cor[3], label='ICU for Young')
+            #
+            # else:  # Confidence interval
+            #     plot_median(Hi, cor[0], ls[0], 'Ward for Elderly', t_space)
+            #     plot_median(Hj, cor[1], ls[1], 'Ward for Young', t_space)
+            #     plot_median(Ui, cor[2], ls[1], 'ICU for Elderly', t_space)
+            #     plot_median(Uj, cor[3], ls[0], 'ICU for Young', t_space)
+            #
+            #     plot_ci(Hi, cor[0], t_space)
+            #     plot_ci(Hj, cor[1], t_space)
+            #     plot_ci(Ui, cor[2], t_space)
+            #     plot_ci(Uj, cor[3], t_space)
+            #
+            # ylabel = 'Demanda por letios'
+            # pos_format(title_fig=ylabel+isolation_name_i,
+            #             main_label_y=ylabel,
+            #             main_label_x=main_label_x)
+            # plt.savefig(os.path.join(plot_dir, "HUey" + filename + filetype))
+            #
+            # # OBITOS - IDOSOS E JOVENS
+            # plt.figure(4 + isolation_degree_idx)  # 4,5
+            #
+            # # OBITOS - IDOSOS E JOVENS
+            # plot_byage(Yi=Mi, Yj=Mj, name_variable='M',
+            #    title_fig='Deceased by age group' + isolation_name_i,
+            #    fig_number=4 + isolation_degree_idx,  # 4,5
+            #    main_label_y='Deceased people',
+            #    isolation_degree_idx=isolation_degree_idx)
+            #
+            # if model_parameters.fit_analysis:
+            #     dfcity_query = model_parameters.df_cidade
+            #     exibition_date = dfcity_query.loc[1, 'data']
+            #     print('1º dia da simulação: ' + str(exibition_date))
+            #     plt.plot(dfcity_query.loc[:, 'obitosAcumulado'].values, color='goldenrod', label='Observed')
+            #     plt.legend(loc='upper left')
+            #
+            # plt.savefig(os.path.join(plot_dir, "Mey" + filename + filetype))           
 
             # BOXPLOT
             last_day_idx = -1

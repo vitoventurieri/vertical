@@ -52,14 +52,14 @@ def auxiliar_names(covid_parameters, model_parameters):
 
 def get_plot_dir(covid_parameters, model_parameters):
     filename = auxiliar_names(covid_parameters, model_parameters)
-    plot_dir = os.path.join(get_output_dir(), f"{filename + model_parameters.city_name[:-2]}")
+    plot_dir = os.path.join(get_output_dir(), f"{filename +'yes_constraints' + model_parameters.city_name[:-2]}")
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
     return plot_dir
 
 def get_plot_dir_no_constraints(covid_parameters, model_parameters):
     filename = auxiliar_names(covid_parameters, model_parameters)
-    plot_dir = os.path.join(get_output_dir(), f"{filename + '_no_constraints' + model_parameters.city_name[:-2]}")
+    plot_dir = os.path.join(get_output_dir(), f"{filename + 'no_constraints_' + model_parameters.city_name[:-2]}")
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
     return plot_dir
