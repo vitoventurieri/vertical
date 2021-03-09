@@ -75,35 +75,35 @@ def paralelized_function_no_constraints(chosen_city):
 
 if __name__ == '__main__':
 
-    # city_list = ['Porto Velho/RO',
-    #                 'Manaus/AM',
-    #                 'Rio Branco/AC',
-    #                 'Campo Grande/MS ',
-    #                 'Macapá/AP',
-    #                 'Brasília/DF',
-    #                 'Boa Vista/RR',
-    #                 'Cuiabá/MT',
-    #                 'Palmas/TO',
-    ##                 'São Paulo/SP',
-    #                 'Teresina/PI',
-    #                 'Rio de Janeiro/RJ',
-    #                 'Belém/PA',
-    #                 'Goiânia/GO',
-    #                 'Salvador/BA',
-    #                 'Florianópolis/SC',
-    #                 'São Luís/MA',
-    #                 'Maceió/AL',
-    #                 'Porto Alegre/RS ',
-    #                 'Curitiba/PR',
-    #                 'Belo Horizonte/MG',
-    #                 'Fortaleza/CE',
-    #                 'Recife/PE',
-    #                 'João Pessoa/PB',
-    #                 'Aracaju/SE',
-    #                 'Natal/RN',
-    #                 'Vitória/ES']
+    city_list = ['Porto Velho/RO',
+                    'Manaus/AM',
+                    'Rio Branco/AC',
+                    'Campo Grande/MS ',
+                    'Macapá/AP',
+                    'Brasília/DF',
+                    'Boa Vista/RR',
+                    'Cuiabá/MT',
+                    'Palmas/TO',
+                    'São Paulo/SP',
+                    'Teresina/PI',
+                    'Rio de Janeiro/RJ',
+                    'Belém/PA',
+                    'Goiânia/GO',
+                    'Salvador/BA',
+                    'Florianópolis/SC',
+                    'São Luís/MA',
+                    'Maceió/AL',
+                    'Porto Alegre/RS ',
+                    'Curitiba/PR',
+                    'Belo Horizonte/MG',
+                    'Fortaleza/CE',
+                    'Recife/PE',
+                    'João Pessoa/PB',
+                    'Aracaju/SE',
+                    'Natal/RN',
+                    'Vitória/ES']
 
-    city_list = ['São Paulo/SP']
+    # city_list = ['São Paulo/SP']
 
     proc_number = 4 #os.cpu_count()-
     print('Paralelized code, runing in ' + str(proc_number) + ' processors')
