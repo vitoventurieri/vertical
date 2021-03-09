@@ -297,7 +297,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
     cor = ['b', 'r', 'k', 'g', 'y', 'm']  # Line Colors
     ls = ['-.', '-']  # Line Style
 
-    filetype = '.pdf' #'.svg' # '.pdf'  # '.pdf' # '.png' # '.svg' #
+    filetype = '.svg'#'.pdf' #'.svg' # '.pdf'  # '.pdf' # '.png' # '.svg' #
 
     small_size = 12.0
     medium_size = 12.0
