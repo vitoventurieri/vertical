@@ -104,12 +104,12 @@ def bed_capacity_line(fig_number,capacity,name_variable,plot_type="total"):
 
 
 def format_box_plot():
-        lst_labels = ["Jovens (sem isolamento)",
-                    "Jovens (isol. vertical)",
-                    "Idosos (sem isolamento)",
-                    "Idosos (isol. vertical)",
-                    "Total (sem isolamento)",
-                    "Total (isol. vertical)"]
+        lst_labels = ["Jovens\n (sem isolamento)",
+                    "Jovens\n (isol. vertical)",
+                    "Idosos\n (sem isolamento)",
+                    "Idosos\n (isol. vertical)",
+                    "Total\n (sem isolamento)",
+                    "Total\n (isol. vertical)"]
         
         # adjust labels
         plt.subplots_adjust(left=0.25)
@@ -313,7 +313,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
     plt.rcParams["font.size"] = 12.0
     plt.style.use(lst_style[2])
     plt.rcParams["font.family"] = "Times New Roman"
-    plt.rc('figure', figsize=(8*0.9, 6*0.9))  # Figure Size
+    plt.rc('figure', figsize=(6, 4.5))  # Figure Size
 
     # Font Sizes
     plt.rc('font', size=small_size)  # controls default text sizes
