@@ -313,7 +313,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
     plt.rcParams["font.size"] = 12.0
     plt.style.use(lst_style[2])
     plt.rcParams["font.family"] = "Times New Roman"
-    plt.rc('figure', figsize=(8, 6))  # Figure Size
+    plt.rc('figure', figsize=(8*0.9, 6*0.9))  # Figure Size
 
     # Font Sizes
     plt.rc('font', size=small_size)  # controls default text sizes
@@ -564,7 +564,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
             #     plt.plot(dfcity_query.loc[:, 'obitosAcumulado'].values, color='goldenrod', label='Observed')
             #     plt.legend(loc='upper left')
             #
-            # plt.savefig(os.path.join(plot_dir, "Mey" + filename + filetype))           
+            # plt.savefig(os.path.join(plot_dir, "Mey" + filename + filetype))
 
             # BOXPLOT
             last_day_idx = -1
