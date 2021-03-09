@@ -45,7 +45,7 @@ def pos_format(title_fig, main_label_y, main_label_x):
     """
 
     plt.suptitle(title_fig)
-    plt.title(main_title)
+    plt.title(main_title, fontsize=8)
     plt.legend()
     plt.xlabel(main_label_x)
     plt.ylabel(main_label_y)
@@ -96,7 +96,7 @@ def bed_capacity_line(fig_number,capacity,name_variable,plot_type="total"):
                 plt.hlines(capacity,
                                 1,
                                 max(t_space),
-                                label=f'100% da capacidade COVID-19'
+                                label=f'100% bed capacity'
                                 , colors='k'
                                 , linestyles='dotted')
                 plt.legend(loc='right')
@@ -104,12 +104,12 @@ def bed_capacity_line(fig_number,capacity,name_variable,plot_type="total"):
 
 
 def format_box_plot():
-        lst_labels = ["Jovens (sem isolamento)",
-                    "Jovens (isol. vertical)",
-                    "Idosos (sem isolamento)",
-                    "Idosos (isol. vertical)",
-                    "Total (sem isolamento)",
-                    "Total (isol. vertical)"]
+        lst_labels = ["Young (without isolation)",
+                    "Young (elderly isolation)",
+                    "Elderly (without isolation)",
+                    "Elderly (elderly isolation)",
+                    "Total (without isolation)",
+                    "Total (elderly isolation)"]
         
         # adjust labels
         plt.subplots_adjust(left=0.25)
@@ -182,12 +182,12 @@ def plot_byage(Yi, Yj, name_variable,
                  Yi,
                  ls[i % 2],  # 0: dashed linestyle, 1: solid linestyle
                  color=cor[2 * i],
-                 label=('Idosos' + isolation_name[i]))
+                 label=('Elderly' + isolation_name[i]))
         plt.plot(t_space,
                  Yj,
                  ls[(i + 1) % 2],  # 0: dashed linestyle, 1: solid linestyle
                  color=cor[1 + 2 * i],
-                 label=('Jovens' + isolation_name[i]))
+                 label=('Young' + isolation_name[i]))
         complemento = isolation_name[i]
     else:  # CONFIDENCE INTERVAL
 
@@ -195,10 +195,10 @@ def plot_byage(Yi, Yj, name_variable,
         if fig_number < 10:  # plots separados
             complemento = ''
 
-        plot_median(Yi, cor[2 * i], ls[i % 2], 'Idosos' + complemento, t_space)
+        plot_median(Yi, cor[2 * i], ls[i % 2], 'Elderly' + complemento, t_space)
         plot_ci(Yi, cor[2 * i], t_space)
         
-        plot_median(Yj, cor[1 + 2 * i], ls[(i + 1) % 2], 'Jovens' + complemento, t_space)
+        plot_median(Yj, cor[1 + 2 * i], ls[(i + 1) % 2], 'Young' + complemento, t_space)
         plot_ci(Yj, cor[1 + 2 * i], t_space)
         
         plot_median(Yj + Yi, cor[3 + 2 * i], ls[(i + 1) % 2], 'Total' + complemento, t_space)
@@ -289,43 +289,37 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
     #  ["without_isolation", "elderly_isolation"]
     isolation_name = model_parameters.isolation_level
 
-    main_title = f'{city_name}, {runs} simulações'
+    main_title = f'{city_name}, {runs} runs'
 
-    main_label_x = 'Dias'
-    main_label_y = 'Pessoas infectadas'
+    main_label_x = 'Days'
+    main_label_y = 'Infected people'
 
     cor = ['b', 'r', 'k', 'g', 'y', 'm']  # Line Colors
     ls = ['-.', '-']  # Line Style
 
-    filetype = '.pdf' #'.svg' # '.pdf'  # '.pdf' # '.png' # '.svg' #
+    filetype = '.pdf'  # '.pdf' # '.png' # '.svg' #
 
-    small_size = 12.0
-    medium_size = 12.0
-    suptitle_size = 12.0
-    title_size = 12.0
+    # small_size = 10
+    # medium_size = 10
+    # suptitle_size = 11
+    # title_size = 8
 
-
+    # # Font Sizes
+    # plt.rc('font', size=small_size)  # controls default text sizes
+    # plt.rc('axes', titlesize=small_size)  # fontsize of the axes title
+    # plt.rc('axes', labelsize=medium_size)  # fontsize of the x and y labels
+    # plt.rc('xtick', labelsize=small_size)  # fontsize of the tick labels
+    # plt.rc('ytick', labelsize=small_size)  # fontsize of the tick labels
+    # plt.rc('legend', fontsize=small_size)  # legend fontsize
+    # plt.rc('figure', titlesize=title_size)  # fontsize of the figure title
     
-
+    # plt.rc('figure', figsize=(8, 6))  # Figure Size
 
     #print(plt.style.available)
     lst_style = ['ggplot','classic','seaborn-paper','bmh','fast']
-    plt.rcParams["font.size"] = 12.0
     plt.style.use(lst_style[2])
-    plt.rcParams["font.family"] = "Times New Roman"
-    plt.rc('figure', figsize=(8, 6))  # Figure Size
-
-    # Font Sizes
-    plt.rc('font', size=small_size)  # controls default text sizes
-    plt.rc('axes', titlesize=small_size)  # fontsize of the axes title
-    plt.rc('axes', labelsize=medium_size)  # fontsize of the x and y labels
-    plt.rc('xtick', labelsize=small_size)  # fontsize of the tick labels
-    plt.rc('ytick', labelsize=small_size)  # fontsize of the tick labels
-    plt.rc('legend', fontsize=small_size)  # legend fontsize
-    plt.rc('figure', titlesize=title_size)  # fontsize of the figure title
     
     plt.rc("legend", loc='upper right')  # 'best' # 'upper right' #
-
 
     print('Plotando resultados')
 
@@ -415,75 +409,75 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
             # 108 total (M)
             # 109 byage (M)
 
-            # # INFECTADOS TOTAL - DIFERENTES ISOLAMENTOS
-            # plot_total(Yi=Ii, Yj=Ij, name_variable='I',
-            #    title_fig='Infected people by different isolation degrees',
-            #    fig_number=100,
-            #    main_label_y=main_label_y,
-            #    isolation_degree_idx=isolation_degree_idx)
+            # INFECTADOS TOTAL - DIFERENTES ISOLAMENTOS
+            plot_total(Yi=Ii, Yj=Ij, name_variable='I',
+               title_fig='Infected people by different isolation degrees',
+               fig_number=100,
+               main_label_y=main_label_y,
+               isolation_degree_idx=isolation_degree_idx)
 
-            # # INFECTADOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
-            # plot_byage(Yi=Ii, Yj=Ij, name_variable='I',
-            #    title_fig='Infected by age group for different isolation degrees',
-            #    fig_number=101,
-            #    main_label_y=main_label_y,
-            #    isolation_degree_idx=isolation_degree_idx)
+            # INFECTADOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
+            plot_byage(Yi=Ii, Yj=Ij, name_variable='I',
+               title_fig='Infected by age group for different isolation degrees',
+               fig_number=101,
+               main_label_y=main_label_y,
+               isolation_degree_idx=isolation_degree_idx)
 
             # HOSPITALIZADOS WARD - TOTAL - DIFERENTES ISOLAMENTOS
             plot_total(Yi=Hi, Yj=Hj, name_variable='H',
-               title_fig='Demanda de leitos de enfermaria, por estratégia de isolamento',
+               title_fig='Ward hospitalized people by different isolation degrees',
                fig_number=102,
-               main_label_y='Demanda de leitos de enfermaria',
+               main_label_y='Bed demand',
                isolation_degree_idx=isolation_degree_idx)
             
             # HOSPITALIZADOS WARD - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
             plot_byage(Yi=Hi, Yj=Hj, name_variable='H',
-               title_fig='Demanda de leitos de enfermaria, por estratégia de isolamento e por grupo etário',
+               title_fig='Ward bed demand by age group for different isolation degrees',
                fig_number=103,
-               main_label_y='Demanda de leitos de enfermaria',
+               main_label_y='Ward bed demand',
                isolation_degree_idx=isolation_degree_idx)
 
             # HOSPITALIZADOS UTI - TOTAL - DIFERENTES ISOLAMENTOS
             plot_total(Yi=Ui, Yj=Uj, name_variable='U',
-               title_fig='Demanda de leitos de UTI, por estratégia de isolamento',
+               title_fig='ICU hospitalized people by different isolation degrees',
                fig_number=104,
-               main_label_y='Demanda de leitos de UTI',
+               main_label_y='Bed demand',
                isolation_degree_idx=isolation_degree_idx)
 
             # HOSPITALIZADOS UTI - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
             plot_byage(Yi=Ui, Yj=Uj, name_variable='U',
-               title_fig='Demanda de leitos de UTI, por estratégia de isolamento e por grupo etário',
+               title_fig='ICU bed demand by age group for different isolation degrees',
                fig_number=105,
-               main_label_y='Demanda de leitos de UTI',
+               main_label_y='ICU bed demand',
                isolation_degree_idx=isolation_degree_idx)
             
-            # # REMOVIDOS TOTAL - DIFERENTES ISOLAMENTOS
-            # plot_total(Yi=Ri, Yj=Rj, name_variable='R',
-            #    title_fig='Pesssoas removidas, por estratégia de isolamento',
-            #    fig_number=106,
-            #    main_label_y=main_label_y,
-            #    isolation_degree_idx=isolation_degree_idx)
+            # REMOVIDOS TOTAL - DIFERENTES ISOLAMENTOS
+            plot_total(Yi=Ri, Yj=Rj, name_variable='R',
+               title_fig='Removed people by different isolation degrees',
+               fig_number=106,
+               main_label_y=main_label_y,
+               isolation_degree_idx=isolation_degree_idx)
 
-            # # REMOVIDOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
-            # plot_byage(Yi=Ri, Yj=Rj, name_variable='R',
-            #    title_fig='Pesssoas removidas, por estratégia de isolamento e grupo etário',
-            #    fig_number=107,
-            #    main_label_y=main_label_y,
-            #    isolation_degree_idx=isolation_degree_idx)
+            # REMOVIDOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
+            plot_byage(Yi=Ri, Yj=Rj, name_variable='R',
+               title_fig='Removed by age group for different isolation degrees',
+               fig_number=107,
+               main_label_y=main_label_y,
+               isolation_degree_idx=isolation_degree_idx)
             
-            # # OBITOS TOTAL - DIFERENTES ISOLAMENTOS
-            # plot_total(Yi=Mi, Yj=Mj, name_variable='M',
-            #    title_fig='Pesssoas mortas pela COVID-19, por estratégia de isolamento',
-            #    fig_number=108,
-            #    main_label_y=main_label_y,
-            #    isolation_degree_idx=isolation_degree_idx)
+            # OBITOS TOTAL - DIFERENTES ISOLAMENTOS
+            plot_total(Yi=Mi, Yj=Mj, name_variable='M',
+               title_fig='Deceased people by different isolation degrees',
+               fig_number=108,
+               main_label_y=main_label_y,
+               isolation_degree_idx=isolation_degree_idx)
 
-            # # OBITOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
-            # plot_byage(Yi=Mi, Yj=Mj, name_variable='M',
-            #    title_fig='Pesssoas mortas pela COVID-19, por estratégia de isolamento e grupo etário',
-            #    fig_number=109,
-            #    main_label_y=main_label_y,
-            #    isolation_degree_idx=isolation_degree_idx)
+            # OBITOS - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
+            plot_byage(Yi=Mi, Yj=Mj, name_variable='M',
+               title_fig='Deceased by age group for different isolation degrees',
+               fig_number=109,
+               main_label_y=main_label_y,
+               isolation_degree_idx=isolation_degree_idx)
            
             # horizontal line for 100% capacity (total hospitalized plots)
             if isolation_degree_idx == 1:  # vertical (last iteration)
@@ -541,7 +535,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
                 plot_ci(Ui, cor[2], t_space)
                 plot_ci(Uj, cor[3], t_space)
             
-            ylabel = 'Demanda por letios'
+            ylabel = 'Bed demand'
             pos_format(title_fig=ylabel+isolation_name_i,
                         main_label_y=ylabel,
                         main_label_x=main_label_x)
@@ -588,15 +582,15 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
 
     plt.figure(1000)
     df_last_day.loc[:, df_last_day.columns.str.startswith('R')].boxplot(vert=False, showfliers=False)
-    plt.suptitle(f'Total de pessoas removidas (acumulado) até o dia {t_max}')
-    plt.title(main_title)
+    plt.suptitle(f'Removed people at day {t_max}')
+    plt.title(main_title, fontsize=8)
     format_box_plot()
     plt.savefig(os.path.join(plot_dir, "BoxPlot_R" + filetype))
     
     plt.figure(1001)
     df_last_day.loc[:, df_last_day.columns.str.startswith('M')].boxplot(vert=False, showfliers=False)
-    plt.suptitle(f'Total de mortes (acumulado) até o dia {t_max}')
-    plt.title(main_title)
+    plt.suptitle(f'Deacesed people at day {t_max}')
+    plt.title(main_title, fontsize=8)
     format_box_plot()
     plt.savefig(os.path.join(plot_dir, "BoxPlot_M" + filetype))
 
