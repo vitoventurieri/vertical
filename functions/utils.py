@@ -25,8 +25,8 @@ def auxiliar_names(covid_parameters, model_parameters):
     :return:
     """
 
-    time = ""#datetime.today()
-#    time = time.strftime('%Y%m%d%H%M')
+    time = datetime.today()
+    time = time.strftime('%Y%m%d%H%M')
 
     if model_parameters.IC_analysis == 2:  # SINGLE RUN
 
@@ -53,13 +53,6 @@ def auxiliar_names(covid_parameters, model_parameters):
 def get_plot_dir(covid_parameters, model_parameters):
     filename = auxiliar_names(covid_parameters, model_parameters)
     plot_dir = os.path.join(get_output_dir(), f"{filename + model_parameters.city_name[:-2]}")
-    if not os.path.exists(plot_dir):
-        os.makedirs(plot_dir)
-    return plot_dir
-
-def get_plot_dir_no_constraints(covid_parameters, model_parameters):
-    filename = auxiliar_names(covid_parameters, model_parameters)
-    plot_dir = os.path.join(get_output_dir(), f"{filename + '_no_constraints' + model_parameters.city_name[:-2]}")
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
     return plot_dir
