@@ -42,7 +42,7 @@ def auxiliar_names(covid_parameters, model_parameters):
                     + '__g' + ("%.1f" % gamma)[0] + '_' + ("%.1f" % gamma)[2]
                     )
     elif model_parameters.IC_analysis == 1:  # CONFIDENCE INTERVAL
-        filename = (time + '_confidence_interval')
+        filename = ""#(time + '_confidence_interval')
     elif model_parameters.IC_analysis == 3:  # SENSITIVITY_ANALYSIS
         filename = (time + '_sensitivity_analysis')
     else:  # Rt analysis
