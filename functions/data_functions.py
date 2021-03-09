@@ -141,7 +141,7 @@ def import_MS_cases():
         df_MS_CASES: dataframe
     """
     df_MS_CASES = pd.read_csv(os.path.join(get_root_dir(),
-                    'data', 'HIST_PAINEL_COVIDBR_04dez2020.zip'), sep=';', encoding = "ISO-8859-1")
+                    'data', 'HIST_PAINEL_COVIDBR_04dez2020.csv'), sep=';', encoding = "ISO-8859-1")
     # fix strings on datasets
     df_MS_CASES['ibge_code_trimmed'] = df_MS_CASES['codmun']#.map(fix_city_code)
     return df_MS_CASES
@@ -785,7 +785,7 @@ def get_input_data(analysis, fit_analysis, estimation,
         def __init__(self):
             # Social contact reduction factor (without, vertical, horizontal) isolation
             # niveis_isolamento
-            self.isolation_level=[" (without isolation)", " (elderly isolation)"]
+            self.isolation_level=[" (sem isolamento)", " (isolamento vertical)"]
             # Scenaries for health system colapse
             # self.lotation=(0.3, 0.5, 0.8, 1)  # 30, 50, 80, 100% capacity
             # self.contact_reduction_elderly = omega_i
