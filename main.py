@@ -3,8 +3,10 @@ import pandas as pd
 
 from functions.data_functions import get_input_data
 from functions.model_functions import run_SEIR_ODE_model
+from functions.model_functions_no_constraints import run_SEIR_ODE_model_no_constraints
 from functions.plot_functions import plots
-from functions.utils import get_plot_dir, export_excel
+from functions.utils import get_plot_dir, export_excel, get_plot_dir_no_constraints
+from multiprocessing import Pool
 
 
 ### FOR ARTICLE RESULTS USE: analysis = 'Confidence Interval'
@@ -14,64 +16,163 @@ from functions.utils import get_plot_dir, export_excel
 # initial_deaths_to_fit = ##any value as fit analisys is false
 # estimation = 'Sivep'
 
-# For article graphs for beds, remove the constraints on beds on model_functions, by commenting/uncommenting the lines for each scenario (Bed demand - WITH constraints or NO constraints)
 
+def paralelized_function(chosen_city):
+    analysis = 'Confidence Interval'  # 'Single Run'#'Rt'  # 'Sensitivity' #
+
+    # Confidence Interval for a lognormal distribution
+    # Single Run
+    # Sensitivity: r0 varies with 0.1 intervals
+    # Rt: adjust for basic reproduction number for a city over time
+
+    fit_analysis = False  # True
+    runs = 3
+    days_to_run = 250 #250
+    initial_deaths_to_fit = 1
+    city_name = chosen_city
+
+    estimation = 'Sivep'  # 'Verity'
+
+    covid_parameters, model_parameters, output_parameters = get_input_data(analysis,
+                                                                           fit_analysis, estimation, runs, days_to_run,
+                                                                           initial_deaths_to_fit, city_name)
+
+    results = run_SEIR_ODE_model(covid_parameters, model_parameters)
+
+    plot_dir = get_plot_dir(covid_parameters, model_parameters)
+
+    plots(results, covid_parameters, model_parameters, plot_dir)
+
+    #export_excel(results, output_parameters, covid_parameters, model_parameters, plot_dir)
+
+def paralelized_function_no_constraints(chosen_city):
+    analysis = 'Confidence Interval'  # 'Single Run'#'Rt'  # 'Sensitivity' #
+
+    # Confidence Interval for a lognormal distribution
+    # Single Run
+    # Sensitivity: r0 varies with 0.1 intervals
+    # Rt: adjust for basic reproduction number for a city over time
+
+    fit_analysis = False  # True
+    runs = 3
+    days_to_run = 250 #250
+    initial_deaths_to_fit = 1
+    city_name = chosen_city
+
+    estimation = 'Sivep'  # 'Verity'
+
+    covid_parameters, model_parameters, output_parameters = get_input_data(analysis,
+                                                                           fit_analysis, estimation, runs, days_to_run,
+                                                                           initial_deaths_to_fit, city_name)
+
+    results = run_SEIR_ODE_model(covid_parameters, model_parameters)
+
+    plot_dir = get_plot_dir_no_constraints(covid_parameters, model_parameters)
+
+    plots(results, covid_parameters, model_parameters, plot_dir)
+
+    #export_excel(results, output_parameters, covid_parameters, model_parameters, plot_dir)
 
 if __name__ == '__main__':
 
     city_list = ['Porto Velho/RO',
-                'Manaus/AM',
-                'Rio Branco/AC',
-                'Campo Grande/MS ',
-                'Macapá/AP',
-                'Brasília/DF',
-                'Boa Vista/RR',
-                'Cuiabá/MT',
-                'Palmas/TO',
-                'São Paulo/SP',
-                'Teresina/PI',
-                'Rio de Janeiro/RJ',
-                'Belém/PA',
-                'Goiânia/GO',
-                'Salvador/BA',
-                'Florianópolis/SC',
-                'São Luís/MA',
-                'Maceió/AL',
-                'Porto Alegre/RS ',
-                'Curitiba/PR',
-                'Belo Horizonte/MG',
-                'Fortaleza/CE',
-                'Recife/PE',
-                'João Pessoa/PB',
-                'Aracaju/SE',
-                'Natal/RN',
-                'Vitória/ES']
+                    'Manaus/AM',
+                    'Rio Branco/AC',
+                    'Campo Grande/MS ',
+                    'Macapá/AP',
+                    'Brasília/DF',
+                    'Boa Vista/RR',
+                    'Cuiabá/MT',
+                    'Palmas/TO',
+                    'São Paulo/SP',
+                    'Teresina/PI',
+                    'Rio de Janeiro/RJ',
+                    'Belém/PA',
+                    'Goiânia/GO',
+                    'Salvador/BA',
+                    'Florianópolis/SC',
+                    'São Luís/MA',
+                    'Maceió/AL',
+                    'Porto Alegre/RS ',
+                    'Curitiba/PR',
+                    'Belo Horizonte/MG',
+                    'Fortaleza/CE',
+                    'Recife/PE',
+                    'João Pessoa/PB',
+                    'Aracaju/SE',
+                    'Natal/RN',
+                    'Vitória/ES']
 
-    for chosen_city in city_list:
+    #city_list = ['Porto Velho/RO']
 
-        analysis ='Confidence Interval' #'Single Run'#'Rt'  # 'Sensitivity' #
+    proc_number = 4 #os.cpu_count()-
+    print('Paralelized code, runing in ' + str(proc_number) + ' processors')
 
-        # Confidence Interval for a lognormal distribution
-        # Single Run
-        # Sensitivity: r0 varies with 0.1 intervals
-        # Rt: adjust for basic reproduction number for a city over time
 
-        fit_analysis =  False #True
-        runs = 1000
-        days_to_run = 250
-        initial_deaths_to_fit = 1
-        city_name = chosen_city
+    with Pool(proc_number) as paral:
+        paral.map(paralelized_function, city_list)
 
-        estimation = 'Sivep'  # 'Verity'
+    with Pool(proc_number) as paral:
+        paral.map(paralelized_function_no_constraints, city_list)
 
-        covid_parameters, model_parameters, output_parameters = get_input_data(analysis,
-                fit_analysis, estimation, runs, days_to_run, initial_deaths_to_fit, city_name)
+    # For article graphs for beds, remove the constraints on beds on model_functions, by commenting/uncommenting the lines for each scenario (Bed demand - WITH constraints or NO constraints)
 
-        results = run_SEIR_ODE_model(covid_parameters, model_parameters)
+# if __name__ == '__main__':
+#
+#     city_list = ['Porto Velho/RO',
+#                 'Manaus/AM',
+#                 'Rio Branco/AC',
+#                 'Campo Grande/MS ',
+#                 'Macapá/AP',
+#                 'Brasília/DF',
+#                 'Boa Vista/RR',
+#                 'Cuiabá/MT',
+#                 'Palmas/TO',
+#                 'São Paulo/SP',
+#                 'Teresina/PI',
+#                 'Rio de Janeiro/RJ',
+#                 'Belém/PA',
+#                 'Goiânia/GO',
+#                 'Salvador/BA',
+#                 'Florianópolis/SC',
+#                 'São Luís/MA',
+#                 'Maceió/AL',
+#                 'Porto Alegre/RS ',
+#                 'Curitiba/PR',
+#                 'Belo Horizonte/MG',
+#                 'Fortaleza/CE',
+#                 'Recife/PE',
+#                 'João Pessoa/PB',
+#                 'Aracaju/SE',
+#                 'Natal/RN',
+#                 'Vitória/ES']
+#
+#     for chosen_city in city_list:
+#
+#         analysis ='Confidence Interval' #'Single Run'#'Rt'  # 'Sensitivity' #
+#
+#         # Confidence Interval for a lognormal distribution
+#         # Single Run
+#         # Sensitivity: r0 varies with 0.1 intervals
+#         # Rt: adjust for basic reproduction number for a city over time
+#
+#         fit_analysis =  False #True
+#         runs = 1000
+#         days_to_run = 250
+#         initial_deaths_to_fit = 1
+#         city_name = chosen_city
+#
+#         estimation = 'Sivep'  # 'Verity'
+#
+#         covid_parameters, model_parameters, output_parameters = get_input_data(analysis,
+#                 fit_analysis, estimation, runs, days_to_run, initial_deaths_to_fit, city_name)
+#
+#         results = run_SEIR_ODE_model(covid_parameters, model_parameters)
+#
+#         plot_dir = get_plot_dir(covid_parameters, model_parameters)
+#
+#         plots(results, covid_parameters, model_parameters, plot_dir)
+#
+#         export_excel(results, output_parameters, covid_parameters, model_parameters, plot_dir)
 
-        plot_dir = get_plot_dir(covid_parameters, model_parameters)
-
-        plots(results, covid_parameters, model_parameters, plot_dir)
-
-        export_excel(results, output_parameters, covid_parameters, model_parameters, plot_dir)
-
+#________________________________________________________
