@@ -141,7 +141,7 @@ def import_MS_cases():
         df_MS_CASES: dataframe
     """
     df_MS_CASES = pd.read_csv(os.path.join(get_root_dir(),
-                    'data', 'HIST_PAINEL_COVIDBR_04dez2020.csv'), sep=';', encoding = "ISO-8859-1")
+                    'data', 'HIST_PAINEL_COVIDBR_04dez2020.zip'), sep=';', encoding = "ISO-8859-1")
     # fix strings on datasets
     df_MS_CASES['ibge_code_trimmed'] = df_MS_CASES['codmun']#.map(fix_city_code)
     return df_MS_CASES
