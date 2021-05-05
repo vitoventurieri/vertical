@@ -14,6 +14,7 @@ This project aims to evaluate the efficacy of the vertical quarantine (eldely is
 
 # (Portugese)
 # Quarentena vertical 
+
 O proposito desse projeto e avaliar a eficácia da estrategia da quarentena vertical (isolamento dos idosos) na redução do contágio do SARS-CoV-2, bem como a demanda de leitos hospitalares e mortes causadas pela COVID-19, comparado com o cenário de não isolamento
 
 ## Setup para rodar os modelos
