@@ -316,12 +316,12 @@ def args_assignment(cp, mp, i, ii):
     proportion_of_icu_mortality_over_total_mortality_elderly = cp.icu_mortality_proportion_elderly
     proportion_of_icu_mortality_over_total_mortality_young = cp.icu_mortality_proportion_young
 
-    # tax_int_i = cp.internation_rate_ward_elderly
-    # tax_int_j = cp.internation_rate_ward_young
-    #
-    # tax_ICU_i = cp.internation_rate_icu_elderly
-    # tax_ICU_j = cp.internation_rate_icu_young
-
+    tax_int_i = 0.023000641 #cp.internation_rate_ward_elderly
+    tax_int_j = 0.002320259#cp.internation_rate_ward_young
+    
+    tax_ICU_i = 0.017752175#cp.internation_rate_icu_elderly
+    tax_ICU_j = 0.001039036#cp.internation_rate_icu_young
+    
     capacidade_UTIs = mp.bed_icu
     capacidade_Ward = mp.bed_ward
 
@@ -436,13 +436,13 @@ def derivSEIRHUM(SEIRHUM, t, N0, alpha, beta, gamma, delta,
     dpMi = 0
     dpMj = 0
 
-    const_dot_balanceWard = (-0.01) * (WARD_survive_i + WARD_survive_j
+    const_dot_balanceWard = (15639.5/capacidade_Ward)*(-0.01) * (WARD_survive_i + WARD_survive_j
                        + WARD_death_i + WARD_death_j
                        + WARD_discharged_ICU_survive_i
                        + WARD_discharged_ICU_survive_j
                        - capacidade_Ward)
 
-    const_dot_balanceICU = (-0.06) * (ICU_survive_i + ICU_survive_j
+    const_dot_balanceICU = (3404/capacidade_UTIs)*(-0.06) * (ICU_survive_i + ICU_survive_j
                        + ICU_death_i + ICU_death_j
                        - capacidade_UTIs)
 
