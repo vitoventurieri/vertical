@@ -96,7 +96,7 @@ def bed_capacity_line(fig_number,capacity,name_variable,plot_type="total"):
                 plt.hlines(capacity,
                                 1,
                                 max(t_space),
-                                label=f'100% bed capacity - COVID-19'
+                                label=f'100% da capacidade COVID-19'
                                 , colors='k'
                                 , linestyles='dotted')
                 plt.legend(loc='right')
@@ -104,12 +104,12 @@ def bed_capacity_line(fig_number,capacity,name_variable,plot_type="total"):
 
 
 def format_box_plot():
-        lst_labels = ["Young (without isolation)",
-                    "Young (elderly isolation)",
-                    "Elderly (without isolation)",
-                    "Elderly (elderly isolation)",
-                    "Total (without isolation)",
-                    "Total (elderly isolation)"]
+        lst_labels = ["Jovens (sem isolamento)",
+                    "Jovens (isol. vertical)",
+                    "Idosos (sem isolamento)",
+                    "Idosos (isol. vertical)",
+                    "Total (sem isolamento)",
+                    "Total (isol. vertical)"]
         
         # adjust labels
         plt.subplots_adjust(left=0.25)
@@ -182,12 +182,12 @@ def plot_byage(Yi, Yj, name_variable,
                  Yi,
                  ls[i % 2],  # 0: dashed linestyle, 1: solid linestyle
                  color=cor[2 * i],
-                 label=('Elderly' + isolation_name[i]))
+                 label=('Idosos' + isolation_name[i]))
         plt.plot(t_space,
                  Yj,
                  ls[(i + 1) % 2],  # 0: dashed linestyle, 1: solid linestyle
                  color=cor[1 + 2 * i],
-                 label=('Young' + isolation_name[i]))
+                 label=('Jovens' + isolation_name[i]))
         complemento = isolation_name[i]
     else:  # CONFIDENCE INTERVAL
 
@@ -195,10 +195,10 @@ def plot_byage(Yi, Yj, name_variable,
         if fig_number < 10:  # plots separados
             complemento = ''
 
-        plot_median(Yi, cor[2 * i], ls[i % 2], 'Elderly' + complemento, t_space)
+        plot_median(Yi, cor[2 * i], ls[i % 2], 'Idosos' + complemento, t_space)
         plot_ci(Yi, cor[2 * i], t_space)
         
-        plot_median(Yj, cor[1 + 2 * i], ls[(i + 1) % 2], 'Young' + complemento, t_space)
+        plot_median(Yj, cor[1 + 2 * i], ls[(i + 1) % 2], 'Jovens' + complemento, t_space)
         plot_ci(Yj, cor[1 + 2 * i], t_space)
         
         plot_median(Yj + Yi, cor[3 + 2 * i], ls[(i + 1) % 2], 'Total' + complemento, t_space)
@@ -289,10 +289,10 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
     #  ["without_isolation", "elderly_isolation"]
     isolation_name = model_parameters.isolation_level
 
-    main_title = f'{city_name}, {runs} runs'
+    main_title = f'{city_name}, {runs} simulações'
 
-    main_label_x = 'Days'
-    main_label_y = 'Infected people'
+    main_label_x = 'Dias'
+    main_label_y = 'Pessoas infectadas'
 
     cor = ['b', 'r', 'k', 'g', 'y', 'm']  # Line Colors
     ls = ['-.', '-']  # Line Style
@@ -431,30 +431,30 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
 
             # HOSPITALIZADOS WARD - TOTAL - DIFERENTES ISOLAMENTOS
             plot_total(Yi=Hi, Yj=Hj, name_variable='H',
-               title_fig='Ward hospitalized people by different isolation degrees',
+               title_fig='Demanda de leitos de enfermaria, por estratégia de isolamento',
                fig_number=102,
-               main_label_y='Ward bed demand',
+               main_label_y='Demanda de leitos de enfermaria',
                isolation_degree_idx=isolation_degree_idx)
             
             # HOSPITALIZADOS WARD - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
             plot_byage(Yi=Hi, Yj=Hj, name_variable='H',
-               title_fig='Ward bed demand by age group for different isolation degrees',
+               title_fig='Demanda de leitos de enfermaria, por estratégia de isolamento e por grupo etário',
                fig_number=103,
-               main_label_y='Ward bed demand',
+               main_label_y='Demanda de leitos de enfermaria',
                isolation_degree_idx=isolation_degree_idx)
 
             # HOSPITALIZADOS UTI - TOTAL - DIFERENTES ISOLAMENTOS
             plot_total(Yi=Ui, Yj=Uj, name_variable='U',
-               title_fig='ICU hospitalized people by different isolation degrees',
+               title_fig='Demanda de leitos de UTI, por estratégia de isolamento',
                fig_number=104,
-               main_label_y='ICU bed demand',
+               main_label_y='Demanda de leitos de UTI',
                isolation_degree_idx=isolation_degree_idx)
 
             # HOSPITALIZADOS UTI - IDOSOS E JOVENS - DIFERENTES ISOLAMENTOS
             plot_byage(Yi=Ui, Yj=Uj, name_variable='U',
-               title_fig='ICU bed demand by age group for different isolation degrees',
+               title_fig='Demanda de leitos de UTI, por estratégia de isolamento e por grupo etário',
                fig_number=105,
-               main_label_y='ICU bed demand',
+               main_label_y='Demanda de leitos de UTI',
                isolation_degree_idx=isolation_degree_idx)
             
             # # REMOVIDOS TOTAL - DIFERENTES ISOLAMENTOS
@@ -541,7 +541,7 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
                 plot_ci(Ui, cor[2], t_space)
                 plot_ci(Uj, cor[3], t_space)
             
-            ylabel = 'Bed demand'
+            ylabel = 'Demanda por letios'
             pos_format(title_fig=ylabel+isolation_name_i,
                         main_label_y=ylabel,
                         main_label_x=main_label_x)
@@ -588,14 +588,14 @@ def plots(results, covid_parameters, model_parameters, plot_dir_main):
 
     plt.figure(1000)
     df_last_day.loc[:, df_last_day.columns.str.startswith('R')].boxplot(vert=False, showfliers=False)
-    plt.suptitle(f'Removed people at day {t_max}')
+    plt.suptitle(f'Total de pessoas removidas (acumulado) até o dia {t_max}')
     plt.title(main_title)
     format_box_plot()
     plt.savefig(os.path.join(plot_dir, "BoxPlot_R" + filetype))
     
     plt.figure(1001)
     df_last_day.loc[:, df_last_day.columns.str.startswith('M')].boxplot(vert=False, showfliers=False)
-    plt.suptitle(f'Deacesed people at day {t_max}')
+    plt.suptitle(f'Total de mortes (acumulado) até o dia {t_max}')
     plt.title(main_title)
     format_box_plot()
     plt.savefig(os.path.join(plot_dir, "BoxPlot_M" + filetype))
