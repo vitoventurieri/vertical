@@ -785,7 +785,7 @@ def get_input_data(analysis, fit_analysis, estimation,
         def __init__(self):
             # Social contact reduction factor (without, vertical, horizontal) isolation
             # niveis_isolamento
-            self.isolation_level=[" (sem isolamento)", " (isolamento vertical)"]
+            self.isolation_level=[" (no isolation)", " (elderly isolation)"]
             # Scenaries for health system colapse
             # self.lotation=(0.3, 0.5, 0.8, 1)  # 30, 50, 80, 100% capacity
             # self.contact_reduction_elderly = omega_i
